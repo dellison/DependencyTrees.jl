@@ -1,0 +1,14 @@
+name = "DependencyTrees"
+uuid = "21f696ba-a282-11e8-1d21-d3ff1c50ab8f"
+authors = ["David Ellison <davidehellison@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+AbstractTrees = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
+LightGraphs = "093fc24a-ae57-5d10-9952-331d41423f4d"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
