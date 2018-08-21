@@ -17,8 +17,8 @@ _ni(f, dep) = error("$f not implemented for type $(typeof(t))!")
 deprel(node::Dependency) = _ni(deprel, node)
 form(node::Dependency) = _ni(form, node)
 head(node::Dependency) = _ni(head, node)
-isroot(node::Dependency) = _ni(isroot, node)
-root(node::Dependency) = _ni(root, node)
+isroot(node::Dependency) = _ni(isroot, node) # TODO remove?
+root(node::Dependency) = _ni(root, node)     # TODO remove?
 root(t::Type{Dependency}) = _ni(root, t)
 # end of Dependency API
 
@@ -55,24 +55,36 @@ import Base.==
 struct DependencyGraph{T<:DependencyToken} <: AbstractGraph{Int}
     graph::SimpleDiGraph
     tokens::Vector{T}
+    root::Int
 end
 
-function DependencyGraph(t::Type{<:Dependency}, tokens; add_root=true)
-    DependencyGraph([t(i, tk...) for (i,tk) in enumerate(tokens)], add_root=add_root)
+# ??
+function DependencyGraph(t::Type{<:Dependency}, tokens)
+    DependencyGraph([t(i, tk...) for (i,tk) in enumerate(tokens)])
 end
 
-function DependencyGraph(tokens::Vector{<:DependencyToken}; add_root=true)
-    add_root && (tokens = [root(eltype(tokens)) ; tokens])
+function DependencyGraph(tokens::Vector{<:DependencyToken})
+    local rt
     graph = SimpleDiGraph(length(tokens))
     for dep in tokens
         isroot(dep) && continue
-        add_edge!(graph, id(dep), head(dep))
+        i, h = id(dep), head(dep)
+        add_edge!(graph, h, i) # arrows point from head to dependdent
+        iszero(h) && (rt = i)
     end
-    return DependencyGraph(graph, tokens)
+    return DependencyGraph(graph, tokens, rt)
 end
 
+dependents(g::DependencyGraph, id::Int) = outneighbors(g.graph, id)
+deprel(g::DependencyGraph, id::Int) = deprel(g[id])
+form(g::DependencyGraph, id::Int) = form(g[id])
+head(g::DependencyGraph, id::Int) = head(g[id])
+
 ==(g1::DependencyGraph, g2::DependencyGraph) = all(g1.tokens .== g2.tokens)
-Base.getindex(g::DependencyGraph, i) = g.tokens[i]
+Base.eltype(g::DependencyGraph) = eltype(g.tokens)
+Base.getindex(g::DependencyGraph, i) = i == 0 ? root(eltype(g)) : g.tokens[i]
 Base.length(g::DependencyGraph) = length(g.tokens)
+
+Base.iterate(g::DependencyGraph, state=1) = iterate(g.tokens, state)
 
 end # module

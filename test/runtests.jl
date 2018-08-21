@@ -1,8 +1,7 @@
 using DependencyTrees, Test
+using DependencyTrees: deprel, form, id, head, root, isroot
 
 @testset "Tokens" begin
-
-    using DependencyTrees: deprel, form, id, head, root, isroot
 
     @testset "Untyped Dependencies" begin
         r = root(UntypedDependency)
@@ -49,6 +48,8 @@ end
 
 @testset "Graphs" begin
 
+    using DependencyTrees: dependents
+
     sent = [
         ("Economic", "ATT", 2),
         ("news", "SBJ", 3),
@@ -60,14 +61,18 @@ end
         ("markets", "PC", 6),
         (".", "PU", 3),
     ]
-    deps = [LabeledDependency(id, tok...) for (id, tok) in enumerate(sent)]
 
-    graph = DependencyGraph(deps, add_root=true)
-    graph_noroot = DependencyGraph(deps, add_root=false)
+    graph = DependencyGraph(LabeledDependency, sent)
 
-    @test length(graph) == 10
-    @test length(graph_noroot) == 9
-
+    @test length(graph) == length(sent) == 9
+    @test isroot(graph[0])
+    for (i, (word, tag, id_)) in enumerate(sent)
+        @test i == id(graph[i])
+        sent_deps = filter(x -> x[3] == i, sent)
+        deps_ = dependents(graph, i)
+        @test length(deps_) == length(sent_deps)
+        @test Set(form(graph, id) for id in deps_) == Set([d[1] for d in sent_deps])
+    end
 
     sent = [
         ("Pierre", "NNP", 2),
@@ -89,14 +94,16 @@ end
         ("29", "CD", 16),
         (".", ".", 8)
     ]
-    deps = [LabeledDependency(id, tok...) for (id, tok) in enumerate(sent)]
 
-    graph = DependencyGraph(deps, add_root=true)
-    @test DependencyTrees.isroot(graph[1])
+    graph = DependencyGraph(LabeledDependency, sent)
 
-    graph_noroot = DependencyGraph(deps, add_root=false)
-    @test !DependencyTrees.isroot(graph_noroot[1])
-
-    @test length(graph) == 19
-    @test length(graph_noroot) == 18
+    @test length(graph) == length(sent) == 18
+    @test isroot(graph[0])
+    for (i, token) in enumerate(sent)
+        @test i == id(graph[i])
+        sent_deps = filter(x -> x[3] == i, sent)
+        deps_ = dependents(graph, i)
+        @test length(deps_) == length(sent_deps)
+        @test Set(form(graph, id) for id in deps_) == Set([d[1] for d in sent_deps])
+    end
 end
