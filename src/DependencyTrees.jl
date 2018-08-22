@@ -52,11 +52,20 @@ import Base.==
 ==(d1::DependencyToken, d2::DependencyToken) =
     d1.id == d2.id && d1.form == d2.form && d1.data == d2.data && d1.head == d2.head
 
+
 struct DependencyGraph{T<:DependencyToken} <: AbstractGraph{Int}
     graph::SimpleDiGraph
     tokens::Vector{T}
     root::Int
+
+    function DependencyGraph(graph, tokens, root)
+        g = new{eltype(tokens)}(graph, tokens, root)
+        check_depgraph(g)
+        return g
+    end
 end
+
+include("errors.jl")
 
 # ??
 function DependencyGraph(t::Type{<:Dependency}, tokens)
@@ -64,18 +73,38 @@ function DependencyGraph(t::Type{<:Dependency}, tokens)
 end
 
 function DependencyGraph(tokens::Vector{<:DependencyToken})
-    local rt
+    rt = 0
     graph = SimpleDiGraph(length(tokens))
     for dep in tokens
         isroot(dep) && continue
         i, h = id(dep), head(dep)
-        add_edge!(graph, h, i) # arrows point from head to dependdent
         iszero(h) && (rt = i)
+        add_edge!(graph, h, i) # arrows point from head to dependent
     end
     return DependencyGraph(graph, tokens, rt)
 end
 
-dependents(g::DependencyGraph, id::Int) = outneighbors(g.graph, id)
+function check_depgraph(g::DependencyGraph)
+    iszero(g.root) && throw(RootlessGraphError(g))
+    count(t -> iszero(head(t)), g.tokens) > 1 && throw(MultipleRootsError(g))
+    if !is_weakly_connected(g.graph)
+        throw(GraphConnectivityError(g, "dep graphs must be weakly connected"))
+    end
+    for i = 1:length(g)
+        n_inc = length(inneighbors(g.graph, i))
+        if n_inc == 0 && head(g, i) == 0
+            # root node and its dependency on predicate are
+            # represented implicitly, so 0 is expected here
+            continue
+        elseif n_inc != 1
+            msg  = "node $i should have exactly 1 incoming connection (has $n_inc)"
+            throw(GraphConnectivityError(g, msg))
+        end
+    end
+    return nothing
+end
+
+dependents(g::DependencyGraph, id::Int) = iszero(id) ? [g.root] : outneighbors(g.graph, id)
 deprel(g::DependencyGraph, id::Int) = deprel(g[id])
 form(g::DependencyGraph, id::Int) = form(g[id])
 head(g::DependencyGraph, id::Int) = head(g[id])

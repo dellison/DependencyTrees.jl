@@ -20,10 +20,6 @@ using DependencyTrees: deprel, form, id, head, root, isroot
             @test !isroot(dep)
             @test head(dep) == token[2]
         end
-
-        g1 = DependencyGraph([UntypedDependency(i, t...) for (i, t) in enumerate(sent)])
-        g2 = DependencyGraph(UntypedDependency, sent)
-        @test g1 == g2
     end
 
     @testset "Labeled Dependencies" begin
@@ -106,4 +102,16 @@ end
         @test length(deps_) == length(sent_deps)
         @test Set(form(graph, id) for id in deps_) == Set([d[1] for d in sent_deps])
     end
+
+    @testset "Errors" begin
+
+        using DependencyTrees: GraphConnectivityError, RootlessGraphError, MultipleRootsError
+
+        noroot = [("no", 2), ("root", 1)]
+        @test_throws RootlessGraphError DependencyGraph(UntypedDependency, noroot)
+
+        tworoots = [("two", 0), ("roots", 0)]
+        @test_throws MultipleRootsError DependencyGraph(UntypedDependency, tworoots)
+    end
+
 end
