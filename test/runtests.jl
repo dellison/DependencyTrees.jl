@@ -44,7 +44,7 @@ end
 
 @testset "Graphs" begin
 
-    using DependencyTrees: dependents
+    using DependencyTrees: dependents, isprojective
 
     sent = [
         ("Economic", "ATT", 2),
@@ -69,6 +69,7 @@ end
         @test length(deps_) == length(sent_deps)
         @test Set(form(graph, id) for id in deps_) == Set([d[1] for d in sent_deps])
     end
+    @test isprojective(graph)
 
     sent = [
         ("Pierre", "NNP", 2),
@@ -101,6 +102,44 @@ end
         deps_ = dependents(graph, i)
         @test length(deps_) == length(sent_deps)
         @test Set(form(graph, id) for id in deps_) == Set([d[1] for d in sent_deps])
+    end
+    @test isprojective(graph)
+
+    @testset "Projectivity" begin
+
+        # mcdonald & pereira 2005
+        # https://www.seas.upenn.edu/~strctlrn/bib/PDF/nonprojectiveHLT-EMNLP2005.pdf
+        sent = [
+            ("john", 2),      # 1
+            ("saw", 0),       # 2
+            ("a", 4),         # 3
+            ("dog", 2),       # 4
+            ("yesterday", 2), # 5
+            ("which", 7),     # 6
+            ("was", 4),       # 7
+            ("a", 9),         # 8
+            ("yorkshire", 10),# 9
+            ("terrier", 7)    # 10
+        ]
+        graph = DependencyGraph(UntypedDependency, sent)
+        @test !isprojective(graph)
+
+        # jurafsky & martin, speech & language processing (3ed)
+        sent = [
+            ("jetblue", "nsubj", 2), # 1
+            ("canceled", "root", 0), # 2
+            ("our", "det", 4),       # 3
+            ("flight", "dobj", 2),   # 4
+            ("this", "det", 2),      # 5
+            ("morning", "nmod", 7),  # 6
+            ("which", "case", 4),    # 7
+            ("was", "mod", 9),       # 8
+            ("already", "adv", 10),  # 9
+            ("late", "mod", 7)       # 10
+        ]
+
+        graph = DependencyGraph(LabeledDependency, sent)
+        @test !isprojective(graph)
     end
 
     @testset "Errors" begin

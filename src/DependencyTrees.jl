@@ -104,6 +104,20 @@ function check_depgraph(g::DependencyGraph)
     return nothing
 end
 
+function isprojective(g::DependencyGraph, head::Int, dep::Int)
+    mn, mx = min(head, dep), max(head, dep)
+    for k in min(head, dep):max(head, dep)
+        !has_path(g.graph, head, k) && return false
+    end
+    return true
+end
+
+function isprojective(g::DependencyGraph)
+    # For every arc (i,l,j) there is a directed path from i to every
+    # word k such that min(i,j) < k < max(i,j)
+    return all([isprojective(g, src(edge), dst(edge)) for edge in edges(g.graph)])
+end
+
 dependents(g::DependencyGraph, id::Int) = iszero(id) ? [g.root] : outneighbors(g.graph, id)
 deprel(g::DependencyGraph, id::Int) = deprel(g[id])
 form(g::DependencyGraph, id::Int) = form(g[id])
