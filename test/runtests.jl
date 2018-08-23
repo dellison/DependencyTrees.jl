@@ -22,9 +22,10 @@ using DependencyTrees: deprel, form, id, head, root, isroot
         end
     end
 
-    @testset "Labeled Dependencies" begin
-        r = root(LabeledDependency)
+    @testset "Typed Dependencies" begin
+        r = root(TypedDependency{String})
         @test isroot(r)
+        @test isroot(root(TypedDependency))
         sent = [
             ("The", "DT", 2),
             ("cat", "NN", 3),
@@ -32,7 +33,7 @@ using DependencyTrees: deprel, form, id, head, root, isroot
             (".", ".", 3)
         ]
         for (i, token) in enumerate(sent)
-            dep = LabeledDependency(i, token...)
+            dep = TypedDependency(i, token...)
             @test form(dep) == token[1]
             @test deprel(dep) == token[2]
             @test head(dep) == token[3]
@@ -58,7 +59,7 @@ end
         (".", "PU", 3),
     ]
 
-    graph = DependencyGraph(LabeledDependency, sent)
+    graph = DependencyGraph(TypedDependency, sent)
 
     @test length(graph) == length(sent) == 9
     @test isroot(graph[0])
@@ -92,7 +93,7 @@ end
         (".", ".", 8)
     ]
 
-    graph = DependencyGraph(LabeledDependency, sent)
+    graph = DependencyGraph(TypedDependency, sent)
 
     @test length(graph) == length(sent) == 18
     @test isroot(graph[0])
@@ -138,7 +139,7 @@ end
             ("late", "mod", 7)       # 10
         ]
 
-        graph = DependencyGraph(LabeledDependency, sent)
+        graph = DependencyGraph(TypedDependency, sent)
         @test !isprojective(graph)
     end
 

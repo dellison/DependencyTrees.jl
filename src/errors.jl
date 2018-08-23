@@ -1,14 +1,14 @@
 abstract type DependencyTreeError <: Exception end
 
 struct GraphConnectivityError <: DependencyTreeError
-    g::DependencyGraph
+    g
     msg::String
 end
 
 struct RootlessGraphError <: DependencyTreeError
-    g::DependencyGraph
+    g
 end
 
 struct MultipleRootsError <: DependencyTreeError
-    g::DependencyGraph
+    g
 end
