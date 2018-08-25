@@ -8,7 +8,8 @@ abstract type Dependency end
 _ni(f, dep) = error("$f not implemented for type $(typeof(dep))!")
 
 # Dependency API:
-dep(node::Dependency, args...; head=0) = _ni(dep, node)
+dep(node::Dependency, args...; head=0, kwargs...) = _ni(dep, node)
+depargs(node::Dependency) = _ni(depargs, node)
 deprel(node::Dependency) = _ni(deprel, node)
 form(node::Dependency) = _ni(form, node)
 head(node::Dependency) = _ni(head, node)
@@ -32,6 +33,7 @@ end
 
 dep(d::UntypedDependency; head=head(d)) =
     UntypedDependency(d.id, d.form, head)
+goldargs(::Type{UntypedDependency}) = x::UntypedDependency -> ()
 
 id(d::UntypedDependency) = d.id
 deprel(d::UntypedDependency) = nothing
@@ -63,8 +65,8 @@ struct TypedDependency{T} <: Dependency
     head::Int
 end
 
-dep(d::TypedDependency, deprel; head=head(d)) =
-    TypedDependency(d.id, d.form, deprel, head)
+dep(d::TypedDependency, deprel; head=head(d)) = TypedDependency(d.id, d.form, deprel, head)
+goldargs(::Type{<:TypedDependency}) = x::TypedDependency -> (deprel(x),)
 
 id(d::TypedDependency) = d.id
 deprel(d::TypedDependency) = d.deprel
@@ -72,7 +74,7 @@ form(d::TypedDependency) = d.form
 head(d::TypedDependency) = d.head
 isroot(d::TypedDependency) = (d.form == ROOT && d.id == 0)
 root(::Type{<:TypedDependency}) = TypedDependency(0, ROOT, ROOT, 0)
-unk(::Type{TypedDependency}, id, word) = TypedDependency(id, word, missing, -1)
+unk(::Type{TypedDependency}, id, word) = TypedDependency(id, word, undef, -1)
 
 import Base.==
 ==(d1::TypedDependency, d2::TypedDependency) =

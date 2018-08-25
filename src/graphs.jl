@@ -69,8 +69,10 @@ end
 dependents(g::DependencyGraph, id::Int) = iszero(id) ? [g.root] : outneighbors(g.graph, id)
 deprel(g::DependencyGraph, id::Int) = deprel(g[id])
 form(g::DependencyGraph, id::Int) = form(g[id])
+has_dependency(g::DependencyGraph, h::Int, d::Int) = head(g[d]) == h
 head(g::DependencyGraph, id::Int) = head(g[id])
 root(g::DependencyGraph) = g[0]
+token(g::DependencyGraph, id) = g[id]
 
 import Base.==
 ==(g1::DependencyGraph, g2::DependencyGraph) = all(g1.tokens .== g2.tokens)
