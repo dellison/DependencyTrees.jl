@@ -3,14 +3,25 @@ struct DependencyGraph{T<:Dependency} <: AbstractGraph{Int}
     tokens::Vector{T}
     root::Int
 
-    function DependencyGraph(graph, tokens, root)
+    function DependencyGraph(graph, tokens, root, check=true)
         g = new{eltype(tokens)}(graph, tokens, root)
-        check_depgraph(g)
+        check && check_depgraph(g)
         return g
     end
 end
 
-# ??
+"""
+    DependencyGraph(t::Type{<:Dependency}, tokens)
+
+Create a DependencyGraph for dependencies of type t with
+nodes `tokens`.
+
+```julia
+DependencyGraph(UntypedDependency, [(\"the\", 2),(\"cat\",3),(\"slept\",0)])
+
+DependencyGraph(TypedDependency, [(\"the\", \"DT\", 2),(\"cat\",\"NN\",3),(\"slept\",\"VBD\",0)])
+```
+"""
 function DependencyGraph(t::Type{<:Dependency}, tokens)
     DependencyGraph([t(i, tk...) for (i,tk) in enumerate(tokens)])
 end
@@ -30,19 +41,13 @@ end
 function check_depgraph(g::DependencyGraph)
     iszero(g.root) && throw(RootlessGraphError(g))
     count(t -> iszero(head(t)), g.tokens) > 1 && throw(MultipleRootsError(g))
-    if !is_weakly_connected(g.graph)
-        throw(GraphConnectivityError(g, "dep graphs must be weakly connected"))
-    end
+    !is_weakly_connected(g.graph) && throw(GraphConnectivityError(g, "dep graphs must be weakly connected"))
     for i = 1:length(g)
         n_inc = length(inneighbors(g.graph, i))
-        if n_inc == 0 && head(g, i) == 0
-            # root node and its dependency on predicate are
-            # represented implicitly, so 0 is expected here
-            continue
-        elseif n_inc != 1
-            msg  = "node $i should have exactly 1 incoming connection (has $n_inc)"
-            throw(GraphConnectivityError(g, msg))
-        end
+        # root node and its dependency on predicate are
+        # represented implicitly, so 0 is expected here
+        n_inc == 0 && head(g, i) == 0 ? continue :
+        n_inc != 1 && throw(GraphConnectivityError(g, "node $i should have exactly 1 incoming connection (has $n_inc)"))
     end
     return nothing
 end
