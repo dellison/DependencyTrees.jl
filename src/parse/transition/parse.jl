@@ -1,5 +1,4 @@
-abstract type TransitionParser # <: Parser
-end
+#  TransitionParser
 
 """
     TransitionParserConfiguration

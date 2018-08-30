@@ -53,4 +53,33 @@ function Base.reduce(state::ArcEagerConfig)
 end
 
 isfinal(state::ArcEagerConfig) =
-    length(state.stack) == 1 && state.stack[1] == 0 && length(state.word_buffer) == 0
+    all(r -> head(r) >= 0, state.relations)
+
+# TODO: should oracle be config -> config or have another return type?
+"""
+    static_oracle(::ArcEagerConfig, graph)
+
+Return an oracle function which predicts the best possible transition
+from a parser configuration.
+"""
+function static_oracle(::Type{ArcEagerConfig}, graph::DependencyGraph)
+    T = eltype(graph)
+    argsfun = goldargs(T)
+    function (config::ArcEagerConfig)
+        if length(config.stack) >= 1 && length(config.word_buffer) >= 1
+            s, b = config.stack[end], config.word_buffer[1]
+            if head(graph, s) == b # (s <-- b)
+                return leftarc(config, argsfun(graph[s])...)
+            elseif head(graph, b) == s # (s --> b)
+                return rightarc(config, argsfun(graph[b])...)
+            elseif all(w -> w != 0 && head(config.relations[w]) != -1, [s ; dependents(graph, s)])
+                return reduce(config)
+            end
+        end
+        return shift(config)
+    end
+end
+
+import Base.==
+==(cfg1::ArcEagerConfig, cfg2::ArcEagerConfig) =
+    cfg1.stack == cfg2.stack && cfg1.word_buffer == cfg2.word_buffer && cfg1.relations == cfg2.relations

@@ -3,9 +3,9 @@ struct DependencyGraph{T<:Dependency} <: AbstractGraph{Int}
     tokens::Vector{T}
     root::Int
 
-    function DependencyGraph(graph, tokens, root, check=true)
+    function DependencyGraph(graph, tokens, root; check=true, kwargs...)
         g = new{eltype(tokens)}(graph, tokens, root)
-        check && check_depgraph(g)
+        check && check_depgraph(g; kwargs...)
         return g
     end
 end
@@ -22,11 +22,11 @@ DependencyGraph(UntypedDependency, [(\"the\", 2),(\"cat\",3),(\"slept\",0)])
 DependencyGraph(TypedDependency, [(\"the\", \"DT\", 2),(\"cat\",\"NN\",3),(\"slept\",\"VBD\",0)])
 ```
 """
-function DependencyGraph(t::Type{<:Dependency}, tokens)
-    DependencyGraph([t(i, tk...) for (i,tk) in enumerate(tokens)])
+function DependencyGraph(t::Type{<:Dependency}, tokens; kwargs...)
+    DependencyGraph([t(i, tk...) for (i,tk) in enumerate(tokens)]; kwargs...)
 end
 
-function DependencyGraph(tokens::Vector{<:Dependency})
+function DependencyGraph(tokens::Vector{<:Dependency}; kwargs...)
     rt = 0
     graph = SimpleDiGraph(length(tokens))
     for dep in tokens
@@ -35,13 +35,24 @@ function DependencyGraph(tokens::Vector{<:Dependency})
         iszero(h) && (rt = i)
         add_edge!(graph, h, i) # arrows point from head to dependent
     end
-    return DependencyGraph(graph, tokens, rt)
+    return DependencyGraph(graph, tokens, rt; kwargs...)
 end
 
-function check_depgraph(g::DependencyGraph)
-    iszero(g.root) && throw(RootlessGraphError(g))
-    count(t -> iszero(head(t)), g.tokens) > 1 && throw(MultipleRootsError(g))
-    !is_weakly_connected(g.graph) && throw(GraphConnectivityError(g, "dep graphs must be weakly connected"))
+"""
+    check_depgraph(g, 
+"""
+function check_depgraph(g::DependencyGraph; check_single_head=true, check_has_root=true,
+                        check_projective=false)
+    check_has_root && iszero(g.root) && throw(RootlessGraphError(g))
+    if check_single_head
+        if count(t -> iszero(head(t)), g.tokens) > 1
+            throw(MultipleRootsError(g))
+        end
+        if !is_weakly_connected(g.graph)
+            throw(GraphConnectivityError(g, "dep graphs must be weakly connected"))
+        end
+    end
+    check_projective && !isprojective(g) && throw(NonProjectiveGraphError(g))
     for i = 1:length(g)
         n_inc = length(inneighbors(g.graph, i))
         # root node and its dependency on predicate are
