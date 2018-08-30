@@ -5,6 +5,10 @@ struct GraphConnectivityError <: DependencyTreeError
     msg::String
 end
 
+struct NonProjectiveGraphError <: DependencyTreeError
+    g
+end
+
 struct RootlessGraphError <: DependencyTreeError
     g
 end

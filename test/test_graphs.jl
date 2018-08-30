@@ -103,13 +103,27 @@ using DependencyTrees: dependents, isprojective
 
     @testset "Errors" begin
 
-        using DependencyTrees: GraphConnectivityError, RootlessGraphError, MultipleRootsError
+        using DependencyTrees: GraphConnectivityError, RootlessGraphError, MultipleRootsError, NonProjectiveGraphError
 
         noroot = [("no", 2), ("root", 1)]
         @test_throws RootlessGraphError DependencyGraph(UntypedDependency, noroot)
 
         tworoots = [("two", 0), ("roots", 0)]
         @test_throws MultipleRootsError DependencyGraph(UntypedDependency, tworoots)
+
+        sent = [
+            ("john", 2),      # 1
+            ("saw", 0),       # 2
+            ("a", 4),         # 3
+            ("dog", 2),       # 4
+            ("yesterday", 2), # 5
+            ("which", 7),     # 6
+            ("was", 4),       # 7
+            ("a", 9),         # 8
+            ("yorkshire", 10),# 9
+            ("terrier", 7)    # 10
+        ]
+        @test_throws NonProjectiveGraphError DependencyGraph(UntypedDependency, sent, check_projective=true)
     end
 
 end
