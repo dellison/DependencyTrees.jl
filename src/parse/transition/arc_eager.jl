@@ -1,86 +1,88 @@
 """
-    ArcEagerConfig{T<:Dependency}(words)
+    ArcEager{T<:Dependency}
 
 Parser configuration for arc-eager transition-based dependency
 parsing.
 """
-struct ArcEagerConfig{T} <: TransitionParserConfiguration{T}
-    stack::Vector{Int}
-    word_buffer::Vector{Int}
-    relations::Vector{T}
+struct ArcEager{T} <: TransitionParserConfiguration{T}
+    "The stack."
+    σ::Vector{Int}
+    "The word/input buffer."
+    β::Vector{Int}
+    "The list of arcs."
+    A::Vector{T}
 end
 
-function ArcEagerConfig{T}(words) where T
-    stack = [0]
-    word_buffer = collect(1:length(words))
-    relations = [unk(T, id, w) for (id,w) in enumerate(words)]
-    ArcEagerConfig{T}(stack, word_buffer, relations)
+function ArcEager{T}(words) where T
+    σ = [0]
+    β = collect(1:length(words))
+    A = [unk(T, id, w) for (id,w) in enumerate(words)]
+    ArcEager{T}(σ, β, A)
 end
 
-function leftarc(state::ArcEagerConfig, args...; kwargs...)
+function leftarc(state::ArcEager, args...; kwargs...)
     # Assert a head-dependent relation between the word at the front
     # of the input buffer and the word at the top of the stack; pop
     # the stack.
-    head, dependent = state.word_buffer[1], state.stack[end]
-    relations = copy(state.relations)
-    if dependent > 0
-        relations[dependent] = dep(relations[dependent], head=head, args...; kwargs...)
+    h, d = state.β[1], state.σ[end]
+    A = copy(state.A)
+    if d > 0
+        A[d] = dep(A[d], args...; head=h, kwargs...)
     end
-    ArcEagerConfig(state.stack[1:end-1], state.word_buffer, relations)
+    ArcEager(state.σ[1:end-1], state.β, A)
 end
 
-function rightarc(state::ArcEagerConfig, args...; kwargs...)
+function rightarc(state::ArcEager, args...; kwargs...)
     # Assert a head-dependent relation between the word on the top of
-    # the stack and the word at front of the input buffer; shift the
+    # the σ and the word at front of the input buffer; shift the
     # word at the front of the input buffer to the stack.
-    head, dependent = state.stack[end], state.word_buffer[1]
-    relations = copy(state.relations)
-    relations[dependent] = dep(relations[dependent], head=head, args...; kwargs...)
-    buf = state.word_buffer
-    ArcEagerConfig([state.stack ; buf[1]], buf[2:end], relations)
+    h, d= state.σ[end], state.β[1]
+    A = copy(state.A)
+    A[d] = dep(A[d], args...; head=h, kwargs...)
+    β = state.β
+    ArcEager([state.σ ; β[1]], β[2:end], A)
 end
 
-function shift(state::ArcEagerConfig)
+function shift(state::ArcEager)
     # Remove the word from the front of the input buffer and push it
     # onto the stack.
-    buf = state.word_buffer
-    ArcEagerConfig([state.stack ; buf[1]], buf[2:end], state.relations)
+    buf = state.β
+    ArcEager([state.σ ; buf[1]], buf[2:end], state.A)
 end
 
-function Base.reduce(state::ArcEagerConfig)
+function Base.reduce(state::ArcEager)
     # Pop the stack.
-    ArcEagerConfig(state.stack[1:end-1], state.word_buffer, state.relations)
+    ArcEager(state.σ[1:end-1], state.β, state.A)
 end
 
-isfinal(state::ArcEagerConfig) =
-    all(r -> head(r) >= 0, state.relations)
+isfinal(state::ArcEager) =
+    all(r -> head(r) >= 0, state.A)
 
 """
-    static_oracle(::ArcEagerConfig, graph)
+    static_oracle(::ArcEager, graph)
 
-Return an oracle function which predicts the best possible transition
-from a parser configuration. See 
+Return a training oracle function which returns gold transition
+operations from a parser configuration with reference to `graph`.
 """
-function static_oracle(::Type{ArcEagerConfig}, graph::DependencyGraph)
+function static_oracle(::Type{ArcEager}, graph::DependencyGraph)
     T = eltype(graph)
     g = depargs(T)
     arc(i) = g(graph[i])
-    function (cfg::ArcEagerConfig)
-        if length(cfg.stack) >= 1 && length(cfg.word_buffer) >= 1
-            s, b = cfg.stack[end], cfg.word_buffer[1]
+    function (cfg::ArcEager)
+        if length(cfg.σ) >= 1 && length(cfg.β) >= 1
+            s, b = cfg.σ[end], cfg.β[1]
             if head(graph, s) == b # (s <-- b)
                 return LeftArc(arc(s)...)
             elseif head(graph, b) == s # (s --> b)
                 return RightArc(arc(b)...)
-            elseif all(w -> w != 0 && head(cfg.relations[w]) != -1, [s ; dependents(graph, s)])
+            elseif all(w -> w != 0 && head(cfg.A[w]) != -1, [s ; dependents(graph, s)])
                 return Reduce()
             end
         end
-        # return shift(cfg)
         return Shift()
     end
 end
 
 import Base.==
-==(cfg1::ArcEagerConfig, cfg2::ArcEagerConfig) =
-    cfg1.stack == cfg2.stack && cfg1.word_buffer == cfg2.word_buffer && cfg1.relations == cfg2.relations
+==(cfg1::ArcEager, cfg2::ArcEager) =
+    cfg1.σ == cfg2.σ && cfg1.β == cfg2.β && cfg1.A == cfg2.A

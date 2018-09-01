@@ -1,6 +1,6 @@
 using DependencyTrees, Test
 
-using DependencyTrees: ArcEagerConfig, shift, leftarc, rightarc
+using DependencyTrees: ArcEager, shift, leftarc, rightarc
 
 # tests from nivre 08 "algorithms for deterministic incremental
 # dependency parsing"
@@ -9,14 +9,14 @@ using DependencyTrees: ArcEagerConfig, shift, leftarc, rightarc
 
     # multi-headed czech sentence from universal dependencies treebank
     # ("Only one of them concerns quality.")
-    figure_1_sent = [("Z", "AuxP", 5),   # out-of
-                     ("nich", "Atr", 1), # them
-                     ("je", "Pred", 0),  # is
-                     ("jen", "AuxZ", 5), # only
-                     ("jedna", "Sb", 3), # one-FEM-SG
-                     ("na", "AuxP", 3),  # to
-                     ("kvalitu", "Adv", 6),    # quality
-                     (".", "AuxK", 0)]   # .
+    figure_1_sent = [("Z", "AuxP", 5),      # out-of
+                     ("nich", "Atr", 1),    # them
+                     ("je", "Pred", 0),     # is
+                     ("jen", "AuxZ", 5),    # only
+                     ("jedna", "Sb", 3),    # one-FEM-SG
+                     ("na", "AuxP", 3),     # to
+                     ("kvalitu", "Adv", 6), # quality
+                     (".", "AuxK", 0)]      # .
 
     figure_2_sent = [
         ("Economic", "NMOD", 2),
@@ -33,9 +33,9 @@ using DependencyTrees: ArcEagerConfig, shift, leftarc, rightarc
     @testset "Figure 6" begin
         graph = DependencyGraph(TypedDependency, figure_2_sent)
 
-        config = ArcEagerConfig{TypedDependency}(first.(figure_2_sent))
-        @test config.stack == [0]
-        @test config.word_buffer == 1:9
+        config = ArcEager{TypedDependency}(first.(figure_2_sent))
+        @test config.σ == [0]
+        @test config.β == 1:9
         config = shift(config)
         config = leftarc(config, "NMOD")
         config = shift(config)
@@ -54,8 +54,8 @@ using DependencyTrees: ArcEagerConfig, shift, leftarc, rightarc
         config = rightarc(config, "P")
         @test isfinal(config)
 
-        oracle = DependencyTrees.static_oracle(ArcEagerConfig, graph)
-        config = ArcEagerConfig{TypedDependency}(first.(figure_2_sent))
+        oracle = DependencyTrees.static_oracle(ArcEager, graph)
+        config = ArcEager{TypedDependency}(first.(figure_2_sent))
         for t in [Shift(),
                   LeftArc("NMOD"),
                   Shift(),
@@ -75,7 +75,7 @@ using DependencyTrees: ArcEagerConfig, shift, leftarc, rightarc
             @test oracle(config) == t
             config = t(config)
         end
-        graph2 = DependencyGraph(config.relations)
+        graph2 = DependencyGraph(config.A)
         @test graph == graph2
     end
 

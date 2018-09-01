@@ -1,71 +1,77 @@
 """
-    ArcStandardConfig{T<:Dependency}(words)
+    ArcStandard{T<:Dependency}(words)
 
 Parser configuration for arc-standard transition-based dependency
 parsing.
 """
-struct ArcStandardConfig{T<:Dependency} <: TransitionParserConfiguration{T}
-    stack::Vector{Int}
-    word_buffer::Vector{Int}
-    relations::Vector{T}
+struct ArcStandard{T<:Dependency} <: TransitionParserConfiguration{T}
+    σ::Vector{Int}
+    β::Vector{Int}
+    A::Vector{T}
 end
 
-function ArcStandardConfig{T}(words) where T
-    stack = [0]
-    word_buffer = collect(1:length(words))
-    relations = [unk(T, id, w) for (id,w) in enumerate(words)]
-    ArcStandardConfig{T}(stack, word_buffer, relations)
+function ArcStandard{T}(words) where T
+    σ = [0]
+    β = collect(1:length(words))
+    A = [unk(T, id, w) for (id,w) in enumerate(words)]
+    ArcStandard{T}(σ, β, A)
 end
 
 # transition operations: leftarc, rightarc, shift
 
-function leftarc(state::ArcStandardConfig, args...; kwargs...)
+function leftarc(state::ArcStandard, args...; kwargs...)
     # assert a head-dependent relation between the word at the top of
     # the stack and the word directly beneath it; remove the lower
     # word from the stack
-    @assert length(state.stack) >= 2
-    stack = state.stack
-    head, dependent = stack[end], stack[end-1]
-    stack = [stack[1:end-2] ; [head]]
-    relations = copy(state.relations)
-    relations[dependent] = dep(relations[dependent], args...; head=head, kwargs...)
-    ArcStandardConfig(stack, state.word_buffer, relations)
+    @assert length(state.σ) >= 2
+    stack = state.σ
+    h, d= stack[end], stack[end-1]
+    stack = [stack[1:end-2] ; [h]]
+    A = copy(state.A)
+    A[d] = dep(A[d], args...; head=h, kwargs...)
+    ArcStandard(stack, state.β, A)
 end
 
-function rightarc(state::ArcStandardConfig, args...; kwargs...)
+function rightarc(state::ArcStandard, args...; kwargs...)
     # assert a head-dependent relation btwn the 2nd word on the stack
     # and the word on top; remove the word at the top of the stack
-    @assert length(state.stack) >= 2
-    dependent, head = state.stack[end], state.stack[end-1]
-    stack = [state.stack[1:end-2] ; [head]]
-    relations = copy(state.relations)
-    relations[dependent] = dep(relations[dependent], args...; head=head, kwargs...)
-    ArcStandardConfig(stack, state.word_buffer, relations)
+    @assert length(state.σ) >= 2
+    d, h = state.σ[end], state.σ[end-1]
+    stack = [state.σ[1:end-2] ; [h]]
+    A = copy(state.A)
+    A[d] = dep(A[d], args...; head=h, kwargs...)
+    ArcStandard(stack, state.β, A)
 end
 
-function shift(state::ArcStandardConfig)
+function shift(state::ArcStandard)
     # remove the word from the front of the input buffer and push it
     # onto the stack
-    @assert length(state.word_buffer) >= 1
-    word = state.word_buffer[1]
-    word_buffer = state.word_buffer[2:end]
-    ArcStandardConfig([state.stack ; word], word_buffer, state.relations)
+    @assert length(state.β) >= 1
+    word = state.β[1]
+    β = state.β[2:end]
+    ArcStandard([state.σ ; word], β, state.A)
 end
 
-isfinal(state::ArcStandardConfig) =
-    length(state.stack) == 1 && state.stack[1] == 0 && length(state.word_buffer) == 0
+isfinal(state::ArcStandard) =
+    length(state.σ) == 1 && state.σ[1] == 0 && length(state.β) == 0
 
-function static_oracle(::Type{ArcStandardConfig}, graph::DependencyGraph)
+"""
+    static_oracle(::ArcStandard, graph)
+
+Return a training oracle function which returns gold transition
+operations from a parser configuration with reference to `graph`.
+"""
+function static_oracle(::Type{ArcStandard}, graph::DependencyGraph)
     T = eltype(graph)
     g = depargs(T)
     arc(i) = g(graph[i])
-    function (cfg::ArcStandardConfig)
-        if length(cfg.stack) >= 2
-            s2, s1 = cfg.stack[end-1], cfg.stack[end]
-            if has_dependency(graph, s1, s2) # (s2 <-- s1)
+    function (cfg::ArcStandard)
+        if length(cfg.σ) >= 2
+            s2, s1 = cfg.σ[end-1], cfg.σ[end]
+            if head(graph[s2]) == s1 # (s2 <-- s1)
                 return LeftArc(arc(s2)...)
-            elseif has_dependency(graph, s2, s1) # (s2 --> s1)
-                if all([!(dp in cfg.stack || dp in cfg.word_buffer)
+            elseif head(graph[s1]) == s2 # (s2 --> s1)
+                if all([!(dp in cfg.σ || dp in cfg.β)
                         for dp in dependents(graph, s1)])
                     return RightArc(arc(s1)...)
                 end
@@ -76,5 +82,5 @@ function static_oracle(::Type{ArcStandardConfig}, graph::DependencyGraph)
 end
 
 import Base.==
-==(cfg1::ArcStandardConfig, cfg2::ArcStandardConfig) =
-    cfg1.stack == cfg2.stack && cfg1.word_buffer == cfg2.word_buffer && cfg1.relations == cfg2.relations
+==(cfg1::ArcStandard, cfg2::ArcStandard) =
+    cfg1.σ == cfg2.σ && cfg1.β == cfg2.β && cfg1.A == cfg2.A

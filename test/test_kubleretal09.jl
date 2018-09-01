@@ -1,6 +1,6 @@
 using DependencyTrees, Test
 
-using DependencyTrees: ArcEagerConfig, shift, leftarc, rightarc
+using DependencyTrees: ArcEager, shift, leftarc, rightarc
 
 # tests from sandra kubler, ryan mcdonald, joakim nivre 09 "dependency
 # parsing" (https://doi.org/10.2200/S00169ED1V01Y200901HLT002)
@@ -29,10 +29,10 @@ using DependencyTrees: ArcEagerConfig, shift, leftarc, rightarc
 
         graph = DependencyGraph(TypedDependency, fig_1_1)
 
-        oracle = DependencyTrees.static_oracle(ArcEagerConfig, graph)
+        oracle = DependencyTrees.static_oracle(ArcEager, graph)
 
-        config = ArcEagerConfig{TypedDependency}(sent)
-        @test config.stack == [0] && config.word_buffer == 1:9
+        config = ArcEager{TypedDependency}(sent)
+        @test config.σ == [0] && config.β == 1:9
 
         config = shift(config)
         config = leftarc(config, "ATT")
@@ -52,7 +52,7 @@ using DependencyTrees: ArcEagerConfig, shift, leftarc, rightarc
         config = rightarc(config, "PU")
         @test isfinal(config)
 
-        config = ArcEagerConfig{TypedDependency}(sent)
+        config = ArcEager{TypedDependency}(sent)
         oracle_configs = [config]
         for t in [Shift()
                   LeftArc("ATT")
@@ -73,7 +73,7 @@ using DependencyTrees: ArcEagerConfig, shift, leftarc, rightarc
             @test oracle(config) == t
             config = t(config)
         end
-        graph2 = DependencyGraph(config.relations)
+        graph2 = DependencyGraph(config.A)
         @test graph == graph2
     end
 end
