@@ -2,7 +2,7 @@ using DependencyTrees, Test
 
 using DependencyTrees: ArcStandardConfig, leftarc, rightarc, shift, isfinal
 using DependencyTrees: LeftArc, RightArc, Reduce, Shift
-using DependencyTrees: training_oracle
+using DependencyTrees: static_oracle
 
 @testset "ArcStandard" begin
 
@@ -20,7 +20,7 @@ using DependencyTrees: training_oracle
         hasdep(state, head, dep) = state.relations[word2id[dep]].head == word2id[head]
 
         gold_graph = DependencyGraph(UntypedDependency, [("book",0),("me",1),("my",5),("morning",5),("flight",1)])
-        oracle = training_oracle(ArcStandardConfig, gold_graph)
+        oracle = static_oracle(ArcStandardConfig, gold_graph)
 
         # step 0
         state = ArcStandardConfig{UntypedDependency}(sent)
@@ -133,7 +133,7 @@ using DependencyTrees: training_oracle
     @testset "Typed" begin
 
         gold_graph = DependencyGraph(TypedDependency, [("book","pred",0),("me","indobj",1),("my","dt",5),("morning","adv",5),("flight","dobj",1)])
-        oracle = training_oracle(ArcStandardConfig, gold_graph)
+        oracle = static_oracle(ArcStandardConfig, gold_graph)
 
         # head --> dep
         hasdeprel(state, head, deprel, dep) =
