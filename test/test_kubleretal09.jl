@@ -54,9 +54,24 @@ using DependencyTrees: ArcEagerConfig, shift, leftarc, rightarc
 
         config = ArcEagerConfig{TypedDependency}(sent)
         oracle_configs = [config]
-        while !isfinal(config)
-            config = oracle(config)
-            push!(oracle_configs, config)
+        for t in [Shift()
+                  LeftArc("ATT")
+                  Shift()
+                  LeftArc("SBJ")
+                  RightArc("PRED")
+                  Shift()
+                  LeftArc("ATT")
+                  RightArc("OBJ")
+                  RightArc("ATT")
+                  Shift()
+                  LeftArc("ATT")
+                  RightArc("PC")
+                  Reduce()
+                  Reduce()
+                  Reduce()
+                  RightArc("PU")]
+            @test oracle(config) == t
+            config = t(config)
         end
         graph2 = DependencyGraph(config.relations)
         @test graph == graph2

@@ -20,7 +20,7 @@ using DependencyTrees: ArcEagerConfig, shift, leftarc, rightarc
 
     figure_2_sent = [
         ("Economic", "NMOD", 2),
-        ("news", "SBJ", 3),
+        ("news", "SUBJ", 3),
         ("had", "ROOT", 0),
         ("little", "NMOD", 5),
         ("effect", "OBJ", 3),
@@ -56,8 +56,24 @@ using DependencyTrees: ArcEagerConfig, shift, leftarc, rightarc
 
         oracle = DependencyTrees.static_oracle(ArcEagerConfig, graph)
         config = ArcEagerConfig{TypedDependency}(first.(figure_2_sent))
-        while !isfinal(config)
-            config = oracle(config)
+        for t in [Shift(),
+                  LeftArc("NMOD"),
+                  Shift(),
+                  LeftArc("SUBJ"),
+                  RightArc("ROOT"),
+                  Shift(),
+                  LeftArc("NMOD"),
+                  RightArc("OBJ"),
+                  RightArc("NMOD"),
+                  Shift(),
+                  LeftArc("NMOD"),
+                  RightArc("PMOD"),
+                  Reduce(),
+                  Reduce(),
+                  Reduce(),
+                  RightArc("P")]
+            @test oracle(config) == t
+            config = t(config)
         end
         graph2 = DependencyGraph(config.relations)
         @test graph == graph2

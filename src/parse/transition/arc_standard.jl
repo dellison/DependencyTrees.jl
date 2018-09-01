@@ -27,7 +27,7 @@ function leftarc(state::ArcStandardConfig, args...; kwargs...)
     stack = state.stack
     head, dependent = stack[end], stack[end-1]
     stack = [stack[1:end-2] ; [head]]
-    relations = state.relations
+    relations = copy(state.relations)
     relations[dependent] = dep(relations[dependent], args...; head=head, kwargs...)
     ArcStandardConfig(stack, state.word_buffer, relations)
 end
@@ -38,7 +38,7 @@ function rightarc(state::ArcStandardConfig, args...; kwargs...)
     @assert length(state.stack) >= 2
     dependent, head = state.stack[end], state.stack[end-1]
     stack = [state.stack[1:end-2] ; [head]]
-    relations = state.relations
+    relations = copy(state.relations)
     relations[dependent] = dep(relations[dependent], args...; head=head, kwargs...)
     ArcStandardConfig(stack, state.word_buffer, relations)
 end
@@ -55,23 +55,23 @@ end
 isfinal(state::ArcStandardConfig) =
     length(state.stack) == 1 && state.stack[1] == 0 && length(state.word_buffer) == 0
 
-# TODO: should oracle be config -> config or have another return type?
-function training_oracle(::Type{ArcStandardConfig}, graph::DependencyGraph)
+function static_oracle(::Type{ArcStandardConfig}, graph::DependencyGraph)
     T = eltype(graph)
-    argsfun = goldargs(T)
-    function (config)
-        if length(config.stack) >= 2
-            second, top = config.stack[end-1], config.stack[end]
-            if has_dependency(graph, top, second) # (second <-- top)
-                return leftarc(config, argsfun(graph[second])...)
-            elseif has_dependency(graph, second, top) # (second --> top)
-                if all([!(dp in config.stack || dp in config.word_buffer)
-                        for dp in dependents(graph, top)])
-                    return rightarc(config, argsfun(graph[top])...)
+    g = depargs(T)
+    arc(i) = g(graph[i])
+    function (cfg::ArcStandardConfig)
+        if length(cfg.stack) >= 2
+            s2, s1 = cfg.stack[end-1], cfg.stack[end]
+            if has_dependency(graph, s1, s2) # (s2 <-- s1)
+                return LeftArc(arc(s2)...)
+            elseif has_dependency(graph, s2, s1) # (s2 --> s1)
+                if all([!(dp in cfg.stack || dp in cfg.word_buffer)
+                        for dp in dependents(graph, s1)])
+                    return RightArc(arc(s1)...)
                 end
             end
         end
-        return shift(config)
+        return Shift()
     end
 end
 

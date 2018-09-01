@@ -1,4 +1,5 @@
-"""    Dependency
+"""
+    Dependency
 
 Abstract type defining a dependency relation between
 two words in a sentence.
@@ -31,9 +32,9 @@ struct UntypedDependency <: Dependency
     head::Int
 end
 
-dep(d::UntypedDependency; head=head(d)) =
+dep(d::UntypedDependency, _args...; head=head(d)) =
     UntypedDependency(d.id, d.form, head)
-goldargs(::Type{UntypedDependency}) = x::UntypedDependency -> ()
+depargs(::Type{UntypedDependency}) = x::UntypedDependency -> ()
 
 id(d::UntypedDependency) = d.id
 deprel(d::UntypedDependency) = nothing
@@ -66,7 +67,7 @@ struct TypedDependency{T} <: Dependency
 end
 
 dep(d::TypedDependency, deprel; head=head(d)) = TypedDependency(d.id, d.form, deprel, head)
-goldargs(::Type{<:TypedDependency}) = x::TypedDependency -> (deprel(x),)
+depargs(::Type{<:TypedDependency}) = x::TypedDependency -> (deprel(x),)
 
 id(d::TypedDependency) = d.id
 deprel(d::TypedDependency) = d.deprel

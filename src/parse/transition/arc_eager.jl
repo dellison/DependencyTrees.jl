@@ -22,7 +22,7 @@ function leftarc(state::ArcEagerConfig, args...; kwargs...)
     # of the input buffer and the word at the top of the stack; pop
     # the stack.
     head, dependent = state.word_buffer[1], state.stack[end]
-    relations = state.relations
+    relations = copy(state.relations)
     if dependent > 0
         relations[dependent] = dep(relations[dependent], head=head, args...; kwargs...)
     end
@@ -34,7 +34,7 @@ function rightarc(state::ArcEagerConfig, args...; kwargs...)
     # the stack and the word at front of the input buffer; shift the
     # word at the front of the input buffer to the stack.
     head, dependent = state.stack[end], state.word_buffer[1]
-    relations = state.relations
+    relations = copy(state.relations)
     relations[dependent] = dep(relations[dependent], head=head, args...; kwargs...)
     buf = state.word_buffer
     ArcEagerConfig([state.stack ; buf[1]], buf[2:end], relations)
@@ -55,28 +55,29 @@ end
 isfinal(state::ArcEagerConfig) =
     all(r -> head(r) >= 0, state.relations)
 
-# TODO: should oracle be config -> config or have another return type?
 """
     static_oracle(::ArcEagerConfig, graph)
 
 Return an oracle function which predicts the best possible transition
-from a parser configuration.
+from a parser configuration. See 
 """
 function static_oracle(::Type{ArcEagerConfig}, graph::DependencyGraph)
     T = eltype(graph)
-    argsfun = goldargs(T)
-    function (config::ArcEagerConfig)
-        if length(config.stack) >= 1 && length(config.word_buffer) >= 1
-            s, b = config.stack[end], config.word_buffer[1]
+    g = depargs(T)
+    arc(i) = g(graph[i])
+    function (cfg::ArcEagerConfig)
+        if length(cfg.stack) >= 1 && length(cfg.word_buffer) >= 1
+            s, b = cfg.stack[end], cfg.word_buffer[1]
             if head(graph, s) == b # (s <-- b)
-                return leftarc(config, argsfun(graph[s])...)
+                return LeftArc(arc(s)...)
             elseif head(graph, b) == s # (s --> b)
-                return rightarc(config, argsfun(graph[b])...)
-            elseif all(w -> w != 0 && head(config.relations[w]) != -1, [s ; dependents(graph, s)])
-                return reduce(config)
+                return RightArc(arc(b)...)
+            elseif all(w -> w != 0 && head(cfg.relations[w]) != -1, [s ; dependents(graph, s)])
+                return Reduce()
             end
         end
-        return shift(config)
+        # return shift(cfg)
+        return Shift()
     end
 end
 
