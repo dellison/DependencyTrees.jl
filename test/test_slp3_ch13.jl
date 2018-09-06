@@ -26,7 +26,7 @@ using DependencyTrees: static_oracle
 
             gold_graph = DependencyGraph(UntypedDependency, [("book",0),
                                                              ("me",1),
-                                                             ("my",5),
+                                                             ("the",5),
                                                              ("morning",5),
                                                              ("flight",1)])
             oracle = static_oracle(ArcStandard, gold_graph)
@@ -137,11 +137,14 @@ using DependencyTrees: static_oracle
             @test words(state.σ) == ["root"]
             @test words(state.β) == []
             @test isfinal(state)
+
+            graph = DependencyTrees.parse(ArcStandard{UntypedDependency}, sent, oracle)
+            @test graph == gold_graph
         end
 
         @testset "Typed" begin
 
-            gold_graph = DependencyGraph(TypedDependency, [("book","pred",0),("me","indobj",1),("my","dt",5),("morning","adv",5),("flight","dobj",1)])
+            gold_graph = DependencyGraph(TypedDependency, [("book","pred",0),("me","indobj",1),("the","dt",5),("morning","adv",5),("flight","dobj",1)])
             oracle = static_oracle(ArcStandard, gold_graph)
 
             # head --> dep
@@ -254,12 +257,16 @@ using DependencyTrees: static_oracle
             @test words(state.σ) == ["root"]
             @test words(state.β) == []
             @test isfinal(state)
+
+            graph = DependencyTrees.parse(ArcStandard{TypedDependency}, sent, oracle)
+            @test graph == gold_graph
+
         end
     end
 
     @testset "ArcEager" begin
 
-        # figure 13.7 in jurafsky & martin SLP 3rd ed., aug 2018 draft
+        # figure 13.8 in jurafsky & martin SLP 3rd ed., aug 2018 draft
         sent = ["book", "the", "flight", "through", "houston"]
 
         word2id = Dict(word => id for (id, word) in enumerate(sent))
@@ -270,6 +277,13 @@ using DependencyTrees: static_oracle
         @testset "Untyped" begin
 
             using DependencyTrees: ArcEager, leftarc, rightarc, shift, reduce, isfinal
+
+            gold_graph = DependencyGraph([UntypedDependency(i, t...)
+                                          for (i, t) in enumerate([("book", 0),
+                                                                   ("the", 3),
+                                                                   ("flight", 1),
+                                                                   ("through", 5),
+                                                                   ("houston", 3)])])
 
             # head --> dep
             hasdep(state, head, dep) = state.A[word2id[dep]].head == word2id[head]
@@ -335,6 +349,11 @@ using DependencyTrees: static_oracle
             @test words(state.σ) == ["root"]
             @test words(state.β) == []
             @test isfinal(state)
+
+            oracle = DependencyTrees.static_oracle(ArcEager, gold_graph)
+            graph = DependencyTrees.parse(ArcEager{UntypedDependency}, sent, oracle)
+            @test graph == gold_graph
+
         end
 
         @testset "Typed" begin
@@ -345,6 +364,13 @@ using DependencyTrees: static_oracle
             hasdeprel(state, head, deprel, dep) =
                 state.A[word2id[dep]].head == word2id[head] && state.A[word2id[dep]].deprel == deprel
 
+            gold_graph = DependencyGraph([TypedDependency(i, t...)
+                                          for (i, t) in enumerate([("book", "root", 0),
+                                                                   ("the", "det", 3),
+                                                                   ("flight", "dobj", 1),
+                                                                   ("through", "case", 5),
+                                                                   ("houston", "nmod", 3)])])
+            
             # step 0
             state = ArcEager{TypedDependency}(sent)
             @test words(state.σ) == ["root"]
@@ -420,6 +446,10 @@ using DependencyTrees: static_oracle
             @test words(state.σ) == ["root"]
             @test words(state.β) == []
             @test isfinal(state)
+
+            oracle = DependencyTrees.static_oracle(ArcEager, gold_graph)
+            graph = DependencyTrees.parse(ArcEager{TypedDependency}, sent, oracle)
+            @test graph == gold_graph
         end
     end
 

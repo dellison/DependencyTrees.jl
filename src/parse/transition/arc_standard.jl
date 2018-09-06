@@ -17,6 +17,8 @@ function ArcStandard{T}(words) where T
     ArcStandard{T}(σ, β, A)
 end
 
+arcs(cfg::ArcStandard) = cfg.A
+
 # transition operations: leftarc, rightarc, shift
 
 function leftarc(state::ArcStandard, args...; kwargs...)

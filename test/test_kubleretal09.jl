@@ -75,5 +75,8 @@ using DependencyTrees: ArcEager, shift, leftarc, rightarc
         end
         graph2 = DependencyGraph(config.A)
         @test graph == graph2
+
+        graph3 = DependencyTrees.parse(ArcEager{TypedDependency}, sent, oracle)
+        @test graph3 == graph2
     end
 end

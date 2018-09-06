@@ -33,6 +33,7 @@ using DependencyTrees: ArcEager, shift, leftarc, rightarc
     @testset "Figure 6" begin
         graph = DependencyGraph(TypedDependency, figure_2_sent)
 
+        words = first.(figure_2_sent)
         config = ArcEager{TypedDependency}(first.(figure_2_sent))
         @test config.σ == [0]
         @test config.β == 1:9
@@ -77,6 +78,9 @@ using DependencyTrees: ArcEager, shift, leftarc, rightarc
         end
         graph2 = DependencyGraph(config.A)
         @test graph == graph2
+
+        graph3 = DependencyTrees.parse(ArcEager{TypedDependency}, words, oracle)
+        @test graph2 == graph3
     end
 
     @testset "Figure 8" begin

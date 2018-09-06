@@ -20,6 +20,8 @@ function ArcEager{T}(words) where T
     ArcEager{T}(σ, β, A)
 end
 
+arcs(cfg::ArcEager) = cfg.A
+
 function leftarc(state::ArcEager, args...; kwargs...)
     # Assert a head-dependent relation between the word at the front
     # of the input buffer and the word at the top of the stack; pop
