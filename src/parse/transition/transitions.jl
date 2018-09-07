@@ -15,6 +15,15 @@ import Base.==
     args(op1) == args(op2) && kwargs(op1) == kwargs(op2)
 
 """
+    NoArc()
+
+A NoArc transition operation.
+"""
+struct NoArc <: TransitionOperator end
+(::NoArc)(config) = noarc(config)
+
+
+"""
     Reduce()
 
 A Reduce transition operation.

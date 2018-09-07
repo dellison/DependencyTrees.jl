@@ -85,9 +85,48 @@ using DependencyTrees: ArcEager, shift, leftarc, rightarc
 
     @testset "Figure 8" begin
 
-        using DependencyTrees: MultipleRootsError
+        using DependencyTrees: MultipleRootsError, ListBasedNonProjective
+        using DependencyTrees: NoArc
+        using DependencyTrees: isfinal
 
         @test_throws MultipleRootsError DependencyGraph(TypedDependency, figure_1_sent)
         graph = DependencyGraph(TypedDependency, figure_1_sent; check_single_head=false)
+        words = form.(graph)
+
+        cfg = ListBasedNonProjective{TypedDependency}(words)
+        for t in [Shift(),
+                  RightArc("Atr"),
+                  Shift(),
+                  NoArc(),
+                  NoArc(),
+                  RightArc("Pred"),
+                  Shift(),
+                  Shift(),
+                  LeftArc("AuxZ"),
+                  RightArc("Sb"),
+                  NoArc(),
+                  LeftArc("AuxP"),
+                  Shift(),
+                  NoArc(),
+                  NoArc(),
+                  RightArc("AuxP"),
+                  Shift(),
+                  RightArc("Adv"),
+                  Shift(),
+                  NoArc(),
+                  NoArc(),
+                  NoArc(),
+                  NoArc(),
+                  NoArc(),
+                  NoArc(),
+                  NoArc(),
+                  RightArc("AuxK"),
+                  Shift()]
+            @test !isfinal(cfg)
+            cfg = t(cfg) 
+        end
+        @test isfinal(cfg)
+        graph2 = DependencyGraph(cfg.A, check_single_head=false)
+        @test graph2 == graph
     end
 end
