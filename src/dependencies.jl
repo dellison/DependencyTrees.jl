@@ -32,6 +32,16 @@ struct UntypedDependency <: Dependency
     head::Int
 end
 
+function UntypedDependency(line::String)
+    xs = split(strip(line))
+    UntypedDependency(parse(Int, xs[1]), String(xs[2]), parse(Int, xs[3]))
+end
+
+function UntypedDependency(id::Int, line::String)
+    form, head = split(strip(line))
+    UntypedDependency(id, String(form), parse(Int, head))
+end
+
 dep(d::UntypedDependency, _args...; head=head(d)) =
     UntypedDependency(d.id, d.form, head)
 depargs(::Type{UntypedDependency}) = x::UntypedDependency -> ()
@@ -64,6 +74,23 @@ struct TypedDependency{T} <: Dependency
     form::String
     deprel::T
     head::Int
+end
+
+function TypedDependency(line::AbstractString; read_deprel=String)
+    xs = String.(split(strip(line)))
+    id = parse(Int, xs[1])
+    form = xs[2]
+    deprel = read_deprel(xs[3])
+    head = parse(Int, xs[4])
+    TypedDependency(id, form, deprel, head)
+end
+
+function TypedDependency(id::Int, line::AbstractString; read_deprel=String)
+    xs = String.(split(strip(line)))
+    form = xs[1]
+    deprel = read_deprel(xs[2])
+    head = parse(Int, xs[3])
+    TypedDependency(id, form, deprel, head)
 end
 
 dep(d::TypedDependency, deprel; head=head(d)) = TypedDependency(d.id, d.form, deprel, head)

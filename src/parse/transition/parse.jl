@@ -12,7 +12,7 @@ include("arc_standard.jl")
 include("arc_eager.jl")
 include("listbased.jl")
 
-function parse(C::Type{<:TransitionParserConfiguration}, words, oracle)
+function Base.parse(C::Type{<:TransitionParserConfiguration}, words, oracle)
     cfg = C(words)
     while !isfinal(cfg)
         t = oracle(cfg)
