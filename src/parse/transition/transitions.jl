@@ -12,7 +12,7 @@ kwargs(r::TransitionOperator) = ()
 
 import Base.==
 ==(op1::TransitionOperator, op2::TransitionOperator) =
-    args(op1) == args(op2) && kwargs(op1) == kwargs(op2)
+    typeof(op1) == typeof(op2) && args(op1) == args(op2) && kwargs(op1) == kwargs(op2)
 
 """
     NoArc()

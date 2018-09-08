@@ -93,6 +93,8 @@ using DependencyTrees: ArcEager, shift, leftarc, rightarc
         graph = DependencyGraph(TypedDependency, figure_1_sent; check_single_head=false)
         words = form.(graph)
 
+        oracle = DependencyTrees.static_oracle(ListBasedNonProjective, graph)
+
         cfg = ListBasedNonProjective{TypedDependency}(words)
         for t in [Shift(),
                   RightArc("Atr"),
@@ -123,6 +125,9 @@ using DependencyTrees: ArcEager, shift, leftarc, rightarc
                   RightArc("AuxK"),
                   Shift()]
             @test !isfinal(cfg)
+            t̂ = oracle(cfg)
+            @test t̂ == t
+            @test t̂(cfg) == t(cfg)
             cfg = t(cfg) 
         end
         @test isfinal(cfg)
