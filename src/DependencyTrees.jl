@@ -11,5 +11,6 @@ include("dependencies.jl")
 include("graphs.jl")
 include("treebanks.jl")
 include("parse/parse.jl")
+include("conllu.jl")
 
 end # module
