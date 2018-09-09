@@ -22,8 +22,27 @@ DependencyGraph(UntypedDependency, [(\"the\", 2),(\"cat\",3),(\"slept\",0)])
 DependencyGraph(TypedDependency, [(\"the\", \"DT\", 2),(\"cat\",\"NN\",3),(\"slept\",\"VBD\",0)])
 ```
 """
-function DependencyGraph(t::Type{<:Dependency}, tokens; kwargs...)
-    DependencyGraph([t(i, tk...) for (i,tk) in enumerate(tokens)]; kwargs...)
+function DependencyGraph(t::Type{<:Dependency}, tokens; add_id=true, kwargs...)
+    A = t[]
+    for (i, token) in enumerate(tokens)
+        try
+            if add_id
+                dependency = t(i, token...)
+            else
+                dependency = t(token...)
+            end
+            push!(A, dependency)
+        catch err
+            if isa(err, MultiWordTokenError)
+                @warn "Multiword tokens are not yet supported" token=token
+                continue
+            elseif isa(err, EmptyNodeError)
+                @warn "Empty nodes are not yet supported" token=token
+                continue
+            end
+        end
+    end
+    DependencyGraph(A; kwargs...)
 end
 
 function DependencyGraph(tokens::Vector{<:Dependency}; kwargs...)

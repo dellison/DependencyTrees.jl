@@ -13,11 +13,11 @@ end
 Read trees from a file.
 """
 function TreebankReader{T}(file::String; comment_rx=r"^#", add_id=false, kwargs...) where T
-    TreebankReader{T}(open(file), 1, comment_rx, add_id, kwargs)
+    TreebankReader{T}(open(file), 0, comment_rx, add_id, kwargs)
 end
 
 function TreebankReader{T}(io::IO; comment_rx=r"^#", kwargs...) where T
-    TreebankReader{T}(io, 1, comment_rx, add_id, kwargs)
+    TreebankReader{T}(io, 0, comment_rx, add_id, kwargs)
 end
 
 Base.iterate(t::TreebankReader) = iterate(t, 1)
@@ -39,10 +39,19 @@ function Base.iterate(t::TreebankReader, state)
                 break
             end
         else
-            if t.add_id
-                push!(tokens, T(length(tokens) + 1, String(line); t.kwargs...))
-            else
-                push!(tokens, T(String(line); t.kwargs...))
+            try
+                if t.add_id
+                    push!(tokens, T(length(tokens) + 1, String(line); t.kwargs...))
+                else
+                    push!(tokens, T(String(line); t.kwargs...))
+                end
+            catch err
+                if isa(err, MultiWordTokenError)
+                    @warn "Multiword tokens not yet supported, skippinig line $i" line=line
+                elseif isa(err, EmptyNodeError)
+                    @warn "Empty nodes not yet supported, skippinig line $i" line=line
+                end
+                continue
             end
         end
     end
@@ -66,3 +75,23 @@ function Base.collect(t::TreebankReader)
     end
     return trees
 end
+
+
+struct Treebank{T<:Dependency}
+    files::Vector{String}
+    kwargs
+
+    Treebank{T}(files; kwargs...) where T = new{T}(files, kwargs)
+end
+
+function all_trees(tb::Treebank)
+    T = deptype(tb)
+    trees = T[]
+    # [tree for tree in TreebankReader(file) for file in tb.files]
+    for file in tb.files, tree in TreebankReader{deptype(tb)}(file; tb.kwargs...)
+        @show tree
+    end
+end
+
+deptype(::Type{<:Treebank{T}}) where T = T
+deptype(g::Treebank) = deptype(typeof(g))

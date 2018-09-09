@@ -18,4 +18,9 @@ using DependencyTrees: CoNLLU
             @test deprel(parsed, i) == deprel(gold_node)
         end
     end
+
+    # for now just make sure the errors get thrown correctly
+    using DependencyTrees: MultiWordTokenError, EmptyNodeError
+    @test_throws MultiWordTokenError CoNLLU("18-19	cannot	_	_	_	_	_	_	_	SpaceAfter=No")
+    @test_throws EmptyNodeError CoNLLU("0.1	nothing	_	_	_	_	_	_	_	_")
 end

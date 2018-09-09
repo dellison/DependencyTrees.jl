@@ -26,8 +26,14 @@ struct CoNLLU <: Dependency
 end
 
 function CoNLLU(line::AbstractString)
+    local id
     fields = split(strip(line), "\t")
-    id = parse(Int, fields[1])
+    try
+        id = parse(Int, fields[1])
+    catch
+        occursin("-", fields[1]) && throw(MultiWordTokenError())
+        occursin(".", fields[1]) && throw(EmptyNodeError())
+    end
     form = String(fields[2])
     lemma = String(fields[3])
     upos = String(fields[4])
