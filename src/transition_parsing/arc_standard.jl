@@ -63,7 +63,7 @@ isfinal(state::ArcStandard) =
 Return a training oracle function which returns gold transition
 operations from a parser configuration with reference to `graph`.
 """
-function static_oracle(::Type{ArcStandard}, graph::DependencyGraph)
+function static_oracle(::Type{<:ArcStandard}, graph::DependencyGraph)
     T = eltype(graph)
     g = depargs(T)
     arc(i) = g(graph[i])

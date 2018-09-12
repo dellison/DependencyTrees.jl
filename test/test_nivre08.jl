@@ -1,6 +1,7 @@
 using DependencyTrees, Test
 
 using DependencyTrees: ArcEager, shift, leftarc, rightarc
+using DependencyTrees: DeterministicParserTrainer
 
 # tests from nivre 08 "algorithms for deterministic incremental
 # dependency parsing"
@@ -57,22 +58,23 @@ using DependencyTrees: ArcEager, shift, leftarc, rightarc
 
         oracle = DependencyTrees.static_oracle(ArcEager, graph)
         config = ArcEager{TypedDependency}(first.(figure_2_sent))
-        for t in [Shift(),
-                  LeftArc("NMOD"),
-                  Shift(),
-                  LeftArc("SUBJ"),
-                  RightArc("ROOT"),
-                  Shift(),
-                  LeftArc("NMOD"),
-                  RightArc("OBJ"),
-                  RightArc("NMOD"),
-                  Shift(),
-                  LeftArc("NMOD"),
-                  RightArc("PMOD"),
-                  Reduce(),
-                  Reduce(),
-                  Reduce(),
-                  RightArc("P")]
+        gold_transitions = [Shift(),
+                            LeftArc("NMOD"),
+                            Shift(),
+                            LeftArc("SUBJ"),
+                            RightArc("ROOT"),
+                            Shift(),
+                            LeftArc("NMOD"),
+                            RightArc("OBJ"),
+                            RightArc("NMOD"),
+                            Shift(),
+                            LeftArc("NMOD"),
+                            RightArc("PMOD"),
+                            Reduce(),
+                            Reduce(),
+                            Reduce(),
+                            RightArc("P")]
+        for t in gold_transitions
             @test oracle(config) == t
             config = t(config)
         end
@@ -81,6 +83,10 @@ using DependencyTrees: ArcEager, shift, leftarc, rightarc
 
         graph3 = DependencyTrees.parse(ArcEager{TypedDependency}, words, oracle)
         @test graph2 == graph3
+
+        trainer = DeterministicParserTrainer(ArcEager{TypedDependency}, identity)
+        pairs = DependencyTrees.training_pairs(trainer, graph)
+        @test last.(pairs) == gold_transitions
     end
 
     @testset "Figure 8" begin
@@ -96,34 +102,35 @@ using DependencyTrees: ArcEager, shift, leftarc, rightarc
         oracle = DependencyTrees.static_oracle(ListBasedNonProjective, graph)
 
         cfg = ListBasedNonProjective{TypedDependency}(words)
-        for t in [Shift(),
-                  RightArc("Atr"),
-                  Shift(),
-                  NoArc(),
-                  NoArc(),
-                  RightArc("Pred"),
-                  Shift(),
-                  Shift(),
-                  LeftArc("AuxZ"),
-                  RightArc("Sb"),
-                  NoArc(),
-                  LeftArc("AuxP"),
-                  Shift(),
-                  NoArc(),
-                  NoArc(),
-                  RightArc("AuxP"),
-                  Shift(),
-                  RightArc("Adv"),
-                  Shift(),
-                  NoArc(),
-                  NoArc(),
-                  NoArc(),
-                  NoArc(),
-                  NoArc(),
-                  NoArc(),
-                  NoArc(),
-                  RightArc("AuxK"),
-                  Shift()]
+        gold_transitions = [Shift(),
+                            RightArc("Atr"),
+                            Shift(),
+                            NoArc(),
+                            NoArc(),
+                            RightArc("Pred"),
+                            Shift(),
+                            Shift(),
+                            LeftArc("AuxZ"),
+                            RightArc("Sb"),
+                            NoArc(),
+                            LeftArc("AuxP"),
+                            Shift(),
+                            NoArc(),
+                            NoArc(),
+                            RightArc("AuxP"),
+                            Shift(),
+                            RightArc("Adv"),
+                            Shift(),
+                            NoArc(),
+                            NoArc(),
+                            NoArc(),
+                            NoArc(),
+                            NoArc(),
+                            NoArc(),
+                            NoArc(),
+                            RightArc("AuxK"),
+                            Shift()]
+        for t in gold_transitions
             @test !isfinal(cfg)
             t̂ = oracle(cfg)
             @test t̂ == t
@@ -133,5 +140,10 @@ using DependencyTrees: ArcEager, shift, leftarc, rightarc
         @test isfinal(cfg)
         graph2 = DependencyGraph(cfg.A, check_single_head=false)
         @test graph2 == graph
+
+        trainer = DeterministicParserTrainer(ListBasedNonProjective{TypedDependency}, identity)
+        pairs = DependencyTrees.training_pairs(trainer, graph)
+        @test last.(pairs) == gold_transitions
+
     end
 end

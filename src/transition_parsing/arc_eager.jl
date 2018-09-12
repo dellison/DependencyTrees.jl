@@ -58,7 +58,7 @@ function Base.reduce(state::ArcEager)
 end
 
 isfinal(state::ArcEager) =
-    all(r -> head(r) >= 0, state.A)
+    all(a -> head(a) >= 0, state.A)
 
 """
     static_oracle(::ArcEager, graph)
@@ -66,7 +66,7 @@ isfinal(state::ArcEager) =
 Return a training oracle function which returns gold transition
 operations from a parser configuration with reference to `graph`.
 """
-function static_oracle(::Type{ArcEager}, graph::DependencyGraph)
+function static_oracle(::Type{<:ArcEager}, graph::DependencyGraph)
     T = eltype(graph)
     g = depargs(T)
     arc(i) = g(graph[i])
@@ -78,6 +78,7 @@ function static_oracle(::Type{ArcEager}, graph::DependencyGraph)
             elseif head(graph, b) == s # (s --> b)
                 return RightArc(arc(b)...)
             elseif all(w -> w != 0 && head(cfg.A[w]) != -1, [s ; dependents(graph, s)])
+                # s's head and all its dependents' heads have been assigned
                 return Reduce()
             end
         end

@@ -2,7 +2,7 @@ using DependencyTrees, Test
 
 using DependencyTrees: ArcStandard, leftarc, rightarc, shift, isfinal
 using DependencyTrees: LeftArc, RightArc, Reduce, Shift
-using DependencyTrees: static_oracle
+using DependencyTrees: static_oracle, DeterministicParserTrainer
 
 # tests from chapter 13 of the draft of "Speech and Language
 # Processing" 3rd edition by Jurafsky & Martin
@@ -140,6 +140,11 @@ using DependencyTrees: static_oracle
 
             graph = DependencyTrees.parse(ArcStandard{UntypedDependency}, sent, oracle)
             @test graph == gold_graph
+
+            trainer = DeterministicParserTrainer(ArcStandard{TypedDependency}, identity)
+            pairs = DependencyTrees.training_pairs(trainer, graph)
+            @test last.(pairs) == [Shift(), Shift(), RightArc(), Shift(), Shift(), Shift(),
+                                   LeftArc(), LeftArc(), RightArc(), RightArc()]
         end
 
         @testset "Typed" begin
@@ -261,6 +266,9 @@ using DependencyTrees: static_oracle
             graph = DependencyTrees.parse(ArcStandard{TypedDependency}, sent, oracle)
             @test graph == gold_graph
 
+            trainer = DeterministicParserTrainer(ArcStandard{TypedDependency}, identity)
+            pairs = DependencyTrees.training_pairs(trainer, graph)
+            @test last.(pairs) == [Shift(), Shift(), RightArc("indobj"), Shift(), Shift(), Shift(), LeftArc("adv"), LeftArc("dt"), RightArc("dobj"), RightArc("pred")]
         end
     end
 
@@ -354,6 +362,10 @@ using DependencyTrees: static_oracle
             graph = DependencyTrees.parse(ArcEager{UntypedDependency}, sent, oracle)
             @test graph == gold_graph
 
+            trainer = DeterministicParserTrainer(ArcEager{UntypedDependency}, identity)
+            pairs = DependencyTrees.training_pairs(trainer, graph)
+            @test last.(pairs) == [RightArc(), Shift(), LeftArc(), RightArc(), Shift(),
+                                   LeftArc(), RightArc()]#, Reduce(), Reduce(), Reduce()]
         end
 
         @testset "Typed" begin
@@ -450,7 +462,12 @@ using DependencyTrees: static_oracle
             oracle = DependencyTrees.static_oracle(ArcEager, gold_graph)
             graph = DependencyTrees.parse(ArcEager{TypedDependency}, sent, oracle)
             @test graph == gold_graph
-        end
-    end
 
+            trainer = DeterministicParserTrainer(ArcEager{TypedDependency}, identity)
+            pairs = DependencyTrees.training_pairs(trainer, graph)
+            @test last.(pairs) == [RightArc("root"), Shift(), LeftArc("det"), RightArc("dobj"), Shift(),
+                                   LeftArc("case"), RightArc("nmod")
+                                   ]#, Reduce(), Reduce(), Reduce()]
+       end
+    end
 end

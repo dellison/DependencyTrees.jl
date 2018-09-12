@@ -1,6 +1,7 @@
 using DependencyTrees, Test
 
 using DependencyTrees: ArcEager, shift, leftarc, rightarc
+using DependencyTrees: LeftArc, RightArc, Shift, Reduce
 
 # tests from sandra kubler, ryan mcdonald, joakim nivre 09 "dependency
 # parsing" (https://doi.org/10.2200/S00169ED1V01Y200901HLT002)
@@ -54,22 +55,25 @@ using DependencyTrees: ArcEager, shift, leftarc, rightarc
 
         config = ArcEager{TypedDependency}(sent)
         oracle_configs = [config]
-        for t in [Shift()
-                  LeftArc("ATT")
-                  Shift()
-                  LeftArc("SBJ")
-                  RightArc("PRED")
-                  Shift()
-                  LeftArc("ATT")
-                  RightArc("OBJ")
-                  RightArc("ATT")
-                  Shift()
-                  LeftArc("ATT")
-                  RightArc("PC")
-                  Reduce()
-                  Reduce()
-                  Reduce()
-                  RightArc("PU")]
+
+        gold_transitions = [Shift()
+                            LeftArc("ATT")
+                            Shift()
+                            LeftArc("SBJ")
+                            RightArc("PRED")
+                            Shift()
+                            LeftArc("ATT")
+                            RightArc("OBJ")
+                            RightArc("ATT")
+                            Shift()
+                            LeftArc("ATT")
+                            RightArc("PC")
+                            Reduce()
+                            Reduce()
+                            Reduce()
+                            RightArc("PU")]
+
+        for t in gold_transitions
             @test oracle(config) == t
             config = t(config)
         end
@@ -78,5 +82,10 @@ using DependencyTrees: ArcEager, shift, leftarc, rightarc
 
         graph3 = DependencyTrees.parse(ArcEager{TypedDependency}, sent, oracle)
         @test graph3 == graph2
+
+        trainer = DeterministicParserTrainer(ArcEager{TypedDependency}, identity)
+        pairs = DependencyTrees.training_pairs(trainer, graph)
+        @test last.(pairs) == gold_transitions
+
     end
 end
