@@ -41,14 +41,14 @@ function CoNLLU(line::AbstractString)
     if fields[6] == "_"
         feats = String[]
     else
-        feats = split(fields[6])
+        feats = String.(split(fields[6]))
     end
     head = parse(Int, fields[7])
     deprel = String(fields[8])
     if fields[9] == "_"
         deps = Vector{Tuple{Int,String}}()
     else
-        deps = Parse(Tuple{Int,String}, fields[9])
+        deps = parse(Tuple{Int,String}, fields[9])
     end
     misc = String(fields[10])
     CoNLLU(id, form, lemma, upos, xpos, feats, head, deprel, deps, misc)
