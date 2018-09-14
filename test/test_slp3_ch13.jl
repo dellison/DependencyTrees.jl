@@ -145,6 +145,9 @@ using DependencyTrees: static_oracle, DeterministicParserTrainer
             pairs = DependencyTrees.training_pairs(trainer, graph)
             @test last.(pairs) == [Shift(), Shift(), RightArc(), Shift(), Shift(), Shift(),
                                    LeftArc(), LeftArc(), RightArc(), RightArc()]
+
+            # throw an error if the parser makes a mistake
+            DependencyTrees.train_online(trainer, [graph], 1, oracle, () -> error("bad parse!"))
         end
 
         @testset "Typed" begin
@@ -269,6 +272,9 @@ using DependencyTrees: static_oracle, DeterministicParserTrainer
             trainer = DeterministicParserTrainer(ArcStandard{TypedDependency}, identity)
             pairs = DependencyTrees.training_pairs(trainer, graph)
             @test last.(pairs) == [Shift(), Shift(), RightArc("indobj"), Shift(), Shift(), Shift(), LeftArc("adv"), LeftArc("dt"), RightArc("dobj"), RightArc("pred")]
+
+            # throw an error if the parser makes a mistake
+            DependencyTrees.train_online(trainer, [graph], 1, oracle, () -> error("bad parse!"))
         end
     end
 
@@ -468,6 +474,9 @@ using DependencyTrees: static_oracle, DeterministicParserTrainer
             @test last.(pairs) == [RightArc("root"), Shift(), LeftArc("det"), RightArc("dobj"), Shift(),
                                    LeftArc("case"), RightArc("nmod")
                                    ]#, Reduce(), Reduce(), Reduce()]
+
+            # throw an error if the parser makes a mistake
+            DependencyTrees.train_online(trainer, [graph], 1, oracle, () -> error("bad parse!"))
        end
     end
 end

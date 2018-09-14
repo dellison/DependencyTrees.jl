@@ -145,5 +145,7 @@ using DependencyTrees: DeterministicParserTrainer
         pairs = DependencyTrees.training_pairs(trainer, graph)
         @test last.(pairs) == gold_transitions
 
+        # throw an error if the parser makes a mistake
+        DependencyTrees.train_online(trainer, [graph], 1, oracle, () -> error("bad parse!"))
     end
 end

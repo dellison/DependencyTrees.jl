@@ -26,35 +26,14 @@ using DependencyTrees: LeftArc, RightArc, Shift, Reduce
     @testset "Figure 3.7" begin
         sent = first.(fig_1_1)
 
-        w2id = Dict(word => id for (id, word) in enumerate(sent))
-
         graph = DependencyGraph(TypedDependency, fig_1_1)
 
         oracle = DependencyTrees.static_oracle(ArcEager, graph)
 
-        config = ArcEager{TypedDependency}(sent)
-        @test config.σ == [0] && config.β == 1:9
-
-        config = shift(config)
-        config = leftarc(config, "ATT")
-        config = shift(config) 
-        config = leftarc(config, "SBJ")
-        config = rightarc(config, "PRED")
-        config = shift(config) 
-        config = leftarc(config, "ATT")
-        config = rightarc(config, "OBJ")
-        config = rightarc(config, "ATT")
-        config = shift(config) 
-        config = leftarc(config, "ATT")
-        config = rightarc(config, "PC")
-        config = reduce(config) 
-        config = reduce(config) 
-        config = reduce(config) 
-        config = rightarc(config, "PU")
-        @test isfinal(config)
+        init = ArcEager{TypedDependency}(sent)
+        @test init.σ == [0] && init.β == 1:9
 
         config = ArcEager{TypedDependency}(sent)
-        oracle_configs = [config]
 
         gold_transitions = [Shift()
                             LeftArc("ATT")
@@ -74,9 +53,11 @@ using DependencyTrees: LeftArc, RightArc, Shift, Reduce
                             RightArc("PU")]
 
         for t in gold_transitions
+            @test !isfinal(config)
             @test oracle(config) == t
             config = t(config)
         end
+        @test isfinal(config)
         graph2 = DependencyGraph(config.A)
         @test graph == graph2
 
@@ -87,5 +68,7 @@ using DependencyTrees: LeftArc, RightArc, Shift, Reduce
         pairs = DependencyTrees.training_pairs(trainer, graph)
         @test last.(pairs) == gold_transitions
 
+        # this will throw an error if the parser makes a mistake
+        DependencyTrees.train_online(trainer, [graph], 1, oracle, () -> error("bad parse!"))
     end
 end

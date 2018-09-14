@@ -28,6 +28,9 @@ end
 function CoNLLU(line::AbstractString)
     local id
     fields = split(strip(line), "\t")
+    if length(fields) != 10
+        error("need 10 tab-separated fields for CoNLLU, found $(length(fields)): '$line'")
+    end
     try
         id = parse(Int, fields[1])
     catch
