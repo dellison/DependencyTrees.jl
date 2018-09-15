@@ -19,4 +19,20 @@
         @test collect(tb1) == collect(tb2)
     end
 
+    @testset "MWTs" begin
+        using DependencyTrees: CoNLLU
+        tree = collect(TreebankReader{CoNLLU}(joinpath(datadir, "multiwordtoken.conllu")))[1]
+        @test length(tree) == 24
+        @test length(tree.mwts) == 1
+        @test length(tree.emptytokens) == 0
+    end
+
+
+    @testset "Empty Tokens" begin
+        using DependencyTrees: CoNLLU
+        tree = collect(TreebankReader{CoNLLU}(joinpath(datadir, "emptytokens.conllu")))[1]
+        @test length(tree) == 6
+        @test length(tree.mwts) == 0
+        @test length(tree.emptytokens) == 1
+    end
 end

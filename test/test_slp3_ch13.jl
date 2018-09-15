@@ -28,7 +28,7 @@ using DependencyTrees: static_oracle, DeterministicParserTrainer
                                                              ("me",1),
                                                              ("the",5),
                                                              ("morning",5),
-                                                             ("flight",1)])
+                                                             ("flight",1)], add_id=true)
             oracle = static_oracle(ArcStandard, gold_graph)
 
             # step 0
@@ -152,7 +152,7 @@ using DependencyTrees: static_oracle, DeterministicParserTrainer
 
         @testset "Typed" begin
 
-            gold_graph = DependencyGraph(TypedDependency, [("book","pred",0),("me","indobj",1),("the","dt",5),("morning","adv",5),("flight","dobj",1)])
+            gold_graph = DependencyGraph(TypedDependency, [("book","pred",0),("me","indobj",1),("the","dt",5),("morning","adv",5),("flight","dobj",1)], add_id=true)
             oracle = static_oracle(ArcStandard, gold_graph)
 
             # head --> dep

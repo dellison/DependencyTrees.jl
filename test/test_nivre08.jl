@@ -32,7 +32,7 @@ using DependencyTrees: DeterministicParserTrainer
     ]
 
     @testset "Figure 6" begin
-        graph = DependencyGraph(TypedDependency, figure_2_sent)
+        graph = DependencyGraph(TypedDependency, figure_2_sent, add_id=true)
 
         words = first.(figure_2_sent)
         config = ArcEager{TypedDependency}(first.(figure_2_sent))
@@ -95,8 +95,8 @@ using DependencyTrees: DeterministicParserTrainer
         using DependencyTrees: NoArc
         using DependencyTrees: isfinal
 
-        @test_throws MultipleRootsError DependencyGraph(TypedDependency, figure_1_sent)
-        graph = DependencyGraph(TypedDependency, figure_1_sent; check_single_head=false)
+        @test_throws MultipleRootsError DependencyGraph(TypedDependency, figure_1_sent, add_id=true)
+        graph = DependencyGraph(TypedDependency, figure_1_sent; add_id=true, check_single_head=false)
         words = form.(graph)
 
         oracle = DependencyTrees.static_oracle(ListBasedNonProjective, graph)

@@ -25,7 +25,7 @@ struct CoNLLU <: Dependency
     misc::String
 end
 
-function CoNLLU(line::AbstractString)
+function CoNLLU(line::AbstractString; add_id=false)
     local id
     fields = split(strip(line), "\t")
     if length(fields) != 10
@@ -35,7 +35,7 @@ function CoNLLU(line::AbstractString)
         id = parse(Int, fields[1])
     catch
         occursin("-", fields[1]) && throw(MultiWordTokenError())
-        occursin(".", fields[1]) && throw(EmptyNodeError())
+        occursin(".", fields[1]) && throw(EmptyTokenError())
     end
     form = String(fields[2])
     lemma = String(fields[3])
@@ -44,14 +44,18 @@ function CoNLLU(line::AbstractString)
     if fields[6] == "_"
         feats = String[]
     else
-        feats = String.(split(fields[6]))
+        feats = String.(split(fields[6], "|"))
     end
     head = parse(Int, fields[7])
     deprel = String(fields[8])
     if fields[9] == "_"
         deps = Vector{Tuple{Int,String}}()
     else
-        deps = parse(Tuple{Int,String}, fields[9])
+        deps = Tuple{Int,String}[]
+        for token in split(fields[9], "|")
+            h, dr = split(token, ":")
+            push!(deps, (parse(Int, h), String(dr)))
+        end
     end
     misc = String(fields[10])
     CoNLLU(id, form, lemma, upos, xpos, feats, head, deprel, deps, misc)

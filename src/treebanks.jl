@@ -24,7 +24,7 @@ Base.iterate(t::TreebankReader) = iterate(t, 1)
 
 function Base.iterate(t::TreebankReader, state)
     T = deptype(t)
-    tokens = T[]
+    tokens, mwts, emptytokens = T[], MultiWordToken[], EmptyToken[]
     newl = false
     i = t.lineno
     while isopen(t.io) && !newl
@@ -47,9 +47,9 @@ function Base.iterate(t::TreebankReader, state)
                 end
             catch err
                 if isa(err, MultiWordTokenError)
-                    @warn "Multiword tokens not yet supported, skippinig line $i" line=line
-                elseif isa(err, EmptyNodeError)
-                    @warn "Empty nodes not yet supported, skippinig line $i" line=line
+                    push!(mwts, MultiWordToken(line))
+                elseif isa(err, EmptyTokenError)
+                    push!(emptytokens, EmptyToken(line))
                 end
                 continue
             end
@@ -60,7 +60,7 @@ function Base.iterate(t::TreebankReader, state)
         close(t.io)
         return nothing
     else
-        return (DependencyGraph(tokens; t.kwargs...), state)
+        return (DependencyGraph(tokens; mwts=mwts, emptytokens=emptytokens, t.kwargs...), state)
     end
 end
 
@@ -76,21 +76,11 @@ function Base.collect(t::TreebankReader)
     return trees
 end
 
-
 struct Treebank{T<:Dependency}
     files::Vector{String}
     kwargs
 
     Treebank{T}(files; kwargs...) where T = new{T}(files, kwargs)
-end
-
-function all_trees(tb::Treebank)
-    T = deptype(tb)
-    trees = T[]
-    # [tree for tree in TreebankReader(file) for file in tb.files]
-    for file in tb.files, tree in TreebankReader{deptype(tb)}(file; tb.kwargs...)
-        @show tree
-    end
 end
 
 deptype(::Type{<:Treebank{T}}) where T = T

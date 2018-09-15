@@ -4,7 +4,6 @@ using DependencyTrees: dependents, isprojective
 
 @testset "Graphs" begin
 
-
     sent = [
         ("Economic", "ATT", 2),
         ("news", "SBJ", 3),
@@ -17,7 +16,7 @@ using DependencyTrees: dependents, isprojective
         (".", "PU", 3),
     ]
 
-    graph = DependencyGraph(TypedDependency, sent)
+    graph = DependencyGraph(TypedDependency, sent, add_id=true)
 
     @test length(graph) == length(sent) == 9
     @test isroot(graph[0])
@@ -51,7 +50,7 @@ using DependencyTrees: dependents, isprojective
         (".", ".", 8)
     ]
 
-    graph = DependencyGraph(TypedDependency, sent)
+    graph = DependencyGraph(TypedDependency, sent, add_id=true)
 
     @test length(graph) == length(sent) == 18
     @test isroot(graph[0])
@@ -80,7 +79,7 @@ using DependencyTrees: dependents, isprojective
             ("yorkshire", 10),# 9
             ("terrier", 7)    # 10
         ]
-        graph = DependencyGraph(UntypedDependency, sent)
+        graph = DependencyGraph(UntypedDependency, sent, add_id=true)
         @test !isprojective(graph)
 
         # jurafsky & martin, speech & language processing (3ed)
@@ -97,7 +96,7 @@ using DependencyTrees: dependents, isprojective
             ("late", "mod", 7)       # 10
         ]
 
-        graph = DependencyGraph(TypedDependency, sent)
+        graph = DependencyGraph(TypedDependency, sent, add_id=true)
         @test !isprojective(graph)
     end
 
@@ -106,10 +105,10 @@ using DependencyTrees: dependents, isprojective
         using DependencyTrees: GraphConnectivityError, RootlessGraphError, MultipleRootsError, NonProjectiveGraphError
 
         noroot = [("no", 2), ("root", 1)]
-        @test_throws RootlessGraphError DependencyGraph(UntypedDependency, noroot)
+        @test_throws RootlessGraphError DependencyGraph(UntypedDependency, noroot, add_id=true)
 
         tworoots = [("two", 0), ("roots", 0)]
-        @test_throws MultipleRootsError DependencyGraph(UntypedDependency, tworoots)
+        @test_throws MultipleRootsError DependencyGraph(UntypedDependency, tworoots, add_id=true)
 
         sent = [
             ("john", 2),      # 1
@@ -123,7 +122,7 @@ using DependencyTrees: dependents, isprojective
             ("yorkshire", 10),# 9
             ("terrier", 7)    # 10
         ]
-        @test_throws NonProjectiveGraphError DependencyGraph(UntypedDependency, sent, check_projective=true)
+        @test_throws NonProjectiveGraphError DependencyGraph(UntypedDependency, sent, add_id=true, check_projective=true)
     end
 
 end

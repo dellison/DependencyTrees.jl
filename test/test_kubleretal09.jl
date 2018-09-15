@@ -20,13 +20,13 @@ using DependencyTrees: LeftArc, RightArc, Shift, Reduce
         (".", "PU", 3),
     ]
 
-    graph = DependencyGraph(TypedDependency, fig_1_1)
+    graph = DependencyGraph(TypedDependency, fig_1_1, add_id=true)
     @test length(graph) == length(fig_1_1)
 
     @testset "Figure 3.7" begin
         sent = first.(fig_1_1)
 
-        graph = DependencyGraph(TypedDependency, fig_1_1)
+        graph = DependencyGraph(TypedDependency, fig_1_1, add_id=true)
 
         oracle = DependencyTrees.static_oracle(ArcEager, graph)
 

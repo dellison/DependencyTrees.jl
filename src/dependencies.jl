@@ -20,6 +20,28 @@ unk(t::Type{Dependency}) = _ni(unk, t)
 
 const ROOT = "ROOT"
 
+struct MultiWordToken
+    i::Int
+    j::Int
+    word::String
+end
+
+function MultiWordToken(line::String)
+    fields = split(line, "\t")
+    i, j = match(r"([0-9]+)-([0-9]+)", fields[1]).captures
+    MultiWordToken(parse(Int, i), parse(Int, j), String(fields[2]))
+end
+
+struct EmptyToken
+    id::Float32
+    word::String
+end
+
+function EmptyToken(line::String)
+    fields = split(line, "\t")
+    EmptyToken(parse(Float32, fields[1]), String(fields[2]))
+end
+
 """
     UntypedDependency(id, form, head)
 

@@ -1,10 +1,12 @@
 struct DependencyGraph{T<:Dependency} <: AbstractGraph{Int}
     graph::SimpleDiGraph
     tokens::Vector{T}
+    mwts::Vector{MultiWordToken}
+    emptytokens::Vector{EmptyToken}
     root::Int
 
-    function DependencyGraph(graph, tokens, root; check=true, kwargs...)
-        g = new{eltype(tokens)}(graph, tokens, root)
+    function DependencyGraph(graph, tokens, mwts, emptytokens, root; check=true, kwargs...)
+        g = new{eltype(tokens)}(graph, tokens, mwts, emptytokens, root)
         check && check_depgraph(g; kwargs...)
         return g
     end
@@ -22,30 +24,20 @@ DependencyGraph(UntypedDependency, [(\"the\", 2),(\"cat\",3),(\"slept\",0)])
 DependencyGraph(TypedDependency, [(\"the\", \"DT\", 2),(\"cat\",\"NN\",3),(\"slept\",\"VBD\",0)])
 ```
 """
-function DependencyGraph(t::Type{<:Dependency}, tokens; add_id=true, kwargs...)
-    A = t[]
+function DependencyGraph(t::Type{<:Dependency}, tokens; add_id=false, kwargs...)
+    A, mwts, es = t[], MultiWordToken[], EmptyToken[]
     for (i, token) in enumerate(tokens)
-        try
-            if add_id
-                dependency = t(i, token...)
-            else
-                dependency = t(token...)
-            end
-            push!(A, dependency)
-        catch err
-            if isa(err, MultiWordTokenError)
-                @warn "Multiword tokens are not yet supported" token=token
-                continue
-            elseif isa(err, EmptyNodeError)
-                @warn "Empty nodes are not yet supported" token=token
-                continue
-            end
+        if add_id
+            dependency = t(i, token...)
+        else
+            dependency = t(token...)
         end
+        push!(A, dependency)
     end
-    DependencyGraph(A; kwargs...)
+    DependencyGraph(A; mwts=mwts, emptytokens=es, kwargs...)
 end
 
-function DependencyGraph(tokens::Vector{<:Dependency}; kwargs...)
+function DependencyGraph(tokens::Vector{<:Dependency}; mwts=MultiWordToken[], emptytokens=EmptyToken[], kwargs...)
     rt = 0
     graph = SimpleDiGraph(length(tokens))
     for dep in tokens
@@ -54,11 +46,37 @@ function DependencyGraph(tokens::Vector{<:Dependency}; kwargs...)
         iszero(h) && (rt = i)
         add_edge!(graph, h, i) # arrows point from head to dependent
     end
-    return DependencyGraph(graph, tokens, rt; kwargs...)
+    return DependencyGraph(graph, tokens, mwts, emptytokens, rt; kwargs...)
+end
+
+function DependencyGraph{T}(lines::AbstractVector{S}; add_id=false, kwargs...) where {T<:Dependency,S<:AbstractString}
+    A, mwts, emptytokens = T[], MultiWordToken[], EmptyToken[]
+    for (i, line) in enumerate(lines)
+        try
+            push!(A, T(line, add_id=add_id))
+        catch err
+            if isa(err, MultiWordTokenError)
+                push!(mwts, MultiWordToken(line))
+            elseif isa(err, EmptyTokenError)
+                push!(emptytokens, EmptyToken(line))
+            else
+                throw(err)
+            end
+        end
+    end
+    DependencyGraph(A; mwts=mwts, emptytokens=emptytokens, kwargs...)
+end
+
+function DependencyGraph{T}(lines::String; add_id=false, kwargs...) where T
+    ls = String.(filter(x -> x != "", split(strip(lines), "\n")))
+    DependencyGraph{T}(ls; add_id=false, kwargs...)
 end
 
 """
-    check_depgraph(g, 
+    check_depgraph(g, check_single_head=true, check_has_root=true, check_projective=false)
+
+Ensure the well-formedness of the dependency graph `g`, throwing an
+error if g is not well-formed.
 """
 function check_depgraph(g::DependencyGraph; check_single_head=true, check_has_root=true,
                         check_projective=false)
@@ -98,6 +116,7 @@ end
 
 dependents(g::DependencyGraph, id::Int) = iszero(id) ? [g.root] : outneighbors(g.graph, id)
 deprel(g::DependencyGraph, id::Int) = deprel(g[id])
+deptype(g::DependencyGraph) = eltype(g.tokens)
 form(g::DependencyGraph, id::Int) = form(g[id])
 has_dependency(g::DependencyGraph, h::Int, d::Int) = head(g[d]) == h
 head(g::DependencyGraph, id::Int) = head(g[id])
@@ -108,6 +127,5 @@ import Base.==
 ==(g1::DependencyGraph, g2::DependencyGraph) = all(g1.tokens .== g2.tokens)
 Base.eltype(g::DependencyGraph) = eltype(g.tokens)
 Base.getindex(g::DependencyGraph, i) = i == 0 ? root(eltype(g)) : g.tokens[i]
-Base.length(g::DependencyGraph) = length(g.tokens)
-
 Base.iterate(g::DependencyGraph, state=1) = iterate(g.tokens, state)
+Base.length(g::DependencyGraph) = length(g.tokens)

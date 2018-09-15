@@ -1,0 +1,27 @@
+# sent_id = en_partut-ud-167
+# text = Madam President, if the vote records correctly how my Group voted I shall not, and cannot, object to that.
+1	Madam	madam	NOUN	S	Gender=Fem|Number=Sing	21	vocative	_	_
+2	President	president	NOUN	S	Number=Sing	1	compound	_	SpaceAfter=No
+3	,	,	PUNCT	FF	_	1	punct	_	_
+4	if	if	SCONJ	CS	_	7	mark	_	_
+5	the	the	DET	RD	Definite=Def|PronType=Art	6	det	_	_
+6	vote	vote	NOUN	S	Number=Sing	7	nsubj	_	_
+7	records	record	VERB	V	Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin	21	advcl	_	_
+8	correctly	correctly	ADV	B	_	7	advmod	_	_
+9	how	how	ADV	B	_	12	advmod	_	_
+10	my	my	DET	AP	Number=Sing|Poss=Yes|PronType=Prs	11	nmod:poss	_	_
+11	Group	group	NOUN	S	Number=Sing	12	nsubj	_	_
+12	voted	vote	VERB	V	Mood=Ind|Person=3|Tense=Past|VerbForm=Fin	7	ccomp	_	_
+13	I	I	PRON	PE	Number=Sing|Person=1|PronType=Prs	21	nsubj	_	_
+14	shall	shall	AUX	VM	Mood=Ind|Person=3|Tense=Pres|VerbForm=Fin	21	aux	_	_
+15	not	not	PART	PART	Polarity=Neg	14	advmod	_	SpaceAfter=No
+16	,	,	PUNCT	FF	_	18	punct	_	_
+17	and	and	CCONJ	CC	_	18	cc	_	_
+18-19	cannot	_	_	_	_	_	_	_	SpaceAfter=No
+18	can	can	AUX	VM	Mood=Ind|Person=3|Tense=Pres|VerbForm=Fin	14	conj	_	_
+19	not	not	PART	PART	Polarity=Neg	21	advmod	_	_
+20	,	,	PUNCT	FF	_	21	punct	_	_
+21	object	object	VERB	V	VerbForm=Inf	0	root	_	_
+22	to	to	ADP	E	_	23	case	_	_
+23	that	that	PRON	PR	PronType=Rel	21	obl	_	SpaceAfter=No
+24	.	.	PUNCT	FS	_	21	punct	_	_

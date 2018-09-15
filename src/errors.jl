@@ -17,10 +17,6 @@ struct MultipleRootsError <: DependencyTreeError
     g
 end
 
-# TODO add support for multi-word tokens and remove this
-struct MultiWordTokenError <: DependencyTreeError
-end
+struct MultiWordTokenError <: DependencyTreeError end
 
-# TODO add support for empty nodes and remove this
-struct EmptyNodeError <: DependencyTreeError
-end
+struct EmptyTokenError <: DependencyTreeError end
