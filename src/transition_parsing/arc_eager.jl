@@ -22,6 +22,26 @@ end
 
 arcs(cfg::ArcEager) = cfg.A
 
+function σs(cfg)
+    s = cfg.σ[end]
+    if length(cfg.σ) > 1
+        σ = cfg.σ[2:end]
+    else
+        σ = Int[]
+    end
+    return (σ, s)
+end
+
+function bβ(cfg)
+    b = cfg.β[1]
+    if length(cfg.β) > 1
+        β = cfg.β[2:end]
+    else
+        β = Int[]
+    end
+    return (b, β)
+end
+
 function leftarc(state::ArcEager, args...; kwargs...)
     # Assert a head-dependent relation between the word at the front
     # of the input buffer and the word at the top of the stack; pop
@@ -38,11 +58,16 @@ function rightarc(state::ArcEager, args...; kwargs...)
     # Assert a head-dependent relation between the word on the top of
     # the σ and the word at front of the input buffer; shift the
     # word at the front of the input buffer to the stack.
-    h, d= state.σ[end], state.β[1]
+    h, d = state.σ[end], state.β[1]
     A = copy(state.A)
     A[d] = dep(A[d], args...; head=h, kwargs...)
     β = state.β
     ArcEager([state.σ ; β[1]], β[2:end], A)
+end
+
+function Base.reduce(state::ArcEager)
+    # Pop the stack.
+    ArcEager(state.σ[1:end-1], state.β, state.A)
 end
 
 function shift(state::ArcEager)
@@ -50,11 +75,6 @@ function shift(state::ArcEager)
     # onto the stack.
     buf = state.β
     ArcEager([state.σ ; buf[1]], buf[2:end], state.A)
-end
-
-function Base.reduce(state::ArcEager)
-    # Pop the stack.
-    ArcEager(state.σ[1:end-1], state.β, state.A)
 end
 
 isfinal(state::ArcEager) =
@@ -89,3 +109,32 @@ end
 import Base.==
 ==(cfg1::ArcEager, cfg2::ArcEager) =
     cfg1.σ == cfg2.σ && cfg1.β == cfg2.β && cfg1.A == cfg2.A
+
+# see figure 2 in goldberg & nivre 2012 "a dynamic oracle..."
+function possible_transitions(cfg::ArcEager, graph::DependencyGraph)
+    g = depargs(eltype(graph))
+    ops = TransitionOperator[]
+    stacksize, bufsize = length(cfg.σ), length(cfg.β)
+    if stacksize >= 1
+        σ, s = σs(cfg)
+        if bufsize >= 1
+            if !iszero(s)
+                h = head(cfg.A[s])
+                if !any(k -> id(k) == h, cfg.A)
+                    push!(ops, LeftArc(g(graph[s])...))
+                end
+            end
+            push!(ops, RightArc(g(graph[cfg.β[1]])...))
+        end
+        if !iszero(s)
+            h = head(cfg.A[s])
+            if any(k -> id(k) == h, cfg.A)
+                push!(ops, Reduce())
+            end
+        end
+    end
+    if bufsize > 1
+        push!(ops, Shift())
+    end
+    return ops
+end

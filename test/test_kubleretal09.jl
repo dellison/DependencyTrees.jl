@@ -2,6 +2,7 @@ using DependencyTrees, Test
 
 using DependencyTrees: ArcEager, shift, leftarc, rightarc
 using DependencyTrees: LeftArc, RightArc, Shift, Reduce
+using DependencyTrees: StaticOracle, train!, xys
 
 # tests from sandra kubler, ryan mcdonald, joakim nivre 09 "dependency
 # parsing" (https://doi.org/10.2200/S00169ED1V01Y200901HLT002)
@@ -64,11 +65,13 @@ using DependencyTrees: LeftArc, RightArc, Shift, Reduce
         graph3 = DependencyTrees.parse(ArcEager{TypedDependency}, sent, oracle)
         @test graph3 == graph2
 
-        trainer = DeterministicParserTrainer(ArcEager{TypedDependency}, identity)
-        pairs = DependencyTrees.training_pairs(trainer, graph)
-        @test last.(pairs) == gold_transitions
+        oracle = StaticOracle(ArcEager{TypedDependency})
+        pairs = xys(oracle, graph)
+        @test collect(last.(pairs)) == gold_transitions
+        @test collect(xys(oracle, [graph])) == collect(pairs)
 
-        # this will throw an error if the parser makes a mistake
-        DependencyTrees.train_online(trainer, [graph], 1, oracle, () -> error("bad parse!"))
+        model = static_oracle(oracle.config, graph) # perfect model for this sentence)
+        trainer = OnlineTrainer(oracle, model, identity, (x, ŷ, y) -> error("oracle was wrong"))
+        train!(trainer, graph)
     end
 end

@@ -2,7 +2,12 @@ module DependencyTrees
 
 export
     DependencyGraph,
-    Dependency, TypedDependency, UntypedDependency
+
+    TypedDependency, UntypedDependency, CoNLLU,
+    ArcEager, ArcStandard, ListBasedNonProjective,
+
+    StaticOracle, DynamicOracle
+
 
 using LightGraphs
 

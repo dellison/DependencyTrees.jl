@@ -83,5 +83,7 @@ struct Treebank{T<:Dependency}
     Treebank{T}(files; kwargs...) where T = new{T}(files, kwargs)
 end
 
+Treebank{T}(file::String; kwargs...) where T = Treebank{T}([file]; kwargs...)
+
 deptype(::Type{<:Treebank{T}}) where T = T
 deptype(g::Treebank) = deptype(typeof(g))

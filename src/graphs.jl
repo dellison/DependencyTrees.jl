@@ -114,10 +114,12 @@ function isprojective(g::DependencyGraph)
     return all([isprojective(g, src(edge), dst(edge)) for edge in edges(g.graph)])
 end
 
-dependents(g::DependencyGraph, id::Int) = iszero(id) ? [g.root] : outneighbors(g.graph, id)
+dependents(g::DependencyGraph, id::Int) =
+    iszero(id) ? [g.root] : outneighbors(g.graph, id)
 deprel(g::DependencyGraph, id::Int) = deprel(g[id])
 deptype(g::DependencyGraph) = eltype(g.tokens)
 form(g::DependencyGraph, id::Int) = form(g[id])
+has_arc(g::DependencyGraph, h::Int, d::Int) = head(g[d]) == h
 has_dependency(g::DependencyGraph, h::Int, d::Int) = head(g[d]) == h
 head(g::DependencyGraph, id::Int) = head(g[id])
 root(g::DependencyGraph) = g[0]

@@ -46,9 +46,9 @@ struct Shift  <: TransitionOperator end
 
 A LeftArc transition operation, optionally parameterized.
 """
-struct LeftArc <: TransitionOperator
-    args::Tuple
-    kwargs
+struct LeftArc{A,K} <: TransitionOperator
+    args::A
+    kwargs::K
 end
 
 LeftArc() = LeftArc(())
@@ -60,15 +60,24 @@ LeftArc(args...; kwargs...) = LeftArc(args, kwargs)
 args(op::LeftArc) = op.args
 kwargs(op::LeftArc) = op.kwargs
 
+function Base.show(io::IO, op::LeftArc)
+    as = join(args(op), ", ")
+    kwas = join(["$a=$v" for (a, v) in kwargs(op)], ", ")
+    if length(kwas) > 0
+        print(io, "LeftArc($as; $kwas)")
+    else
+        print(io, "LeftArc($as)")
+    end
+end
 
 """
     RightArc(args...; kwargs...)
 
 A RightArc transition operation, optionally parameterized.
 """
-struct RightArc <: TransitionOperator
-    args::Tuple
-    kwargs
+struct RightArc{A,K} <: TransitionOperator
+    args::A
+    kwargs::K
 end
     
 RightArc() = RightArc(())
@@ -79,3 +88,13 @@ RightArc(args...; kwargs...) = RightArc(args, kwargs)
 
 args(op::RightArc) = op.args
 kwargs(op::RightArc) = op.kwargs
+
+function Base.show(io::IO, op::RightArc)
+    as = join(args(op), ", ")
+    kwas = join(["$a=$v" for (a, v) in kwargs(op)], ", ")
+    if length(kwas) > 0
+        print(io, "RightArc($as; $kwas)")
+    else
+        print(io, "RightArc($as)")
+    end
+end

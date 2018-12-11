@@ -10,6 +10,10 @@ abstract type TransitionParserConfiguration{T<:Dependency} end
 deptype(::Type{<:TransitionParserConfiguration{T}}) where T = T
 deptype(g::TransitionParserConfiguration) = deptype(typeof(g))
 
+initconfig(T::Type{<:TransitionParserConfiguration}, graph::DependencyGraph) =
+    T([form(word) for word in graph])
+
+
 include("transitions.jl")
 include("arc_standard.jl")
 include("arc_eager.jl")

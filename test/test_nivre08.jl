@@ -1,12 +1,14 @@
 using DependencyTrees, Test
 
 using DependencyTrees: ArcEager, shift, leftarc, rightarc
-using DependencyTrees: DeterministicParserTrainer
+using DependencyTrees: OnlineTrainer
 
 # tests from nivre 08 "algorithms for deterministic incremental
 # dependency parsing"
 
 @testset "Nivre 08" begin
+
+    error_cb(args...) = error("dependency parse error")
 
     # multi-headed czech sentence from universal dependencies treebank
     # ("Only one of them concerns quality.")
@@ -84,9 +86,8 @@ using DependencyTrees: DeterministicParserTrainer
         graph3 = DependencyTrees.parse(ArcEager{TypedDependency}, words, oracle)
         @test graph2 == graph3
 
-        trainer = DeterministicParserTrainer(ArcEager{TypedDependency}, identity)
-        pairs = DependencyTrees.training_pairs(trainer, graph)
-        @test last.(pairs) == gold_transitions
+        trainer = OnlineTrainer(StaticOracle(ArcEager{TypedDependency}), oracle, identity, error_cb)
+        train!(trainer, graph)
     end
 
     @testset "Figure 8" begin
@@ -141,11 +142,10 @@ using DependencyTrees: DeterministicParserTrainer
         graph2 = DependencyGraph(cfg.A, check_single_head=false)
         @test graph2 == graph
 
-        trainer = DeterministicParserTrainer(ListBasedNonProjective{TypedDependency}, identity)
-        pairs = DependencyTrees.training_pairs(trainer, graph)
+        o = StaticOracle(ListBasedNonProjective{TypedDependency})
+        pairs = xys(o, graph)
         @test last.(pairs) == gold_transitions
-
-        # throw an error if the parser makes a mistake
-        DependencyTrees.train_online(trainer, [graph], 1, oracle, () -> error("bad parse!"))
+        trainer = OnlineTrainer(o, oracle, identity, error_cb)
+        train!(trainer, graph)
     end
 end

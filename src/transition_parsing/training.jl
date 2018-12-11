@@ -1,35 +1,40 @@
-abstract type TransitionParserTrainer end
+abstract type TrainingOracle{T} end
 
-struct DeterministicParserTrainer <: TransitionParserTrainer
-    C::Type{<:TransitionParserConfiguration}
-    featurize::Function
+include("static_oracle.jl")
+include("dynamic_oracle.jl")
+
+struct OnlineTrainer{O<:TrainingOracle,M,F,U}
+    oracle::O
+    model::M
+    featurize::F
+    update_function::U
 end
 
-# generate training data for deterministic greedy dependency parsing
-# i.e. go from parsed trees to vector of (config, gold_transition) pairs
-function training_pairs(t::DeterministicParserTrainer, gold_tree, oracle=static_oracle)
-    o = oracle(t.C, gold_tree)
-    pairs = []
-    cfg = t.C(form.(gold_tree))
-    while !isfinal(cfg)
-        x = t.featurize(cfg)
-        y = o(cfg)
-        push!(pairs, (x, y))
-        cfg = y(cfg)
-    end
-    return pairs
-end
-
-function train_online(t::DeterministicParserTrainer, corpus, n_iter, predict, update, oracle=static_oracle)
-    for i in 1:n_iter, gold_tree in corpus
-        o = oracle(t.C, gold_tree)
-        cfg = t.C(form.(gold_tree))
-        while !isfinal(cfg)
-            tp = predict(cfg)
-            to = o(cfg)
-            tp == to || update()
-            cfg = to(cfg)
+function train!(trainer::OnlineTrainer{<:StaticOracle}, graph::DependencyGraph)
+    f = trainer.featurize
+    update = trainer.update_function
+    model = trainer.model
+    for (config, gold_t) in GoldPairs(trainer.oracle, graph)
+        features = f(config)
+        prediction = model(features)
+        if prediction != gold_t
+            update(features, prediction, gold_t)
         end
     end
 end
 
+function train!(trainer::OnlineTrainer{<:DynamicOracle}, graph::DependencyGraph;
+                choose_next = choose_next_amb)
+    fx, update, model = trainer.featurize, trainer.update_function, trainer.model
+    cfg = initconfig(trainer.oracle.config, graph)
+    while !isfinal(cfg)
+        features = fx(cfg)
+        pred = model(features)
+        gold = zero_cost_transitions(cfg, graph)
+        t = choose_next(pred, gold)
+        if !(pred in gold)
+            update(features, pred, t)
+        end
+        cfg = t(cfg)
+    end
+end
