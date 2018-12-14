@@ -3,7 +3,14 @@
 
 struct DynamicOracle{T} <: TrainingOracle{T}
     config::T
+    oracle_fn::Function
 end
+
+DynamicOracle(T, oracle_fn = haszerocost) =
+    DynamicOracle{typeof(T)}(T, oracle_fn)
+
+gold_transitions(oracle::DynamicOracle, cfg, gold::DependencyGraph) =
+    filter(t -> oracle.oracle_fn(t, cfg, gold), possible_transitions(cfg, gold))
 
 # only follow optimal transitions, but allow "spurious ambiguity"
 choose_next_amb(pred, gold) = pred in gold ? pred : rand(gold)
@@ -17,11 +24,6 @@ haszerocost(t::TransitionOperator, cfg::ArcEager, gold::DependencyGraph) =
 
 hascost(t::TransitionOperator, cfg::ArcEager, gold::DependencyGraph) =
     cost(t, cfg, gold) >= 0
-
-function zero_cost_transitions(cfg::ArcEager, gold, oracle = haszerocost)
-    o(t) = oracle(t, cfg, gold)
-    filter(o, possible_transitions(cfg, gold))
-end
 
 function cost(t::LeftArc, cfg, gold)
     # left arc cost: num of arcs (k,l',s), (s,l',k) s.t. k ϵ β

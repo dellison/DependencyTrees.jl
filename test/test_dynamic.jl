@@ -36,7 +36,7 @@ using DependencyTrees: TreebankReader
     cfg = DependencyTrees.initconfig(oracle.config, graph)
     while !isfinal(cfg)
         pred = model(cfg)
-        gold = DependencyTrees.zero_cost_transitions(cfg, graph)
+        gold = DependencyTrees.gold_transitions(oracle, cfg, graph)
         @test pred in gold
         cfg = pred(cfg)
     end

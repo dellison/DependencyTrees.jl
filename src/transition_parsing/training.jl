@@ -14,7 +14,7 @@ function train!(trainer::OnlineTrainer{<:StaticOracle}, graph::DependencyGraph)
     f = trainer.featurize
     update = trainer.update_function
     model = trainer.model
-    for (config, gold_t) in GoldPairs(trainer.oracle, graph)
+    for (config, gold_t) in StaticGoldPairs(trainer.oracle, graph)
         features = f(config)
         prediction = model(features)
         if prediction != gold_t
@@ -30,7 +30,7 @@ function train!(trainer::OnlineTrainer{<:DynamicOracle}, graph::DependencyGraph;
     while !isfinal(cfg)
         features = fx(cfg)
         pred = model(features)
-        gold = zero_cost_transitions(cfg, graph)
+        gold = gold_transitions(trainer.oracle, cfg, graph)
         t = choose_next(pred, gold)
         if !(pred in gold)
             update(features, pred, t)
