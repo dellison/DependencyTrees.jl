@@ -25,7 +25,10 @@ haszerocost(t::TransitionOperator, cfg::ArcEager, gold::DependencyGraph) =
 hascost(t::TransitionOperator, cfg::ArcEager, gold::DependencyGraph) =
     cost(t, cfg, gold) >= 0
 
-function cost(t::LeftArc, cfg, gold)
+zero_cost_transitions(cfg::ArcEager, gold::DependencyGraph) =
+    filter(t -> haszerocost(t, cfg, gold), possible_transitions(cfg, gold))
+
+function cost(t::LeftArc, cfg::ArcEager, gold)
     # left arc cost: num of arcs (k,l',s), (s,l',k) s.t. k ϵ β
     σ, s = σs(cfg)
     b, β = bβ(cfg)
@@ -36,7 +39,7 @@ function cost(t::LeftArc, cfg, gold)
     end
 end
 
-function cost(t::RightArc, cfg, gold)
+function cost(t::RightArc, cfg::ArcEager, gold)
     # right arc cost: num of gold arcs (k,l',b), s.t. k ϵ σ or k ϵ β,
     #                 plus num of gold arcs (b,l',k) s.t. k ϵ σ
     σ, s = σs(cfg)
@@ -48,13 +51,13 @@ function cost(t::RightArc, cfg, gold)
     end
 end
 
-function cost(t::Reduce, cfg, gold)
+function cost(t::Reduce, cfg::ArcEager, gold)
     # num of gold arcs (s,l',k) s.t. k ϵ b|β
     σ, s = σs(cfg)
     count(k -> has_arc(gold, s, k), cfg.β)
 end
 
-function cost(t::Shift, cfg, gold)
+function cost(t::Shift, cfg::ArcEager, gold)
     # num of gold arcs (k,l',b), (b,l',k) s.t. k ϵ s|σ
     b, β = bβ(cfg)
     count(k -> has_arc(gold, k, b) || has_arc(gold, b, k), cfg.σ)

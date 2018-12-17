@@ -17,6 +17,7 @@ initconfig(T::Type{<:TransitionParserConfiguration}, graph::DependencyGraph) =
 include("transitions.jl")
 include("arc_standard.jl")
 include("arc_eager.jl")
+include("arc_swift.jl")
 include("listbased.jl")
 include("training.jl")
 

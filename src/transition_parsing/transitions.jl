@@ -46,13 +46,19 @@ struct Shift  <: TransitionOperator end
 
 A LeftArc transition operation, optionally parameterized.
 """
-struct LeftArc{A,K} <: TransitionOperator
+struct LeftArc{A<:Tuple,K} <: TransitionOperator
     args::A
     kwargs::K
 end
 
 LeftArc() = LeftArc(())
-LeftArc(args...; kwargs...) = LeftArc(args, kwargs)
+function LeftArc(args...; kwargs...)
+    A, K = typeof(args), typeof(kwargs)
+    LeftArc{A,K}(args, kwargs)
+end
+function LeftArc{A,K}(args...; kwargs...) where {A,K}
+    LeftArc{A,K}(args, kwargs)
+end
 
 (op::LeftArc)(cfg::TransitionParserConfiguration) =
     leftarc(cfg, op.args...; op.kwargs...)
@@ -75,7 +81,7 @@ end
 
 A RightArc transition operation, optionally parameterized.
 """
-struct RightArc{A,K} <: TransitionOperator
+struct RightArc{A<:Tuple,K} <: TransitionOperator
     args::A
     kwargs::K
 end

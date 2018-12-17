@@ -4,7 +4,8 @@ export
     DependencyGraph,
 
     TypedDependency, UntypedDependency, CoNLLU,
-    ArcEager, ArcStandard, ListBasedNonProjective,
+    ArcEager, ArcStandard, ArcSwift,
+    ListBasedNonProjective,
 
     StaticOracle, DynamicOracle
 

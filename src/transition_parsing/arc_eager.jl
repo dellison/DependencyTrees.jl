@@ -42,6 +42,9 @@ function bβ(cfg)
     return (b, β)
 end
 
+head_assigned(cfg::ArcEager, i) =
+    i == 0 || cfg.A[i] != -1
+
 function leftarc(state::ArcEager, args...; kwargs...)
     # Assert a head-dependent relation between the word at the front
     # of the input buffer and the word at the top of the stack; pop
@@ -102,7 +105,75 @@ function static_oracle(::Type{<:ArcEager}, graph::DependencyGraph)
                 return Reduce()
             end
         end
-        return Shift()
+        if length(cfg.β) >= 1
+            return Shift()
+        end
+    end
+end
+
+"""
+    static_oracle_shift(::ArcEager, graph)
+
+Return a training oracle function which returns gold transition
+operations from a parser configuration with reference to `graph`.
+Similar to the standard static oracle, but always Shift when ambiguity
+is present.
+"""
+function static_oracle_shift(::Type{<:ArcEager}, graph::DependencyGraph)
+    T = eltype(graph)
+    g = depargs(T)
+    arc(i) = g(graph[i])
+    function (cfg::ArcEager)
+        has_r_children, must_reduce = false, false
+        (σ, s), (b, β) = σs(cfg), bβ(cfg)
+        must_reduce = false
+        for i in cfg.σ
+            if has_arc(graph, i, b) || has_arc(graph, b, i)
+                must_reduce = true
+                break
+            elseif !head_assigned(cfg, i)
+                break
+            end
+        end
+        has_right_children = any(k -> has_arc(graph, s, k), cfg.β)
+        if head(graph, s) == b
+            return LeftArc(arc(s)...)
+        elseif head(graph, b) == s
+            return RightArc(arc(b)...)
+        elseif !must_reduce || (s != 0 && head(cfg.A[s]) == -1) || has_right_children
+            return Shift()
+        else
+            return Reduce()
+        end
+    end
+end
+
+"""
+    static_oracle_reduce(::ArcEager, graph)
+
+Return a training oracle function which returns gold transition
+operations from a parser configuration with reference to `graph`.
+Similar to the standard static oracle, but always Reduce when
+ambiguity is present.
+"""
+function static_oracle_reduce(::Type{<:ArcEager}, graph::DependencyGraph)
+    T = eltype(graph)
+    g = depargs(T)
+    arc(i) = g(graph[i])
+    function (cfg::ArcEager)
+        if length(cfg.σ) >= 1 && length(cfg.β) >= 1
+            s, b = cfg.σ[end], cfg.β[1]
+            if all(w -> w != 0 && head(cfg.A[w]) != -1, [s ; dependents(graph, s)])
+                return Reduce()
+            elseif !iszero(s) && head(graph, s) == b # (s <-- b)
+                return LeftArc(arc(s)...)
+            elseif head(graph, b) == s # (s --> b)
+                return RightArc(arc(b)...)
+            end
+        end
+        if length(cfg.β) >= 1
+            return Shift()
+        end
     end
 end
 
