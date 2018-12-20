@@ -126,15 +126,8 @@ function static_oracle_shift(::Type{<:ArcEager}, graph::DependencyGraph)
     function (cfg::ArcEager)
         has_r_children, must_reduce = false, false
         (σ, s), (b, β) = σs(cfg), bβ(cfg)
-        must_reduce = false
-        for i in cfg.σ
-            if has_arc(graph, i, b) || has_arc(graph, b, i)
-                must_reduce = true
-                break
-            elseif !head_assigned(cfg, i)
-                break
-            end
-        end
+        must_reduce = !any(k -> has_arc(graph, k, b) || has_arc(graph, b, k), cfg.σ) ||
+            all(k -> head_assigned(cfg, k), cfg.σ)
         has_right_children = any(k -> has_arc(graph, s, k), cfg.β)
         if head(graph, s) == b
             return LeftArc(arc(s)...)
