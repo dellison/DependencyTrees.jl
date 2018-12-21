@@ -1,15 +1,13 @@
 """
     ArcSwift{T<:Dependency}
 
-Parser configuration for arc-swift transition-based dependency
-parsing.
+Parser configuration for arc-swift dependency parsing.
+
+Described in [Qi & Manning 2007](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
 struct ArcSwift{T} <: TransitionParserConfiguration{T}
-    "The stack."
     σ::Vector{Int}
-    "The word/input buffer."
     β::Vector{Int}
-    "The list of arcs."
     A::Vector{T}
 end
 
@@ -27,14 +25,12 @@ function leftarc(cfg::ArcSwift, k::Int, args...; kwargs...)
     # of the input buffer and the word at the top of the stack; pop
     # the stack.
     i = length(cfg.σ) - k + 1
-    h, d = cfg.β[1], cfg.σ[i]
+    s, b = cfg.σ[i], cfg.β[1]
     A = copy(cfg.A)
-    if d > 0
-        A[d] = dep(A[d], args...; head=h, kwargs...)
+    if s > 0
+        A[s] = dep(A[s], args...; head=b, kwargs...)
     end
-    σ = cfg.σ[1:i-1]# ; cfg.σ[i+1:end]]
-    # println("LA $(cfg.σ) -> $σ")
-    ArcSwift(σ, cfg.β, A)
+    ArcSwift(cfg.σ[1:i-1], cfg.β, A)
 end
 
 function rightarc(cfg::ArcSwift, k::Int, args...; kwargs...)
@@ -42,19 +38,16 @@ function rightarc(cfg::ArcSwift, k::Int, args...; kwargs...)
     # the σ and the word at front of the input buffer; shift the
     # word at the front of the input buffer to the stack.
     i = length(cfg.σ) - k + 1
-    h, d = cfg.σ[i], cfg.β[1]
+    s, b = cfg.σ[i], cfg.β[1]
     A = copy(cfg.A)
-    A[d] = dep(A[d], args...; head=h, kwargs...)
-    σ = [cfg.σ[1:i] ; d]
-    β = cfg.β[2:end]
-    ArcSwift(σ, β, A)
+    A[b] = dep(A[b], args...; head=s, kwargs...)
+    ArcSwift([cfg.σ[1:i] ; b], cfg.β[2:end], A)
 end
 
 function shift(cfg::ArcSwift)
     # Remove the word from the front of the input buffer and push it
     # onto the stack.
-    buf = cfg.β
-    ArcSwift([cfg.σ ; buf[1]], buf[2:end], cfg.A)
+    ArcSwift([cfg.σ ; cfg.β[1]], cfg.β[2:end], cfg.A)
 end
 
 isfinal(cfg::ArcSwift) =
@@ -65,11 +58,13 @@ isfinal(cfg::ArcSwift) =
 
 Return a training oracle function which returns gold transition
 operations from a parser configuration with reference to `graph`.
+
+Described in [Qi & Manning 2007](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
 function static_oracle(::Type{<:ArcSwift}, graph::DependencyGraph)
-    T = eltype(graph)
-    g = depargs(T)
-    arc(i) = g(graph[i])
+    g = depargs(eltype(graph))
+    args(i) = g(graph[i])
+
     function (cfg::ArcSwift)
         S = length(cfg.σ)
         if S >= 1 && length(cfg.β) >= 1
@@ -77,16 +72,14 @@ function static_oracle(::Type{<:ArcSwift}, graph::DependencyGraph)
             for k in 1:S
                 i = S - k + 1
                 s = cfg.σ[i]
-                if head(graph, s) == b # (s <-- b)
-                    return LeftArc(k, arc(s)...)
-                elseif head(graph, b) == s # (s --> b)
-                    return RightArc(k, arc(b)...)
+                if has_arc(graph, b, s)
+                    return LeftArc(k, args(s)...)
+                elseif has_arc(graph, s, b)
+                    return RightArc(k, args(b)...)
                 end
             end
         end
-        if length(cfg.β) >= 1
-            return Shift()
-        end
+        return Shift()
     end
 end
 
