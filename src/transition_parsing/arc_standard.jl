@@ -1,8 +1,7 @@
 """
     ArcStandard{T<:Dependency}(words)
 
-Parser configuration for arc-standard transition-based dependency
-parsing.
+Parser configuration for arc-standard dependency parsing.
 """
 struct ArcStandard{T<:Dependency} <: TransitionParserConfiguration{T}
     σ::Vector{Int}
@@ -19,39 +18,30 @@ end
 
 arcs(cfg::ArcStandard) = cfg.A
 
-# transition operations: leftarc, rightarc, shift
-
-function leftarc(state::ArcStandard, args...; kwargs...)
+function leftarc(cfg::ArcStandard, args...; kwargs...)
     # assert a head-dependent relation between the word at the top of
     # the stack and the word directly beneath it; remove the lower
     # word from the stack
-    @assert length(state.σ) >= 2
-    stack = state.σ
-    h, d= stack[end], stack[end-1]
-    stack = [stack[1:end-2] ; [h]]
-    A = copy(state.A)
-    A[d] = dep(A[d], args...; head=h, kwargs...)
-    ArcStandard(stack, state.β, A)
+    σ, s1, s0 = cfg.σ[1:end-2], cfg.σ[end-1], cfg.σ[end]
+    A = copy(cfg.A)
+    A[s1] = dep(A[s1], args...; head=s0, kwargs...)
+    ArcStandard([σ ; s0], cfg.β, A)
 end
 
-function rightarc(state::ArcStandard, args...; kwargs...)
+function rightarc(cfg::ArcStandard, args...; kwargs...)
     # assert a head-dependent relation btwn the 2nd word on the stack
     # and the word on top; remove the word at the top of the stack
-    @assert length(state.σ) >= 2
-    d, h = state.σ[end], state.σ[end-1]
-    stack = [state.σ[1:end-2] ; [h]]
-    A = copy(state.A)
-    A[d] = dep(A[d], args...; head=h, kwargs...)
-    ArcStandard(stack, state.β, A)
+    σ, s1, s0 = cfg.σ[1:end-2], cfg.σ[end-1], cfg.σ[end]
+    A = copy(cfg.A)
+    A[s0] = dep(A[s0], args...; head=s1, kwargs...)
+    ArcStandard([σ ; s1], cfg.β, A)
 end
 
 function shift(state::ArcStandard)
     # remove the word from the front of the input buffer and push it
     # onto the stack
-    @assert length(state.β) >= 1
-    word = state.β[1]
-    β = state.β[2:end]
-    ArcStandard([state.σ ; word], β, state.A)
+    b, β = state.β[1], state.β[2:end]
+    ArcStandard([state.σ ; b], β, state.A)
 end
 
 isfinal(state::ArcStandard) =
@@ -64,18 +54,17 @@ Return a training oracle function which returns gold transition
 operations from a parser configuration with reference to `graph`.
 """
 function static_oracle(::Type{<:ArcStandard}, graph::DependencyGraph)
-    T = eltype(graph)
-    g = depargs(T)
-    arc(i) = g(graph[i])
+    g = depargs(eltype(graph))
+    args(i) = g(graph[i])
+
     function (cfg::ArcStandard)
         if length(cfg.σ) >= 2
             s2, s1 = cfg.σ[end-1], cfg.σ[end]
-            if head(graph[s2]) == s1 # (s2 <-- s1)
-                return LeftArc(arc(s2)...)
-            elseif head(graph[s1]) == s2 # (s2 --> s1)
-                if all([!(dp in cfg.σ || dp in cfg.β)
-                        for dp in dependents(graph, s1)])
-                    return RightArc(arc(s1)...)
+            if has_arc(graph, s1, s2)
+                return LeftArc(args(s2)...)
+            elseif has_arc(graph, s2, s1)
+                if !any(k -> (k in cfg.σ || k in cfg.β), dependents(graph, s1))
+                    return RightArc(args(s1)...)
                 end
             end
         end
