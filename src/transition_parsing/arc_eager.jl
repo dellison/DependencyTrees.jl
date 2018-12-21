@@ -1,139 +1,126 @@
 """
     ArcEager{T<:Dependency}
 
-Parser configuration for arc-eager transition-based dependency
-parsing.
+Parser configuration for arc-eager dependency parsing.
+
+Described in [Nivre 2003](http://stp.lingfil.uu.se/~nivre/docs/iwpt03.pdf),
+[Nivre 2008](https://www.aclweb.org/anthology/J/J08/J08-4003.pdf).
 """
 struct ArcEager{T} <: TransitionParserConfiguration{T}
-    "The stack."
     σ::Vector{Int}
-    "The word/input buffer."
     β::Vector{Int}
-    "The list of arcs."
     A::Vector{T}
 end
 
 function ArcEager{T}(words) where T
     σ = [0]
     β = collect(1:length(words))
-    A = [unk(T, id, w) for (id,w) in enumerate(words)]
+    A = [unk(T, i, word) for (i, word) in enumerate(words)]
     ArcEager{T}(σ, β, A)
 end
 
 arcs(cfg::ArcEager) = cfg.A
 
-function σs(cfg)
+function σs(cfg::ArcEager)
     s = cfg.σ[end]
-    if length(cfg.σ) > 1
-        σ = cfg.σ[2:end]
-    else
-        σ = Int[]
-    end
+    σ = length(cfg.σ) > 1 ? cfg.σ[2:end] : Int[]
     return (σ, s)
 end
 
-function bβ(cfg)
+function bβ(cfg::ArcEager)
     b = cfg.β[1]
-    if length(cfg.β) > 1
-        β = cfg.β[2:end]
-    else
-        β = Int[]
-    end
+    β = length(cfg.β) > 1 ? cfg.β[2:end] : Int[]
     return (b, β)
 end
 
-head_assigned(cfg::ArcEager, i) =
-    i == 0 || cfg.A[i] != -1
-
-function leftarc(state::ArcEager, args...; kwargs...)
+function leftarc(cfg::ArcEager, args...; kwargs...)
     # Assert a head-dependent relation between the word at the front
     # of the input buffer and the word at the top of the stack; pop
     # the stack.
-    h, d = state.β[1], state.σ[end]
-    A = copy(state.A)
-    if d > 0
-        A[d] = dep(A[d], args...; head=h, kwargs...)
+    s, b, A = cfg.σ[end], cfg.β[1], copy(cfg.A)
+    if s > 0
+        A[s] = dep(A[s], args...; head=b, kwargs...)
     end
-    ArcEager(state.σ[1:end-1], state.β, A)
+    ArcEager(cfg.σ[1:end-1], cfg.β, A)
 end
 
-function rightarc(state::ArcEager, args...; kwargs...)
+function rightarc(cfg::ArcEager, args...; kwargs...)
     # Assert a head-dependent relation between the word on the top of
     # the σ and the word at front of the input buffer; shift the
     # word at the front of the input buffer to the stack.
-    h, d = state.σ[end], state.β[1]
-    A = copy(state.A)
-    A[d] = dep(A[d], args...; head=h, kwargs...)
-    β = state.β
-    ArcEager([state.σ ; β[1]], β[2:end], A)
+    (σ, s), (b, β), A = σs(cfg), bβ(cfg), copy(cfg.A)
+    A[b] = dep(A[b], args...; head=s, kwargs...)
+    ArcEager([cfg.σ ; b], β, A)
 end
 
-function Base.reduce(state::ArcEager)
+function Base.reduce(cfg::ArcEager)
     # Pop the stack.
-    ArcEager(state.σ[1:end-1], state.β, state.A)
+    ArcEager(cfg.σ[1:end-1], cfg.β, cfg.A)
 end
 
-function shift(state::ArcEager)
+function shift(cfg::ArcEager)
     # Remove the word from the front of the input buffer and push it
     # onto the stack.
-    buf = state.β
-    ArcEager([state.σ ; buf[1]], buf[2:end], state.A)
+    (b, β) = bβ(cfg)
+    ArcEager([cfg.σ ; b], β, cfg.A)
 end
 
-isfinal(state::ArcEager) =
-    all(a -> head(a) >= 0, state.A)
+isfinal(cfg::ArcEager) = all(a -> head(a) >= 0, cfg.A)
+hashead(cfg::ArcEager, k) = head(cfg.A[k]) != -1
 
 """
     static_oracle(::ArcEager, graph)
 
-Return a training oracle function which returns gold transition
-operations from a parser configuration with reference to `graph`.
+Return a static oracle function which maps parser states to gold transition
+operations with reference to `graph`.
+
+Described in [Goldberg & Nivre 2012](https://www.aclweb.org/anthology/C/C12/C12-1059.pdf).
 """
 function static_oracle(::Type{<:ArcEager}, graph::DependencyGraph)
-    T = eltype(graph)
-    g = depargs(T)
-    arc(i) = g(graph[i])
+    g = depargs(eltype(graph))
+    args(i) = g(graph[i])
+    gold_arc(a, b) = has_arc(graph, a, b)
+
     function (cfg::ArcEager)
         if length(cfg.σ) >= 1 && length(cfg.β) >= 1
             s, b = cfg.σ[end], cfg.β[1]
-            if head(graph, s) == b # (s <-- b)
-                return LeftArc(arc(s)...)
-            elseif head(graph, b) == s # (s --> b)
-                return RightArc(arc(b)...)
-            elseif all(w -> w != 0 && head(cfg.A[w]) != -1, [s ; dependents(graph, s)])
-                # s's head and all its dependents' heads have been assigned
+            if gold_arc(b, s)
+                return LeftArc(args(s)...)
+            elseif gold_arc(s, b)
+                return RightArc(args(b)...)
+            elseif all(k -> k > 0 && hashead(cfg, k), [s ; dependents(graph, s)])
                 return Reduce()
             end
         end
-        if length(cfg.β) >= 1
-            return Shift()
-        end
+        return Shift()
     end
 end
 
 """
     static_oracle_shift(::ArcEager, graph)
 
-Return a training oracle function which returns gold transition
-operations from a parser configuration with reference to `graph`.
-Similar to the standard static oracle, but always Shift when ambiguity
-is present.
+Return a static oracle function which maps parser states to gold
+transition operations with reference to `graph`.  Similar to the
+standard static oracle, but always Shift when ambiguity is present.
+
+Described in [Qi & Manning 2007](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
 function static_oracle_shift(::Type{<:ArcEager}, graph::DependencyGraph)
-    T = eltype(graph)
-    g = depargs(T)
-    arc(i) = g(graph[i])
+    g = depargs(eltype(graph))
+    args(i) = g(graph[i])
+    gold_arc(a, b)= has_arc(graph, a, b)
+
     function (cfg::ArcEager)
-        has_r_children, must_reduce = false, false
         (σ, s), (b, β) = σs(cfg), bβ(cfg)
-        must_reduce = !any(k -> has_arc(graph, k, b) || has_arc(graph, b, k), cfg.σ) ||
-            all(k -> head_assigned(cfg, k), cfg.σ)
-        has_right_children = any(k -> has_arc(graph, s, k), cfg.β)
-        if head(graph, s) == b
-            return LeftArc(arc(s)...)
-        elseif head(graph, b) == s
-            return RightArc(arc(b)...)
-        elseif !must_reduce || (s != 0 && head(cfg.A[s]) == -1) || has_right_children
+        if gold_arc(b, s)
+            return LeftArc(args(s)...)
+        elseif gold_arc(s, b)
+            return RightArc(args(b)...)
+        end
+        must_reduce = !any(k -> gold_arc(k, b) || gold_arc(b, k), cfg.σ) ||
+            all(k -> k == 0 || hashead(cfg, k), cfg.σ)
+        has_right_children = any(k -> gold_arc(s, k), cfg.β)
+        if ! must_reduce || s > 0 && !hashead(cfg, s) || has_right_children
             return Shift()
         else
             return Reduce()
@@ -148,31 +135,28 @@ Return a training oracle function which returns gold transition
 operations from a parser configuration with reference to `graph`.
 Similar to the standard static oracle, but always Reduce when
 ambiguity is present.
+
+Described in [Qi & Manning 2007](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
 function static_oracle_reduce(::Type{<:ArcEager}, graph::DependencyGraph)
-    T = eltype(graph)
-    g = depargs(T)
-    arc(i) = g(graph[i])
+    g = depargs(eltype(graph))
+    args(i) = g(graph[i])
+    gold_arc(a, b) = has_arc(graph, a, b)
+
     function (cfg::ArcEager)
         if length(cfg.σ) >= 1 && length(cfg.β) >= 1
             s, b = cfg.σ[end], cfg.β[1]
-            if all(w -> w != 0 && head(cfg.A[w]) != -1, [s ; dependents(graph, s)])
+            if all(k -> k > 0 && hashead(cfg, k), [s ; dependents(graph, s)])
                 return Reduce()
-            elseif !iszero(s) && head(graph, s) == b # (s <-- b)
-                return LeftArc(arc(s)...)
-            elseif head(graph, b) == s # (s --> b)
-                return RightArc(arc(b)...)
+            elseif !iszero(s) && gold_arc(b, s)
+                return LeftArc(args(s)...)
+            elseif gold_arc(s, b)
+                return RightArc(args(b)...)
             end
         end
-        if length(cfg.β) >= 1
-            return Shift()
-        end
+        return Shift()
     end
 end
-
-import Base.==
-==(cfg1::ArcEager, cfg2::ArcEager) =
-    cfg1.σ == cfg2.σ && cfg1.β == cfg2.β && cfg1.A == cfg2.A
 
 # see figure 2 in goldberg & nivre 2012 "a dynamic oracle..."
 function possible_transitions(cfg::ArcEager, graph::DependencyGraph)
@@ -202,3 +186,7 @@ function possible_transitions(cfg::ArcEager, graph::DependencyGraph)
     end
     return ops
 end
+
+import Base.==
+==(cfg1::ArcEager, cfg2::ArcEager) =
+    cfg1.σ == cfg2.σ && cfg1.β == cfg2.β && cfg1.A == cfg2.A
