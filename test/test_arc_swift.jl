@@ -1,6 +1,6 @@
 @testset "Arc-Swift" begin
 
-    using DependencyTrees: static_oracle_reduce, static_oracle_shift, xys
+    using DependencyTrees: static_oracle_shift, xys
     using DependencyTrees: possible_transitions, zero_cost_transitions
 
     TD = TypedDependency
@@ -27,7 +27,7 @@
     gold2 = DependencyGraph(TD, s2, add_id = true)
 
     @testset "Arc Eager Reduce" begin
-        oracle = StaticOracle(ArcEager{TD}, static_oracle_reduce)
+        oracle = StaticOracle(ArcEager{TD})
         (gold_cfgs1, gold_ts1) = zip(xys(oracle, gold1)...)
         @test gold_ts1 == (Shift(), LeftArc("nsubj"), RightArc("root"),
                            RightArc("dobj"), Reduce(), Shift(), LeftArc("case"),

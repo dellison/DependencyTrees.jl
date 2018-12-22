@@ -75,6 +75,7 @@ Return a static oracle function which maps parser states to gold transition
 operations with reference to `graph`.
 
 Described in [Goldberg & Nivre 2012](https://www.aclweb.org/anthology/C/C12/C12-1059.pdf).
+Also called Arc-Eager-Reduce in [Qi & Manning 2007](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
 function static_oracle(::Type{<:ArcEager}, graph::DependencyGraph)
     g = depargs(eltype(graph))
@@ -125,36 +126,6 @@ function static_oracle_shift(::Type{<:ArcEager}, graph::DependencyGraph)
         else
             return Reduce()
         end
-    end
-end
-
-"""
-    static_oracle_reduce(::ArcEager, graph)
-
-Return a training oracle function which returns gold transition
-operations from a parser configuration with reference to `graph`.
-Similar to the standard static oracle, but always Reduce when
-ambiguity is present.
-
-Described in [Qi & Manning 2007](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
-"""
-function static_oracle_reduce(::Type{<:ArcEager}, graph::DependencyGraph)
-    g = depargs(eltype(graph))
-    args(i) = g(graph[i])
-    gold_arc(a, b) = has_arc(graph, a, b)
-
-    function (cfg::ArcEager)
-        if length(cfg.σ) >= 1 && length(cfg.β) >= 1
-            s, b = cfg.σ[end], cfg.β[1]
-            if all(k -> k > 0 && hashead(cfg, k), [s ; dependents(graph, s)])
-                return Reduce()
-            elseif !iszero(s) && gold_arc(b, s)
-                return LeftArc(args(s)...)
-            elseif gold_arc(s, b)
-                return RightArc(args(b)...)
-            end
-        end
-        return Shift()
     end
 end
 
