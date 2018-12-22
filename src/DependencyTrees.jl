@@ -11,6 +11,8 @@ export
     StaticOracle, DynamicOracle,
     static_oracle, static_oracle_shift,
 
+    OnlineTrainer,
+
     isprojective, xys
 
 

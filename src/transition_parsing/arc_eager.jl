@@ -23,7 +23,7 @@ arcs(cfg::ArcEager) = cfg.A
 
 function σs(cfg::ArcEager)
     s = cfg.σ[end]
-    σ = length(cfg.σ) > 1 ? cfg.σ[2:end] : Int[]
+    σ = length(cfg.σ) > 1 ? cfg.σ[1:end-1] : Int[]
     return (σ, s)
 end
 
@@ -157,6 +157,44 @@ function possible_transitions(cfg::ArcEager, graph::DependencyGraph)
     end
     return ops
 end
+
+
+function cost(t::LeftArc, cfg::ArcEager, gold)
+    # left arc cost: num of arcs (k,l',s), (s,l',k) s.t. k ϵ β
+    σ, s = σs(cfg)
+    b, β = bβ(cfg)
+    if has_dependency(gold, b, s)
+        0
+    else
+        count(k -> has_arc(gold, k, s) || has_arc(gold, s, k), β)
+    end
+end
+
+function cost(t::RightArc, cfg::ArcEager, gold)
+    # right arc cost: num of gold arcs (k,l',b), s.t. k ϵ σ or k ϵ β,
+    #                 plus num of gold arcs (b,l',k) s.t. k ϵ σ
+    σ, s = σs(cfg)
+    b, β = bβ(cfg)
+    if has_dependency(gold, s, b)
+        0
+    else
+        count(k -> has_arc(gold, k, b), [σ ; β]) + count(k -> has_arc(gold, b, k), σ)
+    end
+end
+
+function cost(t::Reduce, cfg::ArcEager, gold)
+    # num of gold arcs (s,l',k) s.t. k ϵ b|β
+    σ, s = σs(cfg)
+    count(k -> has_arc(gold, s, k), cfg.β)
+end
+
+function cost(t::Shift, cfg::ArcEager, gold)
+    # num of gold arcs (k,l',b), (b,l',k) s.t. k ϵ s|σ
+    b, β = bβ(cfg)
+    count(k -> has_arc(gold, k, b) || has_arc(gold, b, k), cfg.σ)
+end
+
+
 
 import Base.==
 ==(cfg1::ArcEager, cfg2::ArcEager) =

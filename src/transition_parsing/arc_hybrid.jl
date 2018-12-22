@@ -22,15 +22,35 @@ end
 
 arcs(cfg::ArcHybrid) = cfg.A
 
+function σs0(cfg::ArcHybrid)
+    s0 = cfg.σ[end]
+    σ = length(cfg.σ) > 1 ? cfg.σ[1:end-1] : Int[]
+    return (σ, s0)
+end
+function σs1s0(cfg::ArcHybrid)
+    s0 = cfg.σ[end]
+    temp = length(cfg.σ) > 1 ? cfg.σ[1:end-1] : Int[]
+    s1 = temp[end]
+    σ = length(temp) > 1 ? temp[1:end-1] : Int[]
+    return (σ, s1, s0)
+end
+
+function bβ(cfg::ArcHybrid)
+    b = cfg.β[1]
+    β = length(cfg.β) > 1 ? cfg.β[2:end] : Int[]
+    return (b, β)
+end
+
+
 # transition operations: leftarc, rightarc, shift
 
 function leftarc(cfg::ArcHybrid, args...; kwargs...)
     # Assert a head-dependent relation between the word at the front
     # of the input buffer and the word at the top of the stack; pop
     # the stack.
-    s, b, A = cfg.σ[end], cfg.β[1], copy(cfg.A)
-    if s > 0
-        A[s] = dep(A[s], args...; head=b, kwargs...)
+    s0, b, A = cfg.σ[end], cfg.β[1], copy(cfg.A)
+    if s0 > 0
+        A[s0] = dep(A[s0], args...; head=b, kwargs...)
     end
     ArcHybrid(cfg.σ[1:end-1], cfg.β, A)
 end
@@ -38,9 +58,11 @@ end
 function rightarc(cfg::ArcHybrid, args...; kwargs...)
     # assert a head-dependent relation btwn the 2nd word on the stack
     # and the word on top; remove the word at the top of the stack
-    σ, s1, s0 = cfg.σ[1:end-2], cfg.σ[end-1], cfg.σ[end]
+    σ, s1, s0 = σs1s0(cfg)
     A = copy(cfg.A)
-    A[s0] = dep(A[s0], args...; head=s1, kwargs...)
+    if s0 > 0
+        A[s0] = dep(A[s0], args...; head=s1, kwargs...)
+    end
     ArcHybrid([σ ; s1], cfg.β, A)
 end
 
@@ -83,6 +105,49 @@ function static_oracle(::Type{<:ArcHybrid}, graph::DependencyGraph)
             return Shift()
         end
     end
+end
+
+function cost(t::LeftArc, cfg::ArcHybrid, gold)
+    # number of arcs (s0, d) and (h, s0) for h ϵ H and d ϵ D
+    (σ, s0), (b, β) = σs0(cfg), bβ(cfg)
+    H = length(σ) > 1 ? [σ[end] ; β] : β
+    D = cfg.β
+    count(d -> has_arc(gold, s0, d), D) + count(h -> has_arc(gold, h, s0), H)
+end
+
+function cost(t::RightArc, cfg::ArcHybrid, gold)
+    # number of arcs (s0,d) and (h,s0) for h, d ϵ B
+    s0, c = cfg.σ[end], 0
+    for (i, k) in enumerate(cfg.β)
+        c += has_arc(gold, s0, k)
+        c += has_arc(gold, k, s0)
+    end
+    c
+end
+
+function cost(t::Shift, cfg::ArcHybrid, gold)
+    # num of arcs (b, d), (h, b) s.t. h ϵ H, d ϵ D
+    b = cfg.β[1]
+    H, D = length(cfg.σ) > 1 ? cfg.σ[1:end-1] : Int[], cfg.σ
+    count(h -> has_arc(gold, h, b), H) + count(d -> has_arc(gold, b, d), D)
+end
+
+
+function possible_transitions(cfg::ArcHybrid, graph::DependencyGraph)
+    g = depargs(eltype(graph))
+    ops = TransitionOperator[]
+    S, B = length(cfg.σ), length(cfg.β)
+    if S >= 1
+        s = cfg.σ[end]
+        if !iszero(s) && S > 1
+            push!(ops, RightArc(g(graph[s])...))
+        end
+        if B >= 1
+            push!(ops, LeftArc(g(graph[s])...))
+        end
+    end
+    B >= 1 && push!(ops, Shift())
+    ops
 end
 
 import Base.==
