@@ -1,8 +1,8 @@
 using DependencyTrees, Test
 
-using DependencyTrees: ArcEager, shift, leftarc, rightarc
+using DependencyTrees: shift, leftarc, rightarc, reduce
 using DependencyTrees: LeftArc, RightArc, Shift, Reduce
-using DependencyTrees: StaticOracle, train!, xys
+using DependencyTrees: train!
 
 # tests from sandra kubler, ryan mcdonald, joakim nivre 09 "dependency
 # parsing" (https://doi.org/10.2200/S00169ED1V01Y200901HLT002)
@@ -70,7 +70,7 @@ using DependencyTrees: StaticOracle, train!, xys
         @test collect(last.(pairs)) == gold_transitions
         @test collect(xys(oracle, [graph])) == collect(pairs)
 
-        model = static_oracle(oracle.config, graph) # perfect model for this sentence)
+        model = static_oracle(oracle.config, graph) # perfect model for this sentence
         trainer = OnlineTrainer(oracle, model, identity, (x, ŷ, y) -> error("oracle was wrong"))
         train!(trainer, graph)
     end

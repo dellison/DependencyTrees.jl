@@ -1,5 +1,3 @@
-using DependencyTrees: CoNLLU
-
 @testset "CoNLL-U" begin
 
     corpus_file = joinpath(@__DIR__, "data", "english.conllu")

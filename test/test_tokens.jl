@@ -1,4 +1,3 @@
-using DependencyTrees, Test
 using DependencyTrees: deprel, form, id, head, root, isroot
 
 @testset "Tokens" begin

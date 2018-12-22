@@ -1,8 +1,5 @@
 @testset "Arc-Swift" begin
 
-    using DependencyTrees: static_oracle_shift, xys
-    using DependencyTrees: possible_transitions, zero_cost_transitions
-
     TD = TypedDependency
 
     s1 = [

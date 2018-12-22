@@ -7,7 +7,11 @@ export
     ArcEager, ArcStandard, ArcSwift,
     ListBasedNonProjective,
 
-    StaticOracle, DynamicOracle
+    StaticOracle, DynamicOracle,
+
+    static_oracle, static_oracle_shift,
+
+    isprojective, xys
 
 
 using LightGraphs

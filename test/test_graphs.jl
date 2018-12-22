@@ -1,6 +1,4 @@
-using DependencyTrees, Test
-
-using DependencyTrees: dependents, isprojective
+using DependencyTrees: dependents
 
 @testset "Graphs" begin
 

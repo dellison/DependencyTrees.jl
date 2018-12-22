@@ -1,6 +1,4 @@
-using DependencyTrees, Test
-
-using DependencyTrees: ArcEager, shift, leftarc, rightarc
+using DependencyTrees: shift, leftarc, rightarc
 using DependencyTrees: OnlineTrainer
 
 # tests from nivre 08 "algorithms for deterministic incremental

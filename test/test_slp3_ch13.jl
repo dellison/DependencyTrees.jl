@@ -1,8 +1,6 @@
-using DependencyTrees, Test
-
-using DependencyTrees: ArcStandard, leftarc, rightarc, shift, isfinal
+using DependencyTrees: leftarc, rightarc, shift, isfinal
 using DependencyTrees: LeftArc, RightArc, Reduce, Shift
-using DependencyTrees: static_oracle, StaticOracle, OnlineTrainer, train!, xys
+using DependencyTrees: OnlineTrainer, train!
 
 # tests from chapter 13 of the draft of "Speech and Language
 # Processing" 3rd edition by Jurafsky & Martin
