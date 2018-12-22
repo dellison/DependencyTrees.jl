@@ -4,11 +4,11 @@ export
     DependencyGraph, Treebank,
 
     TypedDependency, UntypedDependency, CoNLLU,
-    ArcEager, ArcStandard, ArcSwift,
+
+    ArcEager, ArcStandard, ArcHybrid, ArcSwift,
     ListBasedNonProjective,
 
     StaticOracle, DynamicOracle,
-
     static_oracle, static_oracle_shift,
 
     isprojective, xys

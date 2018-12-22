@@ -50,7 +50,7 @@
         @test length(trees2) == 4
         @test trees2 == trees
 
-        for TS in (ArcEager, ArcStandard, ArcSwift)
+        for TS in (ArcEager, ArcHybrid, ArcStandard, ArcSwift)
             oracle = StaticOracle(TS{CoNLLU})
             @test xys(oracle, trees) == xys(oracle, trees2)
         end
@@ -58,7 +58,7 @@
         @testset "Training" begin
             tb = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "hybridtests.conll"))
 
-            for TS in (ArcEager, ArcStandard, ArcSwift, ListBasedNonProjective)
+            for TS in (ArcEager, ArcStandard, ArcHybrid, ArcSwift, ListBasedNonProjective)
                 oracle = StaticOracle(TS{CoNLLU})
                 model(x) = nothing
                 update = function (x, pred, gold)
