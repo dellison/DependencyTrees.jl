@@ -1,0 +1,42 @@
+1	I	i	_	_	_	2	nsubj	_	_
+2	ate	ate	_	_	_	0	root	_	_
+3	fish	fish	_	_	_	2	dobj	_	_
+4	with	with	_	_	_	5	case	_	_
+5	chopsticks	chopsticks	_	_	_	2	inst	_	_
+6	.	pu	_	_	_	2	pu	_	_
+
+1	I	i	_	_	_	2	nsubj	_	_
+2	ate	ate	_	_	_	0	root	_	_
+3	fish	fish	_	_	_	2	dobj	_	_
+4	with	with	_	_	_	3	nmod	_	_
+5	ketchup	ketchup	_	_	_	4	case	_	_
+6	.	pu	_	_	_	2	pu	_	_
+
+1	Economic	economic	_	_	_	2	att	_	_
+2	news	news	_	_	_	3	sbj	_	_
+3	had	had	_	_	_	0	pred	_	_
+4	little	little	_	_	_	5	att	_	_
+5	effect	effect	_	_	_	3	obj	_	_
+6	on	on	_	_	_	5	att	_	_
+7	financial	financial	_	_	_	8	att	_	_
+8	markets	markets	_	_	_	6	pc	_	_
+9	.	pu	_	_	_	3	pu	_	_
+
+1	Pierre	pierre	_	_	_	2	NNP	_	_
+2	Vinken	vinken	_	_	_	8	NNP	_	_
+3	,	pu	_	_	_	2	P	_	_
+4	61	CD	_	_	_	5	CD	_	_
+5	years	years	_	_	_	6	NNS	_	_
+6	old	old	_	_	_	2	JJ	_	_
+7	,	pu	_	_	_	2	PU	_	_
+8	will	will	_	_	_	0	MD	_	_
+9	join	join	_	_	_	8	VB	_	_
+10	the	the	_	_	_	11	DT	_	_
+11	board	board	_	_	_	9	NN	_	_
+12	as	as	_	_	_	9	IN	_	_
+13	a	a	_	_	_	15	DT	_	_
+14	nonexecutive	nonexecutive	_	_	_	15	JJ	_	_
+15	director	director	_	_	_	12	NN	_	_
+16	Nov.	nov	_	_	_	9	NNP	_	_
+17	29	CD	_	_	_	16	CD	_	_
+18	.	pu	_	_	_	8	P	_	_

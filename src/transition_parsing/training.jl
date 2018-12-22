@@ -23,6 +23,20 @@ function train!(trainer::OnlineTrainer{<:StaticOracle}, graph::DependencyGraph)
     end
 end
 
+function train!(trainer::OnlineTrainer{<:StaticOracle}, graphs::Treebank;
+                epochs=1)
+    data = xys(trainer.oracle, graphs)
+    xs, ys = trainer.featurize.(first.(data)), last.(data)
+    for epoch = 1:epochs
+        for (x, y) in zip(xs, ys)
+            ŷ = trainer.model(x)
+            if ŷ != y
+                trainer.update_function(x, ŷ, y)
+            end
+        end
+    end
+end
+
 function train!(trainer::OnlineTrainer{<:DynamicOracle}, graph::DependencyGraph;
                 choose_next = choose_next_amb)
     fx, update, model = trainer.featurize, trainer.update_function, trainer.model
