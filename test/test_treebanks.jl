@@ -35,4 +35,24 @@
         @test length(tree.mwts) == 0
         @test length(tree.emptytokens) == 1
     end
+
+    @testset "Treebanks" begin
+        files = [joinpath(datadir, file) for file in readdir(datadir)
+                 if endswith(file, ".conllu")]
+        @test length(files) == 3
+
+        treebank = Treebank{CoNLLU}(files)
+        trees = collect(treebank)
+        @test length(trees) == 4
+
+        treebank2 = Treebank{CoNLLU}(datadir, pattern=r".conllu$")
+        trees2 = collect(treebank2)
+        @test length(trees2) == 4
+        @test trees2 == trees
+
+        for TS in (ArcEager, ArcStandard, ArcSwift)
+            oracle = StaticOracle(TS{CoNLLU})
+            @test xys(oracle, trees) == xys(oracle, trees2)
+        end
+    end
 end

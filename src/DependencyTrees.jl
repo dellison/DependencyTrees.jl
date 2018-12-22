@@ -1,7 +1,7 @@
 module DependencyTrees
 
 export
-    DependencyGraph,
+    DependencyGraph, Treebank,
 
     TypedDependency, UntypedDependency, CoNLLU,
     ArcEager, ArcStandard, ArcSwift,
@@ -20,7 +20,7 @@ include("errors.jl")
 include("dependencies.jl")
 include("conllu.jl")
 include("graphs.jl")
-include("treebanks.jl")
+include("treebanks/treebanks.jl")
 include("transition_parsing/parse.jl")
 
 end # module

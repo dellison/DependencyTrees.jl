@@ -41,4 +41,4 @@ gold_transitions(oracle::StaticOracle, graph::DependencyGraph) =
 xys(oracle::StaticOracle, graph::DependencyGraph) = StaticGoldPairs(oracle, graph)
 
 xys(oracle::StaticOracle, graphs) =
-    reduce(vcat, [StaticGoldPairs(oracle, graph) for graph in graphs])
+    reduce(vcat, [collect(xys(oracle, graph)) for graph in graphs])
