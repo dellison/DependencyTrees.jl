@@ -19,7 +19,16 @@ function ArcEager{T}(words) where T
     ArcEager{T}(σ, β, A)
 end
 
+function ArcEager{T}(gold::DependencyGraph) where T
+    σ = [0]
+    β = collect(1:length(gold))
+    A = [dep(word, head=-1) for word in gold]
+    ArcEager{T}(σ, β, A)
+end
+ArcEager(gold::DependencyGraph) = ArcEager{eltype(gold)}(gold)
+
 arcs(cfg::ArcEager) = cfg.A
+deptype(cfg::ArcEager) = eltype(cfg.A)
 
 function σs(cfg::ArcEager)
     s = cfg.σ[end]
@@ -193,7 +202,6 @@ function cost(t::Shift, cfg::ArcEager, gold)
     b, β = bβ(cfg)
     count(k -> has_arc(gold, k, b) || has_arc(gold, b, k), cfg.σ)
 end
-
 
 
 import Base.==

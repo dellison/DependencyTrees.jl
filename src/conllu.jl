@@ -83,11 +83,12 @@ dep(d::CoNLLU; lemma=lemma(d), upos=upos(d), xpos=xpos(d), feats=feats(d),
 
 depargs(::Type{CoNLLU}) = x::CoNLLU -> (deprel(x),)
 
+noval(::Type{CoNLLU}) = CoNLLU(0,NOVAL,NOVAL,NOVAL,NOVAL,String[],-1,NOVAL,Tuple{Int,String}[],NOVAL)
 root(::Type{CoNLLU}) = CoNLLU(0,ROOT,ROOT,ROOT,ROOT,String[],0,ROOT,Tuple{Int,String}[],ROOT)
 isroot(d::CoNLLU) = d.id == 0 && d.form == ROOT
 
-unk(::Type{CoNLLU},id,word) =
-    CoNLLU(id,word,"","","",String[],-1,"",Tuple{Int,String}[],"")
+unk(::Type{CoNLLU},id,word::String,lemma="_",upos="_",xpos="_",feats=String[]) =
+    CoNLLU(id,word,lemma,upos,xpos,feats,-1,"",Tuple{Int,String}[],"")
 
 import Base.==
 ==(d1::CoNLLU, d2::CoNLLU) =

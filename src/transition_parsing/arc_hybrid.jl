@@ -20,13 +20,24 @@ function ArcHybrid{T}(words) where T
     ArcHybrid{T}(σ, β, A)
 end
 
-arcs(cfg::ArcHybrid) = cfg.A
+function ArcHybrid{T}(gold::DependencyGraph) where T
+    σ = [0]
+    β = collect(1:length(gold))
+    A = [dep(token, head=1) for token in gold]
+    ArcHybrid{T}(σ, β, A)
+end
+ArcHybrid(gold::DependencyGraph) = ArcHybrid{eltype(gold)}(gold)
 
+arcs(cfg::ArcHybrid) = cfg.A
+deptype(cfg::ArcHybrid) = eltype(cfg.A)
+
+# get σ|s0 as (σ, s0)
 function σs0(cfg::ArcHybrid)
     s0 = cfg.σ[end]
     σ = length(cfg.σ) > 1 ? cfg.σ[1:end-1] : Int[]
     return (σ, s0)
 end
+# σ|s1|s0 as (σ, s1, s0)
 function σs1s0(cfg::ArcHybrid)
     s0 = cfg.σ[end]
     temp = length(cfg.σ) > 1 ? cfg.σ[1:end-1] : Int[]
@@ -35,12 +46,12 @@ function σs1s0(cfg::ArcHybrid)
     return (σ, s1, s0)
 end
 
+# b|β as (b, β)
 function bβ(cfg::ArcHybrid)
     b = cfg.β[1]
     β = length(cfg.β) > 1 ? cfg.β[2:end] : Int[]
     return (b, β)
 end
-
 
 # transition operations: leftarc, rightarc, shift
 
@@ -149,6 +160,7 @@ function possible_transitions(cfg::ArcHybrid, graph::DependencyGraph)
     B >= 1 && push!(ops, Shift())
     ops
 end
+
 
 import Base.==
 ==(cfg1::ArcHybrid, cfg2::ArcHybrid) =

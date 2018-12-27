@@ -15,10 +15,12 @@ deprel(node::Dependency) = _ni(deprel, node)
 form(node::Dependency) = _ni(form, node)
 head(node::Dependency) = _ni(head, node)
 isroot(node::Dependency) = _ni(isroot, node)
+noval(node::Dependency) = _ni(nocal, node)
 root(t::Type{Dependency}) = _ni(root, t)
 unk(t::Type{Dependency}) = _ni(unk, t)
 
 const ROOT = "ROOT"
+const NOVAL = "NOVAL"
 
 struct MultiWordToken
     i::Int
@@ -74,6 +76,7 @@ form(d::UntypedDependency) = d.form
 head(d::UntypedDependency) = d.head
 
 isroot(d::UntypedDependency) = (d.form == ROOT && d.id == 0)
+noval(::Type{UntypedDependency}) = UntypedDependency(-1, NOVAL, -1)
 root(::Type{UntypedDependency}) = UntypedDependency(0, ROOT, 0)
 
 isunk(d::UntypedDependency) = d.head == -1
@@ -124,6 +127,7 @@ form(d::TypedDependency) = d.form
 head(d::TypedDependency) = d.head
 isroot(d::TypedDependency) = (d.form == ROOT && d.id == 0)
 root(::Type{<:TypedDependency}) = TypedDependency(0, ROOT, ROOT, 0)
+noval(::Type{<:TypedDependency}) = TypedDependency(-1, NOVAL, NOVAL, -1)
 unk(::Type{TypedDependency}, id, word) = TypedDependency(id, word, undef, -1)
 
 import Base.==

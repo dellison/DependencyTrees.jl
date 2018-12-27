@@ -16,6 +16,14 @@ function ArcStandard{T}(words) where T
     ArcStandard{T}(σ, β, A)
 end
 
+function ArcStandard{T}(gold::DependencyGraph) where T
+    σ = [0]
+    β = collect(1:length(gold))
+    A = [dep(word, head=-1) for word in gold]
+    ArcStandard{T}(σ, β, A)
+end
+ArcStandard(gold::DependencyGraph) = ArcStandard{eltype(gold)}(gold)
+
 arcs(cfg::ArcStandard) = cfg.A
 
 function leftarc(cfg::ArcStandard, args...; kwargs...)
@@ -71,6 +79,7 @@ function static_oracle(::Type{<:ArcStandard}, graph::DependencyGraph)
         return Shift()
     end
 end
+
 
 import Base.==
 ==(cfg1::ArcStandard, cfg2::ArcStandard) =

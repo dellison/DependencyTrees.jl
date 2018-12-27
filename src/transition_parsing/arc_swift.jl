@@ -18,6 +18,14 @@ function ArcSwift{T}(words) where T
     ArcSwift{T}(σ, β, A)
 end
 
+function ArcSwift{T}(gold::DependencyGraph) where T
+    σ = [0]
+    β = collect(1:length(gold))
+    A = [dep(word, head=-1) for word in gold]
+    ArcSwift{T}(σ, β, A)
+end
+ArcSwift(gold::DependencyGraph) = ArcSwift{eltype(gold)}(gold)
+
 arcs(cfg::ArcSwift) = cfg.A
 
 function leftarc(cfg::ArcSwift, k::Int, args...; kwargs...)
@@ -82,6 +90,7 @@ function static_oracle(::Type{<:ArcSwift}, graph::DependencyGraph)
         return Shift()
     end
 end
+
 
 import Base.==
 ==(cfg1::ArcSwift, cfg2::ArcSwift) =

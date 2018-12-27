@@ -25,6 +25,14 @@ function ListBasedNonProjective{T}(words::Vector{String}) where {T<:Dependency}
     ListBasedNonProjective{T}(λ1, λ2, β, A)
 end
 
+function ListBasedNonProjective{T}(gold::DependencyGraph) where {T<:Dependency}
+    λ1 = [0]
+    λ2 = Int[]
+    β = 1:length(words)
+    A = [dep(token, head=-1) for token in gold]
+    ListBasedNonProjective{T}(λ1, λ2, β, A)
+end
+
 arcs(cfg::ListBasedNonProjective) = cfg.A
 
 function leftarc(cfg::ListBasedNonProjective, args...; kwargs...)
