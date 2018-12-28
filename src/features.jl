@@ -4,7 +4,7 @@
 Return a feature extraction function that takes `input`
 and returns features according to the code specified in `block`.
 """
-macro feature_extractor(cfg, block)
+macro feature_extractor(input, block)
     assignment_exprs = Expr[]
     features_expr = Expr(:tuple)
     featureset = Set()
@@ -23,17 +23,25 @@ macro feature_extractor(cfg, block)
             push!(assignment_exprs, expression)
         end
     end
-    extractor_function_block = quote
-        function (cfg)
-        end
-    end |> esc
-    extraction_code = extractor_function_block.args[end].args[end].args[end].args
+    if isa(input, Symbol)
+        input = :($input,)
+    end
+    if input.head != :tuple
+        args = :($input...)
+    else
+        args = input
+    end
+    # @show input args
+    extractor_function_block = Expr(:function, :($args), Expr(:block))
+    # extraction_code = extractor_function_block.args[end].args[end].args[end].args
+    extraction_code = extractor_function_block.args[end].args
     append!(extraction_code, assignment_exprs)
     if length(features_expr.args) == 1
         push!(extraction_code, features_expr.args[1])
     else
         push!(extraction_code, features_expr)
     end
+    # @show extractor_function_block
     return extractor_function_block
 end
 
@@ -77,17 +85,27 @@ macro feature_template_extractor(input, block)
             push!(assignment_exprs, expression)
         end
     end
-    extractor_function_block = quote
-        function (cfg)
-        end
-    end |> esc
-    extraction_code = extractor_function_block.args[end].args[end].args[end].args
+    if isa(input, Symbol)
+        input = :($input,)
+    end
+    if input.head != :tuple
+        args = :($input...)
+    else
+        args = input
+    end
+    # @show input args input.head input.args
+    extractor_function_block = Expr(:function, :($args), Expr(:block))
+    # @show extractor_function_block extractor_function_block.args[end].args
+    # extraction_code = extractor_function_block.args[end].args[end].args[end].args
+    extraction_code = extractor_function_block.args[end].args
+    # @show extraction_code
     append!(extraction_code, assignment_exprs)
     if length(features_expr.args) == 1
         push!(extraction_code, features_expr.args[1])
     else
         push!(extraction_code, features_expr)
     end
+    # @show extractor_function_block
     return extractor_function_block
 end
 

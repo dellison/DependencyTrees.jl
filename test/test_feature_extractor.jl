@@ -45,7 +45,7 @@
         end
     end
 
-    @testset "Neural-style feature extractor" begin
+    @testset "Ordered features" begin
         fx = DependencyTrees.@feature_extractor cfg begin
             s2 = DependencyTrees.s2(cfg)
             s1 = DependencyTrees.s1(cfg)

@@ -1,5 +1,7 @@
 using DependencyTrees: deprel, form, id, head, root, isroot
 
+struct Deplol <: DependencyTrees.Dependency end
+
 @testset "Tokens" begin
 
     @testset "Untyped Dependencies" begin
@@ -19,6 +21,9 @@ using DependencyTrees: deprel, form, id, head, root, isroot
             @test !isroot(dep)
             @test head(dep) == token[2]
         end
+
+        noval = DependencyTrees.noval(UntypedDependency)
+        @test !DependencyTrees.hashead(noval)
     end
 
     @testset "Typed Dependencies" begin
@@ -39,5 +44,31 @@ using DependencyTrees: deprel, form, id, head, root, isroot
             @test id(dep) == i
             @test !isroot(dep)
         end
+
+        noval = DependencyTrees.noval(TypedDependency)
+        @test !DependencyTrees.hashead(noval)
+    end
+
+    @testset "Errors" begin
+        d = Deplol()
+        function check_error(fn, d)
+            try
+                fn(d)
+                @test false
+            catch err
+                # @show err
+                @test occursin("not implemented", err.msg)
+            end
+        end
+        check_error(DependencyTrees.dep, d)
+        check_error(DependencyTrees.depargs, d)
+        check_error(DependencyTrees.deprel, d)
+        check_error(DependencyTrees.form, d)
+        check_error(DependencyTrees.hashead, d)
+        check_error(DependencyTrees.head, d)
+        check_error(DependencyTrees.isroot, d)
+        check_error(DependencyTrees.noval, d)
+        check_error(DependencyTrees.root, Deplol)
+        check_error(DependencyTrees.unk, Deplol)
     end
 end

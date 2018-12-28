@@ -16,9 +16,9 @@ form(node::Dependency) = _ni(form, node)
 hashead(node::Dependency) = _ni(hashead, node)
 head(node::Dependency) = _ni(head, node)
 isroot(node::Dependency) = _ni(isroot, node)
-noval(node::Dependency) = _ni(nocal, node)
-root(t::Type{Dependency}) = _ni(root, t)
-unk(t::Type{Dependency}) = _ni(unk, t)
+noval(node::Dependency) = _ni(noval, node)
+root(t::Type{<:Dependency}) = _ni(root, t)
+unk(t::Type{<:Dependency}) = _ni(unk, t)
 
 const ROOT = "ROOT"
 const NOVAL = "NOVAL"
@@ -132,7 +132,6 @@ isroot(d::UntypedDependency) = (d.form == ROOT && d.id == 0)
 noval(::Type{UntypedDependency}) = UntypedDependency(-1, NOVAL, -1)
 root(::Type{UntypedDependency}) = UntypedDependency(0, ROOT, 0)
 
-isunk(d::UntypedDependency) = d.head == -1
 unk(::Type{UntypedDependency}, id, word) = UntypedDependency(id, word, -1)
 
 import Base.==
