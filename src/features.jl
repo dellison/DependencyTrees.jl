@@ -1,7 +1,7 @@
 """
-    @feature_extractor cfg block
+    @feature_extractor input block
 
-Return a feature extraction function that takes `cfg` as an argument
+Return a feature extraction function that takes `input`
 and returns features according to the code specified in `block`.
 """
 macro feature_extractor(cfg, block)
@@ -37,6 +37,11 @@ macro feature_extractor(cfg, block)
     return extractor_function_block
 end
 
+"""
+    @feature_template_extractor(input, block)
+
+Return a feature extraction function for sparse feature templates
+"""
 macro feature_template_extractor(input, block)
     assignment_exprs = Expr[]
     features_expr = Expr(:tuple)
@@ -59,16 +64,13 @@ macro feature_template_extractor(input, block)
                     :($feat, $a)
                 end
             end
-            # @show featexp_args
             if length(featexp_args) == 1
                 append!(features_expr.args, featexp_args)
             else
                 feature = Expr(:tuple)
                 for arg in featexp_args
-                    # @show arg
                     append!(feature.args, arg.args)
                 end
-                # @show feature
                 push!(features_expr.args, feature)
             end
         else
@@ -86,7 +88,6 @@ macro feature_template_extractor(input, block)
     else
         push!(extraction_code, features_expr)
     end
-    # @show extractor_function_block
     return extractor_function_block
 end
 
@@ -123,3 +124,33 @@ b1(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}) = bi(cfg, 1)
 b2(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}) = bi(cfg, 2)
 b3(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}) = bi(cfg, 3)
 buffer(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}) = cfg.σ
+
+function leftmostdep(cfg::TransitionParserConfiguration, i::Int)
+    A = arcs(cfg)
+    ldep = leftmostdep(A, i)
+    if iszero(ldep)
+        root(eltype(A))
+    elseif ldep == -1
+        noval(eltype(A))
+    else
+        A[ldep]
+    end
+end
+
+leftmostdep(cfg::TransitionParserConfiguration, dep::Dependency) =
+    leftmostdep(cfg, id(dep))
+    
+function rightmostdep(cfg::TransitionParserConfiguration, i::Int)
+    A = arcs(cfg)
+    rdep = rightmostdep(A, i)
+    if iszero(rdep)
+        root(eltype(A))
+    elseif rdep == -1
+        noval(eltype(A))
+    else
+        A[rdep]
+    end
+end
+
+rightmostdep(cfg::TransitionParserConfiguration, dep::Dependency) =
+    rightmostdep(cfg, id(dep))

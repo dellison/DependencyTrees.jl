@@ -13,6 +13,7 @@ dep(node::Dependency, args...; head=0, kwargs...) = _ni(dep, node)
 depargs(node::Dependency) = _ni(depargs, node)
 deprel(node::Dependency) = _ni(deprel, node)
 form(node::Dependency) = _ni(form, node)
+hashead(node::Dependency) = _ni(hashead, node)
 head(node::Dependency) = _ni(head, node)
 isroot(node::Dependency) = _ni(isroot, node)
 noval(node::Dependency) = _ni(nocal, node)
@@ -21,6 +22,57 @@ unk(t::Type{Dependency}) = _ni(unk, t)
 
 const ROOT = "ROOT"
 const NOVAL = "NOVAL"
+
+leftdeps(arcs::Vector, i::Int) =
+    filter(d -> d < i, dependents(g, i))
+
+rightdeps(arcs::Vector, i::Int) =
+    filter(d -> d > i, dependents(g, i))
+
+leftdeps(arcs::Vector, dep::Dependency) =
+    [arcs[i] for i in leftsdeps(arcs, id(dep))]
+
+rightdeps(arcs::Vector, dep::Dependency) =
+    [arcs[i] for i in rightsdeps(arcs, id(dep))]
+
+function leftmostdep(arcs::Vector, i::Int, n::Int=1, notfound::Int=-1)
+    deps = filter(a -> i > id(a) && hashead(a) && head(a) == i, arcs)
+    if length(deps) < n
+        notfound
+    else
+        id(deps[n])
+    end
+end
+function leftmostdep(arcs::Vector, dep::Dependency, n::Int=1)
+    ldep = leftmostdep(arcs, id(dep), n)
+    if iszero(ldep)
+        root(eltype(arcs))
+    elseif ldep == -1
+        noval(eltype(arcs))
+    else
+        arcs[ldep]
+    end
+end
+
+function rightmostdep(arcs::Vector, i::Int, n::Int=1, notfound::Int=-1)
+    deps = filter(a -> i < id(a) && hashead(a) && head(a) == i, arcs)
+    if length(deps) < n
+        notfound
+    else
+        id(deps[end-n+1])
+    end
+end
+function rightmostdep(arcs::Vector, dep::Dependency, n::Int=1)
+    rdep = rightmostdep(arcs, id(dep), n)
+    if iszero(rdep)
+        root(eltype(arcs))
+    elseif rdep == -1
+        noval(eltype(arcs))
+    else
+        arcs[rdep]
+    end
+end
+
 
 struct MultiWordToken
     i::Int
@@ -73,6 +125,7 @@ depargs(::Type{UntypedDependency}) = x::UntypedDependency -> ()
 id(d::UntypedDependency) = d.id
 deprel(d::UntypedDependency) = nothing
 form(d::UntypedDependency) = d.form
+hashead(d::UntypedDependency) = (d.head >= 0)
 head(d::UntypedDependency) = d.head
 
 isroot(d::UntypedDependency) = (d.form == ROOT && d.id == 0)
@@ -118,12 +171,16 @@ function TypedDependency(id::Int, line::AbstractString; read_deprel=String)
     TypedDependency(id, form, deprel, head)
 end
 
-dep(d::TypedDependency, deprel; head=head(d)) = TypedDependency(d.id, d.form, deprel, head)
+dep(d::TypedDependency, deprel=deprel(d); head=head(d)) =
+    TypedDependency(d.id, d.form, deprel, head)
+
 depargs(::Type{<:TypedDependency}) = x::TypedDependency -> (deprel(x),)
+depargs(::Type{<:TypedDependency{T}}) where T = x::TypedDependency -> (deprel(x),)
 
 id(d::TypedDependency) = d.id
 deprel(d::TypedDependency) = d.deprel
 form(d::TypedDependency) = d.form
+hashead(d::TypedDependency) = (d.head >= 0)
 head(d::TypedDependency) = d.head
 isroot(d::TypedDependency) = (d.form == ROOT && d.id == 0)
 root(::Type{<:TypedDependency}) = TypedDependency(0, ROOT, ROOT, 0)

@@ -13,7 +13,7 @@
     """)
 
 
-    @testset "Features for a linear model" begin
+    @testset "Feature Templates" begin
 
         featurize = DependencyTrees.@feature_template_extractor cfg begin
             s0 = DependencyTrees.s0(cfg)

@@ -83,6 +83,8 @@ dep(d::CoNLLU; lemma=lemma(d), upos=upos(d), xpos=xpos(d), feats=feats(d),
 
 depargs(::Type{CoNLLU}) = x::CoNLLU -> (deprel(x),)
 
+hashead(d::CoNLLU) = d.head >= 0
+
 noval(::Type{CoNLLU}) = CoNLLU(0,NOVAL,NOVAL,NOVAL,NOVAL,String[],-1,NOVAL,Tuple{Int,String}[],NOVAL)
 root(::Type{CoNLLU}) = CoNLLU(0,ROOT,ROOT,ROOT,ROOT,String[],0,ROOT,Tuple{Int,String}[],ROOT)
 isroot(d::CoNLLU) = d.id == 0 && d.form == ROOT

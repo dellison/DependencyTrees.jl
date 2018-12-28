@@ -51,8 +51,16 @@ function Base.iterate(t::TreebankReader, state)
         close(t.io)
         return nothing
     else
-        g = DependencyGraph(tokens; mwts=mwts, emptytokens=emptytokens, t.kwargs...)
-        return (g, state)
+        try
+            g = DependencyGraph(tokens; mwts=mwts, emptytokens=emptytokens, t.kwargs...)
+            return (g, state)
+        catch err
+            if isa(err, GraphConnectivityError)
+                println("skipping weakly connected graph $tokens")
+                return iterate(t, state)
+            end
+            throw(err)
+        end
     end
 end
 
