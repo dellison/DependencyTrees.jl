@@ -37,7 +37,11 @@ using DependencyTrees: TreebankReader
     while !isfinal(cfg)
         pred = model(cfg)
         gold = DependencyTrees.gold_transitions(oracle, cfg, graph)
+        zeroc = DependencyTrees.zero_cost_transitions(cfg, graph)
+        @test gold == zeroc
         @test pred in gold
+        @test any(t -> DependencyTrees.hascost(t, cfg, graph), [Shift(), Reduce(), LeftArc("lol"), RightArc("lol")])
+        @test all(t -> DependencyTrees.haszerocost(t, cfg, graph), gold)
         cfg = pred(cfg)
     end
 
@@ -47,4 +51,9 @@ using DependencyTrees: TreebankReader
     for tree in treebank
         DependencyTrees.train!(trainer, tree)
     end
+
+    @test DependencyTrees.choose_next_amb(1, 1:5) == 1
+    @test DependencyTrees.choose_next_exp(0, 1:5, () -> true) == 0
+    @test DependencyTrees.choose_next_exp(0, 1:5, () -> false) != 0
+    @test DependencyTrees.zero_cost_transitions(cfg, graph) == [Reduce()]
 end

@@ -81,14 +81,14 @@ using DependencyTrees: isfinal, train!
         fx = DependencyTrees.@feature_template_extractor (cfg, gold) begin
             s0 = DependencyTrees.s0(cfg)
             s1 = DependencyTrees.s1(cfg)
-            ldep_s0 = DependencyTrees.leftmostdep(gold, s0)
-            rdep_s0 = DependencyTrees.rightmostdep(gold, s0)
+            ldep_s0 = DependencyTrees.leftmostdep(cfg, s0)
+            rdep_s0 = DependencyTrees.rightmostdep(cfg, s0)
             b0 = DependencyTrees.b(cfg)
             b1 = DependencyTrees.b2(cfg)
             b2 = DependencyTrees.b3(cfg)
             b3 = DependencyTrees.bi(cfg, 4)
-            ldep_b0 = DependencyTrees.leftmostdep(gold, b0)
-            rdep_b0 = DependencyTrees.rightmostdep(gold, b0)
+            ldep_b0 = DependencyTrees.leftmostdep(cfg, b0)
+            rdep_b0 = DependencyTrees.rightmostdep(cfg, b0)
             # feature set:
             (s0.form,)
             (s0.lemma,)
@@ -113,7 +113,8 @@ using DependencyTrees: isfinal, train!
 
         for T in (ArcEager, ArcStandard, ArcHybrid, ArcSwift)
 
-            cfg = ArcEager(first(tb))
+            graph = first(tb)
+            cfg = ArcEager(graph)
 
             features = fx(cfg, graph)
             @test ("s0.form", "ROOT") in features
@@ -134,7 +135,8 @@ using DependencyTrees: isfinal, train!
             @test ("ldep_b0.deprel", "NOVAL") in features
             @test ("rdep_b0.deprel", "NOVAL") in features
 
-            cfg = ArcEager(last(collect(tb)))
+            graph = last(collect(tb))
+            cfg = ArcEager(graph)
 
             features = fx(cfg, graph)
             @test ("s0.form", "ROOT") in features
@@ -154,11 +156,6 @@ using DependencyTrees: isfinal, train!
             @test ("b3.upos", "PROPN") in features
             @test ("ldep_b0.deprel", "NOVAL") in features
             @test ("rdep_b0.deprel", "NOVAL") in features
-
-            cfg = (cfg |> Shift() |> RightArc("compound"))
-            @show cfg
-            features = fx(cfg, graph)
-            @show features
         end
     end
 end

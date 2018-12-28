@@ -28,10 +28,12 @@ end
 function ListBasedNonProjective{T}(gold::DependencyGraph) where {T<:Dependency}
     λ1 = [0]
     λ2 = Int[]
-    β = 1:length(words)
+    β = 1:length(gold)
     A = [dep(token, head=-1) for token in gold]
     ListBasedNonProjective{T}(λ1, λ2, β, A)
 end
+ListBasedNonProjective(gold::DependencyGraph) =
+    ListBasedNonProjective{eltype(gold)}(gold)
 
 arcs(cfg::ListBasedNonProjective) = cfg.A
 

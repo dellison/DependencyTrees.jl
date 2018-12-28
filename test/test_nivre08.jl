@@ -145,5 +145,10 @@ using DependencyTrees: OnlineTrainer
         @test last.(pairs) == gold_transitions
         trainer = OnlineTrainer(o, oracle, identity, error_cb)
         train!(trainer, graph)
+
+        c = ListBasedNonProjective(graph)
+        @test DependencyTrees.deptype(c) == TypedDependency
+        c2 = ListBasedNonProjective{TypedDependency}(graph)
+        @test c == c2
     end
 end

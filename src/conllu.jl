@@ -92,6 +92,16 @@ isroot(d::CoNLLU) = d.id == 0 && d.form == ROOT
 unk(::Type{CoNLLU},id,word::String,lemma="_",upos="_",xpos="_",feats=String[]) =
     CoNLLU(id,word,lemma,upos,xpos,feats,-1,"",Tuple{Int,String}[],"")
 
+function toconllu(d::CoNLLU)
+    id, head = string(d.id), string(d.head)
+    form, lemma, upos, xpos, deprel, misc = d.form, d.lemma, d.upos, d.xpos, d.deprel, d.misc
+    feats = join(d.feats, "|")
+    deps = join([join((h,d), ":") for (h,d) in d.deps], "|")
+    isempty(feats) && (feats = "_")
+    isempty(deps) && (deps = "_")
+    join([id, form, lemma, upos, xpos, feats, head, deprel, deps, misc], "\t")*"\n"
+end
+
 import Base.==
 ==(d1::CoNLLU, d2::CoNLLU) =
     all([d1.id == d2.id, d1.form == d2.form, d1.lemma == d2.lemma,

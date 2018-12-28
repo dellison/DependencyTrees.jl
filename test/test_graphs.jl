@@ -2,6 +2,10 @@ using DependencyTrees: dependents, leftdeps, rightdeps, leftmostdep, rightmostde
 
 @testset "Graphs" begin
 
+    line = "1	From	_	ADP	IN	_	3	case	_	_"
+    d = CoNLLU(line)
+    @test strip(DependencyTrees.toconllu(d)) == line
+
     sent = [
         ("Economic", "ATT", 2),
         ("news", "SBJ", 3),
@@ -15,6 +19,9 @@ using DependencyTrees: dependents, leftdeps, rightdeps, leftmostdep, rightmostde
     ]
 
     graph = DependencyGraph(TypedDependency, sent, add_id=true)
+
+    @test eltype(graph) == DependencyTrees.deptype(graph) == TypedDependency
+    @test isroot(root(graph))
 
     @test length(graph) == length(sent) == 9
     @test isroot(graph[0])
@@ -49,34 +56,74 @@ using DependencyTrees: dependents, leftdeps, rightdeps, leftmostdep, rightmostde
     @test rightdeps(graph, 9) == []
 
     @test leftmostdep(graph, 0) == -1
+    @test leftmostdep(graph, graph[0]).id == -1
+    @test leftmostdep(graph.tokens, graph[0]).id == -1
     @test rightmostdep(graph, 0) == 3
+    @test rightmostdep(graph, graph[0]).id == 3
+    @test rightmostdep(graph.tokens, graph[0]).id == 3
 
     @test leftmostdep(graph, 1) == -1
+    @test leftmostdep(graph, graph[1]).id == -1
+    @test leftmostdep(graph.tokens, graph[1]).id == -1
     @test rightmostdep(graph, 1) == -1
+    @test rightmostdep(graph, graph[1]).id == -1
+    @test rightmostdep(graph.tokens, graph[1]).id == -1
 
     @test leftmostdep(graph, 2) == 1
+    @test leftmostdep(graph, graph[2]).id == 1
+    @test leftmostdep(graph.tokens, graph[2]).id == 1
     @test rightmostdep(graph, 2) == -1
+    @test rightmostdep(graph, graph[2]).id == -1
+    @test rightmostdep(graph.tokens, graph[2]).id == -1
 
     @test leftmostdep(graph, 3) == 2
+    @test leftmostdep(graph, graph[3]).id == 2
+    @test leftmostdep(graph.tokens, graph[3]).id == 2
     @test rightmostdep(graph, 3) == 9
+    @test rightmostdep(graph, graph[3]).id == 9
+    @test rightmostdep(graph.tokens, graph[3]).id == 9
 
     @test leftmostdep(graph, 4) == -1
+    @test leftmostdep(graph, graph[4]).id == -1
+    @test leftmostdep(graph.tokens, graph[4]).id == -1
     @test rightmostdep(graph, 4) == -1
+    @test rightmostdep(graph, graph[4]).id == -1
+    @test rightmostdep(graph.tokens, graph[4]).id == -1
 
     @test leftmostdep(graph, 5) == 4
+    @test leftmostdep(graph, graph[5]).id == 4
+    @test leftmostdep(graph.tokens, graph[5]).id == 4
     @test rightmostdep(graph, 5) == 6
+    @test rightmostdep(graph, graph[5]).id == 6
+    @test rightmostdep(graph.tokens, graph[5]).id == 6
 
     @test leftmostdep(graph, 6) == -1
+    @test leftmostdep(graph, graph[6]).id == -1
+    @test leftmostdep(graph.tokens, graph[6]).id == -1
     @test rightmostdep(graph, 6) == 8
+    @test rightmostdep(graph, graph[6]).id == 8
+    @test rightmostdep(graph.tokens, graph[6]).id == 8
 
     @test leftmostdep(graph, 7) == -1
+    @test leftmostdep(graph, graph[7]).id == -1
+    @test leftmostdep(graph.tokens, graph[7]).id == -1
     @test rightmostdep(graph, 7) == -1
+    @test rightmostdep(graph, graph[7]).id == -1
+    @test rightmostdep(graph.tokens, graph[7]).id == -1
 
     @test leftmostdep(graph, 8) == 7
+    @test leftmostdep(graph, graph[8]).id == 7
+    @test leftmostdep(graph.tokens, graph[8]).id == 7
     @test rightmostdep(graph, 8) == -1
+    @test rightmostdep(graph, graph[8]).id == -1
+    @test rightmostdep(graph.tokens, graph[8]).id == -1
 
     @test leftmostdep(graph, 9) == -1
+    @test leftmostdep(graph, graph[9]).id == -1
+    @test leftmostdep(graph.tokens, graph[9]).id == -1
     @test rightmostdep(graph, 9) == -1
+    @test rightmostdep(graph, graph[9]).id == -1
+    @test rightmostdep(graph.tokens, graph[9]).id == -1
 
     sent = [
         ("Pierre", "NNP", 2),

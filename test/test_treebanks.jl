@@ -41,9 +41,12 @@
                  if endswith(file, ".conllu")]
         @test length(files) == 3
 
+        @test_throws Exception Treebank{CoNLLU}("not a corpus")
+
         treebank = Treebank{CoNLLU}(files)
         trees = collect(treebank)
         @test length(trees) == 4
+        @test DependencyTrees.deptype(treebank) == CoNLLU
 
         treebank2 = Treebank{CoNLLU}(datadir, pattern=r".conllu$")
         trees2 = collect(treebank2)
@@ -54,6 +57,12 @@
             oracle = StaticOracle(TS{CoNLLU})
             @test xys(oracle, trees) == xys(oracle, trees2)
         end
+
+        np = joinpath(datadir, "nonprojective.conll")
+        ptreebank = Treebank{CoNLLU}(np, remove_nonprojective=true)
+        nptreebank = Treebank{CoNLLU}(np, remove_nonprojective=false)
+        @test length(collect(ptreebank)) == 2
+        @test length(collect(nptreebank)) == 3
 
         @testset "Training" begin
             tb = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "hybridtests.conll"))
