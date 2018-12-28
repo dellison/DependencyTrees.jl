@@ -37,6 +37,59 @@ macro feature_extractor(cfg, block)
     return extractor_function_block
 end
 
+macro feature_template_extractor(input, block)
+    assignment_exprs = Expr[]
+    features_expr = Expr(:tuple)
+    featureset = Set()
+    for expression in block.args
+        typeof(expression) != Expr && continue
+        if expression.head == :(=)
+            push!(assignment_exprs, expression)
+        elseif expression.head == :tuple
+            if in(expression, featureset)
+                println("ignoring duplicate feature template $expression")
+                continue
+            end
+            push!(featureset, expression)
+            featexp_args = map(expression.args) do a
+                if isa(a, String)
+                    a
+                else
+                    feat = string(a)
+                    :($feat, $a)
+                end
+            end
+            # @show featexp_args
+            if length(featexp_args) == 1
+                append!(features_expr.args, featexp_args)
+            else
+                feature = Expr(:tuple)
+                for arg in featexp_args
+                    # @show arg
+                    append!(feature.args, arg.args)
+                end
+                # @show feature
+                push!(features_expr.args, feature)
+            end
+        else
+            push!(assignment_exprs, expression)
+        end
+    end
+    extractor_function_block = quote
+        function (cfg)
+        end
+    end |> esc
+    extraction_code = extractor_function_block.args[end].args[end].args[end].args
+    append!(extraction_code, assignment_exprs)
+    if length(features_expr.args) == 1
+        push!(extraction_code, features_expr.args[1])
+    else
+        push!(extraction_code, features_expr)
+    end
+    # @show extractor_function_block
+    return extractor_function_block
+end
+
 # si(cfg, 0) -> top of stack
 function si(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}, i)
     S = length(cfg.σ)

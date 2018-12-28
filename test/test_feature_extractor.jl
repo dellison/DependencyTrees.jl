@@ -14,40 +14,34 @@
 
 
     @testset "Features for a linear model" begin
-        fx = DependencyTrees.@feature_extractor cfg begin
-            s0 = DependencyTrees.s0(cfg)
-            s0_form = "s0.form:$(s0.form)"
-            s0_upos = "s0.upos:$(s0.upos)"
 
+        featurize = DependencyTrees.@feature_template_extractor cfg begin
+            s0 = DependencyTrees.s0(cfg)
             b = DependencyTrees.b(cfg)
-            b_form = "b.form:$(b.form)"
-            b_upos = "b.upos:$(b.upos)"
 
             # features
             ("bias",)
-            (s0_form,)
-            (s0_upos,)
-            (s0_form, s0_upos)
-            (b_form,)
-            (b_upos,)
-            (b_form, b_upos)
+            (s0.form,)
+            (s0.upos,)
+            (s0.form, s0.upos)
+            (b.form,)
+            (b.upos,)
+            (b.form, b.upos)
         end
 
         for T in (ArcHybrid, ArcEager, ArcStandard, ArcSwift)
 
             cfg = T(tree)
-            features = fx(cfg)
 
-            @test ("bias",) in features
-            @test ("s0.form:ROOT",) in features
-            @test ("s0.upos:ROOT",) in features
-            @test ("s0.form:ROOT","s0.upos:ROOT") in features
+            features = featurize(cfg)
+            @test "bias" in features
+            @test ("s0.form", "ROOT") in features
+            @test ("s0.upos", "ROOT") in features
+            @test ("s0.form", "ROOT", "s0.upos", "ROOT") in features
+            @test ("b.form", "Economic") in features
+            @test ("b.upos", "_") in features
+            @test ("b.form", "Economic", "b.upos", "_") in features
 
-            @test ("b.form:Economic",) in features
-            @test ("b.upos:_",) in features
-            @test ("b.form:Economic", "b.upos:_") in features
-
-            @test !(("notpresent",) in features)
         end
     end
 
