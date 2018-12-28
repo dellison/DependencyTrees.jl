@@ -1,4 +1,4 @@
-using DependencyTrees: dependents
+using DependencyTrees: dependents, leftmostdep, rightmostdep
 
 @testset "Graphs" begin
 
@@ -26,6 +26,36 @@ using DependencyTrees: dependents
         @test Set(form(graph, id) for id in deps_) == Set([d[1] for d in sent_deps])
     end
     @test isprojective(graph)
+
+    @test leftmostdep(graph, 0) == -1
+    @test rightmostdep(graph, 0) == 3
+
+    @test leftmostdep(graph, 1) == -1
+    @test rightmostdep(graph, 1) == -1
+
+    @test leftmostdep(graph, 2) == 1
+    @test rightmostdep(graph, 2) == -1
+
+    @test leftmostdep(graph, 3) == 2
+    @test rightmostdep(graph, 3) == 9
+
+    @test leftmostdep(graph, 4) == -1
+    @test rightmostdep(graph, 4) == -1
+
+    @test leftmostdep(graph, 5) == 4
+    @test rightmostdep(graph, 5) == 6
+
+    @test leftmostdep(graph, 6) == -1
+    @test rightmostdep(graph, 6) == 8
+
+    @test leftmostdep(graph, 7) == -1
+    @test rightmostdep(graph, 7) == -1
+
+    @test leftmostdep(graph, 8) == 7
+    @test rightmostdep(graph, 8) == -1
+
+    @test leftmostdep(graph, 9) == -1
+    @test rightmostdep(graph, 9) == -1
 
     sent = [
         ("Pierre", "NNP", 2),

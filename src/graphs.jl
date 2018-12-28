@@ -125,6 +125,24 @@ head(g::DependencyGraph, id::Int) = head(g[id])
 root(g::DependencyGraph) = g[0]
 token(g::DependencyGraph, id) = g[id]
 
+function leftmostdep(g::DependencyGraph, id)
+    deps = filter(d -> d < id, dependents(g, id))
+    if isempty(deps)
+        -1
+    else
+        first(deps)
+    end
+end
+
+function rightmostdep(g::DependencyGraph, id)
+    deps = filter(d -> d > id, dependents(g, id))
+    if isempty(deps)
+        -1
+    else
+        last(deps)
+    end
+end
+
 import Base.==
 ==(g1::DependencyGraph, g2::DependencyGraph) = all(g1.tokens .== g2.tokens)
 Base.eltype(g::DependencyGraph) = eltype(g.tokens)
