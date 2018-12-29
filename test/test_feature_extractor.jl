@@ -15,7 +15,7 @@
 
     @testset "Feature Templates" begin
 
-        featurize = DependencyTrees.@feature_template_extractor cfg begin
+        featurize = DependencyTrees.@feature_template cfg begin
             s0 = DependencyTrees.s0(cfg)
             b = DependencyTrees.b(cfg)
 
@@ -35,12 +35,12 @@
 
             features = featurize(cfg)
             @test "bias" in features
-            @test ("s0.form", "ROOT") in features
-            @test ("s0.upos", "ROOT") in features
-            @test ("s0.form", "ROOT", "s0.upos", "ROOT") in features
-            @test ("b.form", "Economic") in features
-            @test ("b.upos", "_") in features
-            @test ("b.form", "Economic", "b.upos", "_") in features
+            @test "s0.form=ROOT" in features
+            @test "s0.upos=ROOT" in features
+            @test "s0.form=ROOT,s0.upos=ROOT" in features
+            @test "b.form=Economic" in features
+            @test "b.upos=_" in features
+            @test "b.form=Economic,b.upos=_" in features
 
         end
     end

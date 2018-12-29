@@ -78,7 +78,7 @@ using DependencyTrees: isfinal, train!
     @testset "Features" begin
 
         # Table 3.2
-        fx = DependencyTrees.@feature_template_extractor (cfg, gold) begin
+        fx = DependencyTrees.@feature_template (cfg, gold) begin
             s0 = DependencyTrees.s0(cfg)
             s1 = DependencyTrees.s1(cfg)
             ldep_s0 = DependencyTrees.leftmostdep(cfg, s0)
@@ -90,19 +90,12 @@ using DependencyTrees: isfinal, train!
             ldep_b0 = DependencyTrees.leftmostdep(cfg, b0)
             rdep_b0 = DependencyTrees.rightmostdep(cfg, b0)
             # feature set:
-            (s0.form,)
-            (s0.lemma,)
-            (s0.upos,)
-            (s0.feats,)
+            ("bias",)
+            (s0.form,); (s0.lemma,); (s0.upos,); (s0.feats,)
             (s1.upos,)
-            (ldep_s0.deprel,)
-            (rdep_s0.deprel,)
-            (b0.form,)
-            (b0.lemma,)
-            (b0.upos,)
-            (b0.feats,)
-            (b1.form,)
-            (b1.upos,)
+            (ldep_s0.deprel,); (rdep_s0.deprel,)
+            (b0.form,); (b0.lemma,); (b0.upos,); (b0.feats,)
+            (b1.form,); (b1.upos,)
             (b2.upos,)
             (b3.upos,)
             (ldep_b0.deprel,)
@@ -117,45 +110,45 @@ using DependencyTrees: isfinal, train!
             cfg = ArcEager(graph)
 
             features = fx(cfg, graph)
-            @test ("s0.form", "ROOT") in features
-            @test ("s0.lemma", "ROOT") in features
-            @test ("s0.upos", "ROOT") in features
-            @test ("s0.feats", []) in features
-            @test ("s1.upos", "NOVAL") in features
-            @test ("ldep_s0.deprel", "NOVAL") in features
-            @test ("rdep_s0.deprel", "NOVAL") in features
-            @test ("b0.form", "From") in features
-            @test ("b0.lemma", "_") in features
-            @test ("b0.upos", "ADP") in features
-            @test ("b0.feats", []) in features
-            @test ("b1.form", "the") in features
-            @test ("b1.upos", "DET") in features
-            @test ("b2.upos", "PROPN") in features
-            @test ("b3.upos", "VERB") in features
-            @test ("ldep_b0.deprel", "NOVAL") in features
-            @test ("rdep_b0.deprel", "NOVAL") in features
+            @test "s0.form=ROOT" in features
+            @test "s0.lemma=ROOT" in features
+            @test "s0.upos=ROOT" in features
+            @test "s0.feats=_" in features
+            @test "s1.upos=NOVAL" in features
+            @test "ldep_s0.deprel=NOVAL" in features
+            @test "rdep_s0.deprel=NOVAL" in features
+            @test "b0.form=From" in features
+            @test "b0.lemma=_" in features
+            @test "b0.upos=ADP" in features
+            @test "b0.feats=_" in features
+            @test "b1.form=the" in features
+            @test "b1.upos=DET" in features
+            @test "b2.upos=PROPN" in features
+            @test "b3.upos=VERB" in features
+            @test "ldep_b0.deprel=NOVAL" in features
+            @test "rdep_b0.deprel=NOVAL" in features
 
             graph = last(collect(tb))
             cfg = ArcEager(graph)
 
             features = fx(cfg, graph)
-            @test ("s0.form", "ROOT") in features
-            @test ("s0.lemma", "ROOT") in features
-            @test ("s0.upos", "ROOT") in features
-            @test ("s0.feats", []) in features
-            @test ("s1.upos", "NOVAL") in features
-            @test ("ldep_s0.deprel", "NOVAL") in features
-            @test ("rdep_s0.deprel", "NOVAL") in features
-            @test ("b0.form", "President") in features
-            @test ("b0.lemma", "_") in features
-            @test ("b0.upos", "PROPN") in features
-            @test ("b0.feats", []) in features
-            @test ("b1.form", "Bush") in features
-            @test ("b1.upos", "PROPN") in features
-            @test ("b2.upos", "ADP") in features
-            @test ("b3.upos", "PROPN") in features
-            @test ("ldep_b0.deprel", "NOVAL") in features
-            @test ("rdep_b0.deprel", "NOVAL") in features
+            @test "s0.form=ROOT" in features
+            @test "s0.lemma=ROOT" in features
+            @test "s0.upos=ROOT" in features
+            @test "s0.feats=_" in features
+            @test "s1.upos=NOVAL" in features
+            @test "ldep_s0.deprel=NOVAL" in features
+            @test "rdep_s0.deprel=NOVAL" in features
+            @test "b0.form=President" in features
+            @test "b0.lemma=_" in features
+            @test "b0.upos=PROPN" in features
+            @test "b0.feats=_" in features
+            @test "b1.form=Bush" in features
+            @test "b1.upos=PROPN" in features
+            @test "b2.upos=ADP" in features
+            @test "b3.upos=PROPN" in features
+            @test "ldep_b0.deprel=NOVAL" in features
+            @test "rdep_b0.deprel=NOVAL" in features
         end
     end
 end

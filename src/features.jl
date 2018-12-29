@@ -1,3 +1,14 @@
+function _format_fx_input(input)
+    if isa(input, Symbol)
+        input = :($input,)
+    end
+    if input.head != :tuple
+        :($input...)
+    else # ?
+        input
+    end
+end
+
 """
     @feature_extractor input block
 
@@ -23,17 +34,8 @@ macro feature_extractor(input, block)
             push!(assignment_exprs, expression)
         end
     end
-    if isa(input, Symbol)
-        input = :($input,)
-    end
-    if input.head != :tuple
-        args = :($input...)
-    else
-        args = input
-    end
-    # @show input args
+    args = _format_fx_input(input)
     extractor_function_block = Expr(:function, :($args), Expr(:block))
-    # extraction_code = extractor_function_block.args[end].args[end].args[end].args
     extraction_code = extractor_function_block.args[end].args
     append!(extraction_code, assignment_exprs)
     if length(features_expr.args) == 1
@@ -41,16 +43,16 @@ macro feature_extractor(input, block)
     else
         push!(extraction_code, features_expr)
     end
-    # @show extractor_function_block
     return extractor_function_block
 end
 
 """
-    @feature_template_extractor(input, block)
+    @feature_template(input, block)
 
-Return a feature extraction function for sparse feature templates
+Return a feature extraction function for sparse feature templates.
+Tuples are taken to be feature templates.
 """
-macro feature_template_extractor(input, block)
+macro feature_template(input, block)
     assignment_exprs = Expr[]
     features_expr = Expr(:tuple)
     featureset = Set()
@@ -64,20 +66,21 @@ macro feature_template_extractor(input, block)
                 continue
             end
             push!(featureset, expression)
-            featexp_args = map(expression.args) do a
+            ft_args = map(expression.args) do a
                 if isa(a, String)
                     a
                 else
                     feat = string(a)
-                    :($feat, $a)
+                    :(string($feat, "=", isempty($a) ? "_" : $a))
                 end
             end
-            if length(featexp_args) == 1
-                append!(features_expr.args, featexp_args)
+            if length(ft_args) == 1
+                append!(features_expr.args, ft_args)
             else
-                feature = Expr(:tuple)
-                for arg in featexp_args
-                    append!(feature.args, arg.args)
+                feature = Expr(:call, :string)
+                for (i, arg) in enumerate(ft_args)
+                    append!(feature.args, [arg.args[2:end]...])
+                    i < length(ft_args) && push!(feature.args, ",")
                 end
                 push!(features_expr.args, feature)
             end
@@ -85,27 +88,15 @@ macro feature_template_extractor(input, block)
             push!(assignment_exprs, expression)
         end
     end
-    if isa(input, Symbol)
-        input = :($input,)
-    end
-    if input.head != :tuple
-        args = :($input...)
-    else
-        args = input
-    end
-    # @show input args input.head input.args
+    args = _format_fx_input(input)
     extractor_function_block = Expr(:function, :($args), Expr(:block))
-    # @show extractor_function_block extractor_function_block.args[end].args
-    # extraction_code = extractor_function_block.args[end].args[end].args[end].args
     extraction_code = extractor_function_block.args[end].args
-    # @show extraction_code
     append!(extraction_code, assignment_exprs)
     if length(features_expr.args) == 1
         push!(extraction_code, features_expr.args[1])
     else
         push!(extraction_code, features_expr)
     end
-    # @show extractor_function_block
     return extractor_function_block
 end
 
@@ -143,9 +134,9 @@ b2(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}) = bi(cfg, 2)
 b3(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}) = bi(cfg, 3)
 buffer(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}) = cfg.σ
 
-function leftmostdep(cfg::TransitionParserConfiguration, i::Int)
+function leftmostdep(cfg::TransitionParserConfiguration, i::Int, n::Int=1)
     A = arcs(cfg)
-    ldep = leftmostdep(A, i)
+    ldep = leftmostdep(A, i, n)
     if iszero(ldep)
         root(eltype(A))
     elseif ldep == -1
@@ -155,12 +146,12 @@ function leftmostdep(cfg::TransitionParserConfiguration, i::Int)
     end
 end
 
-leftmostdep(cfg::TransitionParserConfiguration, dep::Dependency) =
-    leftmostdep(cfg, id(dep))
+leftmostdep(cfg::TransitionParserConfiguration, dep::Dependency, n::Int=1) =
+    leftmostdep(cfg, id(dep), n)
     
-function rightmostdep(cfg::TransitionParserConfiguration, i::Int)
+function rightmostdep(cfg::TransitionParserConfiguration, i::Int, n::Int=1)
     A = arcs(cfg)
-    rdep = rightmostdep(A, i)
+    rdep = rightmostdep(A, i, n)
     if iszero(rdep)
         root(eltype(A))
     elseif rdep == -1
@@ -170,5 +161,5 @@ function rightmostdep(cfg::TransitionParserConfiguration, i::Int)
     end
 end
 
-rightmostdep(cfg::TransitionParserConfiguration, dep::Dependency) =
+rightmostdep(cfg::TransitionParserConfiguration, dep::Dependency, n::Int=1) =
     rightmostdep(cfg, id(dep))
