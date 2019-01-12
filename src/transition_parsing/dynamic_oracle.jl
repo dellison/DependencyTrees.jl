@@ -27,3 +27,45 @@ hascost(t::TransitionOperator, cfg, gold::DependencyGraph) =
 
 zero_cost_transitions(cfg, gold::DependencyGraph) =
     filter(t -> haszerocost(t, cfg, gold), possible_transitions(cfg, gold))
+
+
+struct DynamicGoldTransitions{T}
+    o::Function       # cfg -> [t, t2, t3]...
+    predict::Function # cfg -> t'
+    choose::Function  # (t', [tgold...]) -> tgold
+    config::T
+    gold::DependencyGraph
+end
+
+function DynamicGoldTransitions(oracle::DynamicOracle, graph::DependencyGraph;
+                                predict=identity, choose=choose_next_amb)
+    o = oracle.oracle_fn(oracle.config, graph)
+    DynamicGoldTransitions(o, predict, choose, oracle.config, graph)
+end
+
+Base.IteratorSize(pairs::DynamicGoldTransitions) = Base.SizeUnknown()
+
+import Base.iterate
+function Base.iterate(ts::DynamicGoldTransitions)
+    C = ts.config
+    cfg = initconfig(C, ts.gold)
+    pred = ts.predict(cfg)
+    gold = zero_cost_transitions(cfg, ts.gold)
+    t = ts.choose(pred, gold)
+    return ((cfg, gold), t(cfg))
+end
+function Base.iterate(ts::DynamicGoldTransitions, cfg)
+    if isfinal(cfg)
+        return nothing
+    else
+        pred = ts.predict(cfg)
+        gold = zero_cost_transitions(cfg, ts.gold)
+        t = ts.choose(pred, gold)
+        return ((cfg, gold), t(cfg))
+    end
+end
+
+function xys(oracle::DynamicOracle, gold::DependencyGraph;
+             predict=identity, choose=choose_next_amb)
+    DynamicGoldTransitions(oracle.oracle_fn, predict, choose, oracle.config, gold)
+end

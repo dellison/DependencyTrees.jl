@@ -52,3 +52,10 @@ function train!(trainer::OnlineTrainer{<:DynamicOracle}, graph::DependencyGraph;
         cfg = t(cfg)
     end
 end
+
+function train!(trainer::OnlineTrainer{<:DynamicOracle}, graphs::Treebank,
+                choose_next = choose_next_amb)
+    for graph in graphs
+        train!(trainer, graph, choose_next = choose_next)
+    end
+end

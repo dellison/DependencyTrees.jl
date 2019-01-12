@@ -47,13 +47,22 @@ using DependencyTrees: TreebankReader
 
     trainer = OnlineTrainer(oracle, x -> nothing, identity, (args...) -> nothing)
     tbfile = joinpath(@__DIR__, "data", "wsj_0001.dp")
-    treebank = collect(TreebankReader{TypedDependency}(tbfile, add_id=true))
-    for tree in treebank
+    treebank = Treebank{TypedDependency}(tbfile, add_id=true)
+    trees = collect(treebank)
+    for tree in trees
         DependencyTrees.train!(trainer, tree)
     end
+
+    trainer = OnlineTrainer(oracle, x -> nothing, identity, (args...) -> nothing)
+    treebank = Treebank{TypedDependency}(tbfile, add_id=true)
+    # DependencyTrees.train!(trainer, treebank)
 
     @test DependencyTrees.choose_next_amb(1, 1:5) == 1
     @test DependencyTrees.choose_next_exp(0, 1:5, () -> true) == 0
     @test DependencyTrees.choose_next_exp(0, 1:5, () -> false) != 0
     @test DependencyTrees.zero_cost_transitions(cfg, graph) == [Reduce()]
+
+    for (cfg, gold) in xys(oracle, graph)
+        @test length(gold) >= 1
+    end
 end
