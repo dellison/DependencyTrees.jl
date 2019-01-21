@@ -13,6 +13,9 @@ deptype(g::TransitionParserConfiguration) = deptype(typeof(g))
 initconfig(T::Type{<:TransitionParserConfiguration}, graph::DependencyGraph) =
     T([form(word) for word in graph])
 
+# "parametrizing" transition operaterators
+untyped(dep) = ()
+typed(dep) = (deprel(dep),)
 
 include("transitions.jl")
 include("arc_standard.jl")

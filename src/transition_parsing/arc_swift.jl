@@ -69,9 +69,8 @@ operations from a parser configuration with reference to `graph`.
 
 Described in [Qi & Manning 2007](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
-function static_oracle(::Type{<:ArcSwift}, graph::DependencyGraph)
-    g = depargs(eltype(graph))
-    args(i) = g(graph[i])
+function static_oracle(::Type{<:ArcSwift}, graph::DependencyGraph, tr = typed)
+    args(i) = tr(graph[i])
 
     function (cfg::ArcSwift)
         S = length(cfg.σ)

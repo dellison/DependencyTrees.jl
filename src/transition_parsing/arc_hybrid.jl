@@ -92,10 +92,9 @@ isfinal(cfg::ArcHybrid) = all(a -> head(a) != -1, cfg.A)
 Return a static oracle function which maps parser states to gold transition
 operations with reference to `graph`.
 """
-function static_oracle(::Type{<:ArcHybrid}, graph::DependencyGraph)
-    T = eltype(graph)
-    g = depargs(T)
-    arc(i) = g(graph[i])
+function static_oracle(::Type{<:ArcHybrid}, graph::DependencyGraph, tr = typed)
+    arc(i) = tr(graph[i])
+
     function (cfg::ArcHybrid)
         if length(cfg.σ) > 0
             σ, s = cfg.σ[1:end-1], cfg.σ[end]
@@ -144,17 +143,16 @@ function cost(t::Shift, cfg::ArcHybrid, gold)
 end
 
 
-function possible_transitions(cfg::ArcHybrid, graph::DependencyGraph)
-    g = depargs(eltype(graph))
+function possible_transitions(cfg::ArcHybrid, graph::DependencyGraph, tr = typed)
     ops = TransitionOperator[]
     S, B = length(cfg.σ), length(cfg.β)
     if S >= 1
         s = cfg.σ[end]
         if !iszero(s) && S > 1
-            push!(ops, RightArc(g(graph[s])...))
+            push!(ops, RightArc(tr(graph[s])...))
         end
         if B >= 1
-            push!(ops, LeftArc(g(graph[s])...))
+            push!(ops, LeftArc(tr(graph[s])...))
         end
     end
     B >= 1 && push!(ops, Shift())

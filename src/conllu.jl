@@ -81,8 +81,6 @@ dep(d::CoNLLU; lemma=lemma(d), upos=upos(d), xpos=xpos(d), feats=feats(d),
         CoNLLU(d.id, d.form, lemma, upos, xpos, feats, head, deprel, deps, misc)
 
 
-depargs(::Type{CoNLLU}) = x::CoNLLU -> (deprel(x),)
-
 hashead(d::CoNLLU) = d.head >= 0
 
 noval(::Type{CoNLLU}) = CoNLLU(0,NOVAL,NOVAL,NOVAL,NOVAL,String[],-1,NOVAL,Tuple{Int,String}[],NOVAL)

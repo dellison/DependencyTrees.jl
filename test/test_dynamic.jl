@@ -45,6 +45,22 @@ using DependencyTrees: TreebankReader
         cfg = pred(cfg)
     end
 
+    # make sure this works the same for untyped oracles too
+    oracle_ut = DynamicOracle(C, transition=DependencyTrees.untyped)
+    xys(oracle_ut, graph)
+    model = static_oracle(ArcEager{TypedDependency}, graph, DependencyTrees.untyped)
+    cfg = DependencyTrees.initconfig(oracle_ut.config, graph)
+    while !isfinal(cfg)
+        pred = model(cfg)
+        gold = DependencyTrees.gold_transitions(oracle_ut, cfg, graph)
+        zeroc = DependencyTrees.zero_cost_transitions(cfg, graph, DependencyTrees.untyped)
+        @test gold == zeroc
+        @test pred in gold
+        @test any(t -> DependencyTrees.hascost(t, cfg, graph), [Shift(), Reduce(), LeftArc(), RightArc()])
+        @test all(t -> DependencyTrees.haszerocost(t, cfg, graph), gold)
+        cfg = pred(cfg)
+    end
+
     trainer = OnlineTrainer(oracle, x -> nothing, identity, (args...) -> nothing)
     tbfile = joinpath(@__DIR__, "data", "wsj_0001.dp")
     treebank = Treebank{TypedDependency}(tbfile, add_id=true)

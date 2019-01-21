@@ -15,7 +15,7 @@ struct Deplol <: DependencyTrees.Dependency end
         ]
         for (i, token) in enumerate(sent)
             dep = UntypedDependency(i, token...)
-            @test deprel(dep) == nothing
+            @test deprel(dep) == ()
             @test form(dep) == token[1]
             @test id(dep) == i
             @test !isroot(dep)
@@ -61,7 +61,6 @@ struct Deplol <: DependencyTrees.Dependency end
             end
         end
         check_error(DependencyTrees.dep, d)
-        check_error(DependencyTrees.depargs, d)
         check_error(DependencyTrees.deprel, d)
         check_error(DependencyTrees.form, d)
         check_error(DependencyTrees.hashead, d)

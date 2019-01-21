@@ -76,10 +76,9 @@ end
 Return a training oracle function which returns gold transition
 operations from a parser configuration with reference to `graph`.
 """
-function static_oracle(::Type{<:ListBasedNonProjective}, graph::DependencyGraph)
-    T = eltype(graph)
-    g = depargs(T)
-    arc(i) = g(graph[i])
+function static_oracle(::Type{<:ListBasedNonProjective}, graph::DependencyGraph, tr = typed)
+    arc(i) = tr(graph[i])
+
     function (cfg::ListBasedNonProjective)
         if length(cfg.λ1) >= 1 && length(cfg.β) >= 1
             i, λ1 = cfg.λ1[end], cfg.λ1[1:end-1]

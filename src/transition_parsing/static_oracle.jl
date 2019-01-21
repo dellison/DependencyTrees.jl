@@ -1,20 +1,22 @@
 struct StaticOracle{T} <: TrainingOracle{T}
     config::T
     oracle_fn::Function
+    transition::Function
 end
 
-StaticOracle(T, oracle_fn = static_oracle) =
-    StaticOracle{typeof(T)}(T, oracle_fn)
+StaticOracle(T, oracle_fn = static_oracle; transition = typed) =
+    StaticOracle{typeof(T)}(T, oracle_fn, transition)
 
 struct StaticGoldPairs{T}
     o::Function
+    transition::Function
     config::T
     words::Vector{<:AbstractString}
 end
 
 function StaticGoldPairs(oracle::StaticOracle, graph::DependencyGraph)
-    o = oracle.oracle_fn(oracle.config, graph)
-    StaticGoldPairs(o, oracle.config, form.(graph))
+    o = oracle.oracle_fn(oracle.config, graph, oracle.transition)
+    StaticGoldPairs(o, oracle.transition, oracle.config, form.(graph))
 end
 
 Base.IteratorSize(pairs::StaticGoldPairs) = Base.SizeUnknown()

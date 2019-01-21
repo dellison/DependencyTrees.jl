@@ -10,7 +10,6 @@ _ni(f, dep) = error("$f not implemented for type $(typeof(dep))!")
 
 # Dependency API:
 dep(node::Dependency, args...; head=0, kwargs...) = _ni(dep, node)
-depargs(node::Dependency) = _ni(depargs, node)
 deprel(node::Dependency) = _ni(deprel, node)
 form(node::Dependency) = _ni(form, node)
 hashead(node::Dependency) = _ni(hashead, node)
@@ -120,10 +119,11 @@ end
 
 dep(d::UntypedDependency, _args...; head=head(d)) =
     UntypedDependency(d.id, d.form, head)
-depargs(::Type{UntypedDependency}) = x::UntypedDependency -> ()
+
+typed(d::UntypedDependency) = ()
 
 id(d::UntypedDependency) = d.id
-deprel(d::UntypedDependency) = nothing
+deprel(d::UntypedDependency) = ()
 form(d::UntypedDependency) = d.form
 hashead(d::UntypedDependency) = (d.head >= 0)
 head(d::UntypedDependency) = d.head
@@ -173,8 +173,8 @@ end
 dep(d::TypedDependency, deprel=deprel(d); head=head(d)) =
     TypedDependency(d.id, d.form, deprel, head)
 
-depargs(::Type{<:TypedDependency}) = x::TypedDependency -> (deprel(x),)
-depargs(::Type{<:TypedDependency{T}}) where T = x::TypedDependency -> (deprel(x),)
+# depargs(::Type{<:TypedDependency}) = x::TypedDependency -> (deprel(x),)
+# depargs(::Type{<:TypedDependency{T}}) where T = x::TypedDependency -> (deprel(x),)
 
 id(d::TypedDependency) = d.id
 deprel(d::TypedDependency) = d.deprel
