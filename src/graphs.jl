@@ -13,7 +13,7 @@ struct DependencyGraph{T<:Dependency} <: AbstractGraph{Int}
 end
 
 """
-    DependencyGraph(t::Type{<:Dependency}, tokens)
+    DependencyGraph(T::Type{<:Dependency}, tokens)
 
 Create a DependencyGraph for dependencies of type t with
 nodes `tokens`.
@@ -24,13 +24,13 @@ DependencyGraph(UntypedDependency, [(\"the\", 2),(\"cat\",3),(\"slept\",0)])
 DependencyGraph(TypedDependency, [(\"the\", \"DT\", 2),(\"cat\",\"NN\",3),(\"slept\",\"VBD\",0)])
 ```
 """
-function DependencyGraph(t::Type{<:Dependency}, tokens; add_id=false, kwargs...)
-    A, mwts, es = t[], MultiWordToken[], EmptyToken[]
+function DependencyGraph(T::Type{<:Dependency}, tokens; add_id=false, kwargs...)
+    A, mwts, es = T[], MultiWordToken[], EmptyToken[]
     for (i, token) in enumerate(tokens)
         if add_id
-            dependency = t(i, token...)
+            dependency = T(i, token...)
         else
-            dependency = t(token...)
+            dependency = T(token...)
         end
         push!(A, dependency)
     end

@@ -71,3 +71,6 @@ function xys(oracle::DynamicOracle, gold::DependencyGraph;
              predict=identity, choose=choose_next_amb)
     DynamicGoldTransitions(oracle.oracle_fn, oracle.transition, predict, choose, oracle.config, gold)
 end
+
+xys(oracle::DynamicOracle, graphs) =
+    reduce(vcat, [collect(xys(oracle, graph)) for graph in graphs])

@@ -17,6 +17,13 @@
         end
     end
 
+    for C in [ArcEager, ArcHybrid]
+        oracle = StaticOracle(C{CoNLLU}, transition = DependencyTrees.untyped)
+        for (cfg, t) in xys(oracle, trees)
+            @test DependencyTrees.args(t) == ()
+        end
+    end
+
     # make sure the errors get thrown correctly
     using DependencyTrees: MultiWordTokenError, EmptyTokenError
     @test_throws MultiWordTokenError CoNLLU("18-19	cannot	_	_	_	_	_	_	_	SpaceAfter=No")

@@ -22,11 +22,8 @@ unk(t::Type{<:Dependency}) = _ni(unk, t)
 const ROOT = "ROOT"
 const NOVAL = "NOVAL"
 
-leftdeps(arcs::Vector, i::Int) =
-    filter(d -> d < i, dependents(g, i))
-
-rightdeps(arcs::Vector, i::Int) =
-    filter(d -> d > i, dependents(g, i))
+leftdeps(arcs::Vector, i::Int) = filter(d -> d < i, dependents(g, i))
+rightdeps(arcs::Vector, i::Int) = filter(d -> d > i, dependents(g, i))
 
 leftdeps(arcs::Vector, dep::Dependency) =
     [arcs[i] for i in leftsdeps(arcs, id(dep))]
@@ -172,9 +169,6 @@ end
 
 dep(d::TypedDependency, deprel=deprel(d); head=head(d)) =
     TypedDependency(d.id, d.form, deprel, head)
-
-# depargs(::Type{<:TypedDependency}) = x::TypedDependency -> (deprel(x),)
-# depargs(::Type{<:TypedDependency{T}}) where T = x::TypedDependency -> (deprel(x),)
 
 id(d::TypedDependency) = d.id
 deprel(d::TypedDependency) = d.deprel
