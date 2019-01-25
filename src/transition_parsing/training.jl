@@ -1,8 +1,3 @@
-abstract type TrainingOracle{T} end
-
-include("static_oracle.jl")
-include("dynamic_oracle.jl")
-
 struct OnlineTrainer{O<:TrainingOracle,M,F,U}
     oracle::O
     model::M

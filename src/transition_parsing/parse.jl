@@ -23,6 +23,7 @@ include("arc_eager.jl")
 include("arc_hybrid.jl")
 include("arc_swift.jl")
 include("listbased.jl")
+include("oracles.jl")
 include("training.jl")
 
 function Base.parse(C::Type{<:TransitionParserConfiguration}, words, oracle)
