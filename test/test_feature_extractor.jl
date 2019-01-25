@@ -32,8 +32,8 @@
         for T in (ArcHybrid, ArcEager, ArcStandard, ArcSwift)
 
             cfg = T(tree)
-
             features = featurize(cfg)
+
             @test "bias" in features
             @test "s0.form=ROOT" in features
             @test "s0.upos=ROOT" in features
@@ -41,28 +41,6 @@
             @test "b.form=Economic" in features
             @test "b.upos=_" in features
             @test "b.form=Economic,b.upos=_" in features
-
-        end
-    end
-
-    @testset "Ordered features" begin
-        fx = DependencyTrees.@feature_extractor cfg begin
-            s2 = DependencyTrees.s2(cfg)
-            s1 = DependencyTrees.s1(cfg)
-            s0 = DependencyTrees.s0(cfg)
-            b = DependencyTrees.b(cfg)
-            b2 = DependencyTrees.b2(cfg)
-            b3 = DependencyTrees.b3(cfg)
-            
-            (s2.form, s1.form, s0.form, b.form, b2.form, b3.form)
-        end
-
-        for T in (ArcHybrid, ArcEager, ArcStandard, ArcSwift)
-
-            cfg = T(tree)
-            features = fx(cfg)
-
-            @test features == ("NOVAL", "NOVAL", "ROOT", "Economic", "news", "had")
         end
     end
 end

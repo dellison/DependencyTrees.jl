@@ -14,38 +14,16 @@ import Base.==
 ==(op1::TransitionOperator, op2::TransitionOperator) =
     typeof(op1) == typeof(op2) && args(op1) == args(op2) && kwargs(op1) == kwargs(op2)
 
-"""
-    NoArc()
 
-A NoArc transition operation.
-"""
 struct NoArc <: TransitionOperator end
 (::NoArc)(config) = noarc(config)
 
-
-"""
-    Reduce()
-
-A Reduce transition operation.
-"""
 struct Reduce <: TransitionOperator end
-
 (::Reduce)(config) = reduce(config)
 
-"""
-    Shift()
-
-A Shift transition operation.
-"""
 struct Shift  <: TransitionOperator end
-
 (::Shift)(config) = shift(config)
 
-"""
-    LeftArc(args...; kw...)
-
-A LeftArc transition operation, optionally parameterized.
-"""
 struct LeftArc{A<:Tuple,K} <: TransitionOperator
     args::A
     kwargs::K
@@ -75,11 +53,7 @@ function Base.show(io::IO, op::LeftArc)
     end
 end
 
-"""
-    RightArc(args...; kwargs...)
 
-A RightArc transition operation, optionally parameterized.
-"""
 struct RightArc{A<:Tuple,K} <: TransitionOperator
     args::A
     kwargs::K

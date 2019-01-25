@@ -1,51 +1,3 @@
-function _format_fx_input(input)
-    if isa(input, Symbol)
-        input = :($input,)
-    end
-    if input.head != :tuple
-        :($input...)
-    else # ?
-        input
-    end
-end
-
-"""
-    @feature_extractor input block
-
-Return a feature extraction function that takes `input`
-and returns features according to the code specified in `block`.
-"""
-macro feature_extractor(input, block)
-    assignment_exprs = Expr[]
-    features_expr = Expr(:tuple)
-    featureset = Set()
-    for expression in block.args
-        typeof(expression) != Expr && continue
-        if expression.head == :(=)
-            push!(assignment_exprs, expression)
-        elseif expression.head == :tuple
-            if in(expression, featureset)
-                println("ignoring duplicate feature template $expression")
-                continue
-            end
-            push!(featureset, expression)
-            push!(features_expr.args, expression)
-        else
-            push!(assignment_exprs, expression)
-        end
-    end
-    args = _format_fx_input(input)
-    extractor_function_block = Expr(:function, :($args), Expr(:block))
-    extraction_code = extractor_function_block.args[end].args
-    append!(extraction_code, assignment_exprs)
-    if length(features_expr.args) == 1
-        push!(extraction_code, features_expr.args[1])
-    else
-        push!(extraction_code, features_expr)
-    end
-    return extractor_function_block
-end
-
 """
     @feature_template(input, block)
 
@@ -99,6 +51,19 @@ macro feature_template(input, block)
     end
     return extractor_function_block
 end
+
+function _format_fx_input(input)
+    if isa(input, Symbol)
+        input = :($input,)
+    end
+    if input.head != :tuple
+        :($input...)
+    else # ?
+        input
+    end
+end
+
+
 
 # si(cfg, 0) -> top of stack
 function si(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}, i)
