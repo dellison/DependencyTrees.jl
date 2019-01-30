@@ -35,7 +35,7 @@ using DependencyTrees: OnlineTrainer
         graph = DependencyGraph(TypedDependency, figure_2_sent, add_id=true)
 
         words = first.(figure_2_sent)
-        config = ArcEager{TypedDependency}(first.(figure_2_sent))
+        config = DependencyTrees.initconfig(ArcEager(), TypedDependency, first.(figure_2_sent))
         @test config.σ == [0]
         @test config.β == 1:9
         config = shift(config)
@@ -56,8 +56,8 @@ using DependencyTrees: OnlineTrainer
         config = rightarc(config, "P")
         @test isfinal(config)
 
-        oracle = DependencyTrees.static_oracle(ArcEager, graph)
-        config = ArcEager{TypedDependency}(first.(figure_2_sent))
+        oracle = DependencyTrees.static_oracle(ArcEager(), graph)
+        config = DependencyTrees.initconfig(ArcEager(), TypedDependency, first.(figure_2_sent))
         gold_transitions = [Shift(),
                             LeftArc("NMOD"),
                             Shift(),
@@ -81,11 +81,8 @@ using DependencyTrees: OnlineTrainer
         graph2 = DependencyGraph(config.A)
         @test graph == graph2
 
-        graph3 = DependencyTrees.parse(ArcEager{TypedDependency}, words, oracle)
-        @test graph2 == graph3
-
-        trainer = OnlineTrainer(StaticOracle(ArcEager{TypedDependency}), oracle, identity, error_cb)
-        train!(trainer, graph)
+        # trainer = OnlineTrainer(StaticOracle(ArcEager{TypedDependency}), oracle, identity, error_cb)
+        # train!(trainer, graph)
     end
 
     @testset "Figure 8" begin
@@ -98,9 +95,9 @@ using DependencyTrees: OnlineTrainer
         graph = DependencyGraph(TypedDependency, figure_1_sent; add_id=true, check_single_head=false)
         words = form.(graph)
 
-        oracle = DependencyTrees.static_oracle(ListBasedNonProjective, graph)
+        oracle = DependencyTrees.static_oracle(ListBasedNonProjective(), graph)
 
-        cfg = ListBasedNonProjective{TypedDependency}(words)
+        cfg = DependencyTrees.initconfig(ListBasedNonProjective(), TypedDependency, words)
         gold_transitions = [Shift(),
                             RightArc("Atr"),
                             Shift(),
@@ -140,15 +137,13 @@ using DependencyTrees: OnlineTrainer
         graph2 = DependencyGraph(cfg.A, check_single_head=false)
         @test graph2 == graph
 
-        o = StaticOracle(ListBasedNonProjective{TypedDependency})
+        o = StaticOracle(ListBasedNonProjective())
         pairs = xys(o, graph)
         @test last.(pairs) == gold_transitions
         trainer = OnlineTrainer(o, oracle, identity, error_cb)
         train!(trainer, graph)
 
-        c = ListBasedNonProjective(graph)
+        c = DependencyTrees.initconfig(ListBasedNonProjective(), graph)
         @test DependencyTrees.deptype(c) == TypedDependency
-        c2 = ListBasedNonProjective{TypedDependency}(graph)
-        @test c == c2
     end
 end

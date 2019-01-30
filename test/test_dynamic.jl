@@ -4,8 +4,7 @@ using DependencyTrees: TreebankReader
 
     error_cb(args...) = nothing
     
-    C = ArcEager{TypedDependency}
-    oracle = DynamicOracle(C)
+    oracle = DynamicOracle(ArcEager())
     
     model(cfg) = nothing
     
@@ -26,14 +25,14 @@ using DependencyTrees: TreebankReader
     graph = DependencyGraph(TypedDependency, sent, add_id=true)
     DependencyTrees.train!(trainer, graph)
 
-    model = static_oracle(ArcEager{TypedDependency}, graph)
+    model = static_oracle(ArcEager(), graph)
     function error_cb(x, ŷ, y)
         @assert false
     end
     trainer = OnlineTrainer(oracle, model, identity, error_cb)
     DependencyTrees.train!(trainer, graph)
 
-    cfg = DependencyTrees.initconfig(oracle.config, graph)
+    cfg = DependencyTrees.initconfig(oracle.transition_system, graph)
     while !isfinal(cfg)
         pred = model(cfg)
         gold = DependencyTrees.gold_transitions(oracle, cfg, graph)
@@ -46,10 +45,10 @@ using DependencyTrees: TreebankReader
     end
 
     # make sure this works the same for untyped oracles too
-    oracle_ut = DynamicOracle(C, transition=DependencyTrees.untyped)
+    oracle_ut = DynamicOracle(ArcEager(), transition=DependencyTrees.untyped)
     xys(oracle_ut, graph)
-    model = static_oracle(ArcEager{TypedDependency}, graph, DependencyTrees.untyped)
-    cfg = DependencyTrees.initconfig(oracle_ut.config, graph)
+    model = static_oracle(ArcEager(), graph, DependencyTrees.untyped)
+    cfg = DependencyTrees.initconfig(oracle_ut.transition_system, graph)
     while !isfinal(cfg)
         pred = model(cfg)
         gold = DependencyTrees.gold_transitions(oracle_ut, cfg, graph)

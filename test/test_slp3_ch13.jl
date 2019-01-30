@@ -27,10 +27,10 @@ using DependencyTrees: OnlineTrainer, train!
                                                              ("the",5),
                                                              ("morning",5),
                                                              ("flight",1)], add_id=true)
-            oracle = static_oracle(ArcStandard, gold_graph)
+            oracle = static_oracle(ArcStandard(), gold_graph)
 
             # step 0
-            state = ArcStandard{UntypedDependency}(sent)
+            state = DependencyTrees.initconfig(ArcStandard(), UntypedDependency, sent)
             @test words(state.σ) == ["root"]
             @test words(state.β) == ["book", "me", "the", "morning", "flight"]
 
@@ -136,34 +136,31 @@ using DependencyTrees: OnlineTrainer, train!
             @test words(state.β) == []
             @test isfinal(state)
 
-            graph = DependencyTrees.parse(ArcStandard{UntypedDependency}, sent, oracle)
-            @test graph == gold_graph
-
-            oracle = StaticOracle(ArcStandard{UntypedDependency})
+            oracle = StaticOracle(ArcStandard())
             function error_cb(x, ŷ, y)
                 error("oops")
             end
-            model = static_oracle(oracle.config, graph)
+            model = static_oracle(ArcStandard(), gold_graph)
             trainer = DependencyTrees.OnlineTrainer(oracle, model, identity, error_cb)
-            pairs = xys(oracle, graph)
+            pairs = xys(oracle, gold_graph)
             @test last.(pairs) == [Shift(), Shift(), RightArc(), Shift(), Shift(), Shift(),
                                    LeftArc(), LeftArc(), RightArc(), RightArc()]
 
             # throw an error if the parser makes a mistake
-            train!(trainer, graph)
+            train!(trainer, gold_graph)
         end
 
         @testset "Typed" begin
 
             gold_graph = DependencyGraph(TypedDependency, [("book","pred",0),("me","indobj",1),("the","dt",5),("morning","adv",5),("flight","dobj",1)], add_id=true)
-            oracle = static_oracle(ArcStandard, gold_graph)
+            oracle = static_oracle(ArcStandard(), gold_graph)
 
             # head --> dep
             hasdeprel(state, head, deprel, dep) =
                 state.A[word2id[dep]].head == word2id[head] && state.A[word2id[dep]].deprel == deprel
 
             # step 0
-            state = ArcStandard{TypedDependency}(sent)
+            state = DependencyTrees.initconfig(ArcStandard(), TypedDependency, sent)
             @test words(state.σ) == ["root"]
             @test words(state.β) == ["book", "me", "the", "morning", "flight"]
 
@@ -269,21 +266,18 @@ using DependencyTrees: OnlineTrainer, train!
             @test words(state.β) == []
             @test isfinal(state)
 
-            graph = DependencyTrees.parse(ArcStandard{TypedDependency}, sent, oracle)
-            @test graph == gold_graph
-
-            model = static_oracle(ArcStandard{TypedDependency}, gold_graph)
-            oracle = StaticOracle(ArcStandard{TypedDependency})
+            model = static_oracle(ArcStandard(), gold_graph)
+            oracle = StaticOracle(ArcStandard())
             error_cb(args...) = @assert false
             trainer = OnlineTrainer(oracle, model, identity, error_cb) 
-            pairs = xys(oracle, graph)
+            pairs = xys(oracle, gold_graph)
             @test last.(pairs) == [Shift(), Shift(), RightArc("indobj"),
                                    Shift(), Shift(), Shift(), LeftArc("adv"),
                                    LeftArc("dt"), RightArc("dobj"), RightArc("pred")]
 
             # # throw an error if the parser makes a mistake
             # DependencyTrees.train_online(trainer, [graph], 1, oracle, () -> error("bad parse!"))
-            DependencyTrees.train!(trainer, graph)
+            DependencyTrees.train!(trainer, gold_graph)
         end
     end
 
@@ -312,7 +306,7 @@ using DependencyTrees: OnlineTrainer, train!
             hasdep(state, head, dep) = state.A[word2id[dep]].head == word2id[head]
 
             # step 0
-            state = ArcEager{UntypedDependency}(sent)
+            state = DependencyTrees.initconfig(ArcEager(), UntypedDependency, sent)
             @test words(state.σ) == ["root"]
             @test words(state.β) == ["book", "the", "flight", "through", "houston"]
             state = rightarc(state)
@@ -373,20 +367,17 @@ using DependencyTrees: OnlineTrainer, train!
             @test words(state.β) == []
             @test isfinal(state)
 
-            T = ArcEager{UntypedDependency}
-            oracle = DependencyTrees.static_oracle(T, gold_graph)
-            graph = DependencyTrees.parse(T, sent, oracle)
-            @test graph == gold_graph
+            o = DependencyTrees.static_oracle(ArcEager(), gold_graph)
 
-            trainer = DependencyTrees.OnlineTrainer(StaticOracle(T), oracle, identity, (args...) -> error("oh no"))
-            pairs = xys(trainer.oracle, graph)
+            trainer = DependencyTrees.OnlineTrainer(StaticOracle(ArcEager()), o, identity, (args...) -> error("oh no"))
+            pairs = xys(trainer.oracle, gold_graph)
             # @test last.(pairs) == [Shift(), Shift(), RightArc(), Shift(), Shift(), Shift(),
             #                        LeftArc(), LeftArc(), RightArc(), RightArc()]
 
             @test last.(pairs) == [RightArc(), Shift(), LeftArc(), RightArc(), Shift(),
                                    LeftArc(), RightArc()]#, Reduce(), Reduce(), Reduce()] 
             # throw an error if the parser makes a mistake
-            train!(trainer, graph)
+            train!(trainer, gold_graph)
         end
 
         @testset "Typed" begin
@@ -405,7 +396,7 @@ using DependencyTrees: OnlineTrainer, train!
                                                                    ("houston", "nmod", 3)])])
             
             # step 0
-            state = ArcEager{TypedDependency}(sent)
+            state = DependencyTrees.initconfig(ArcEager(), TypedDependency, sent)
             @test words(state.σ) == ["root"]
             @test words(state.β) == ["book", "the", "flight", "through", "houston"]
 
@@ -480,20 +471,17 @@ using DependencyTrees: OnlineTrainer, train!
             @test words(state.β) == []
             @test isfinal(state)
 
-            T = ArcEager{TypedDependency}
-            oracle = DependencyTrees.static_oracle(T, gold_graph)
-            graph = DependencyTrees.parse(T, sent, oracle)
-            @test graph == gold_graph
+            oracle = DependencyTrees.static_oracle(ArcEager(), gold_graph)
 
             # make sure trainer parses correctly
             error_cb(args...) = @assert false
-            trainer = OnlineTrainer(StaticOracle(T), oracle, identity, error_cb)
-            pairs = xys(trainer.oracle, graph)
+            trainer = OnlineTrainer(StaticOracle(ArcEager()), oracle, identity, error_cb)
+            pairs = xys(trainer.oracle, gold_graph)
             @test last.(pairs) == [RightArc("root"), Shift(), LeftArc("det"), RightArc("dobj"), Shift(),
                                    LeftArc("case"), RightArc("nmod")]#, Reduce(), Reduce(), Reduce()]
 
             # throw an error if the parser makes a mistake
-            train!(trainer, graph)
+            train!(trainer, gold_graph)
        end
     end
 end

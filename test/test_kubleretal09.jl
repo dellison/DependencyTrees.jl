@@ -29,12 +29,12 @@ using DependencyTrees: isfinal, train!
 
         graph = DependencyGraph(TypedDependency, fig_1_1, add_id=true)
 
-        oracle = DependencyTrees.static_oracle(ArcEager, graph)
+        oracle = DependencyTrees.static_oracle(ArcEager(), graph)
 
-        init = ArcEager{TypedDependency}(sent)
+        init = DependencyTrees.initconfig(ArcEager(), TypedDependency, sent)
         @test init.σ == [0] && init.β == 1:9
 
-        config = ArcEager{TypedDependency}(sent)
+        config = init
 
         gold_transitions = [Shift()
                             LeftArc("ATT")
@@ -62,15 +62,12 @@ using DependencyTrees: isfinal, train!
         graph2 = DependencyGraph(config.A)
         @test graph == graph2
 
-        graph3 = DependencyTrees.parse(ArcEager{TypedDependency}, sent, oracle)
-        @test graph3 == graph2
-
-        oracle = StaticOracle(ArcEager{TypedDependency})
+        oracle = StaticOracle(ArcEager())
         pairs = xys(oracle, graph)
         @test collect(last.(pairs)) == gold_transitions
         @test collect(xys(oracle, [graph])) == collect(pairs)
 
-        model = static_oracle(oracle.config, graph) # perfect model for this sentence
+        model = static_oracle(oracle.transition_system, graph)
         trainer = OnlineTrainer(oracle, model, identity, (x, ŷ, y) -> error("oracle was wrong"))
         train!(trainer, graph)
     end
@@ -104,10 +101,10 @@ using DependencyTrees: isfinal, train!
 
         tb = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "english.conllu"))
 
-        for T in (ArcEager, ArcStandard, ArcHybrid, ArcSwift)
+        for T in (ArcEager(), ArcStandard(), ArcHybrid(), ArcSwift())
 
             graph = first(tb)
-            cfg = ArcEager(graph)
+            cfg = DependencyTrees.initconfig(T, graph)
 
             features = fx(cfg, graph)
             @test "s0.form=ROOT" in features
@@ -125,11 +122,10 @@ using DependencyTrees: isfinal, train!
             @test "b1.upos=DET" in features
             @test "b2.upos=PROPN" in features
             @test "b3.upos=VERB" in features
-            @test "ldep_b0.deprel=NOVAL" in features
-            @test "rdep_b0.deprel=NOVAL" in features
 
             graph = last(collect(tb))
-            cfg = ArcEager(graph)
+
+            cfg = DependencyTrees.initconfig(ArcEager(), graph)
 
             features = fx(cfg, graph)
             @test "s0.form=ROOT" in features

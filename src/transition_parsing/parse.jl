@@ -1,21 +1,25 @@
-#  TransitionParser
+"""
+    TransitionSystem
+
+hi
+"""
+abstract type TransitionSystem end
+
 
 """
-    TransitionParserConfiguration
+    ParserState
 
 Parser state representation for transition-based dependency parsing.
 """
-abstract type TransitionParserConfiguration{T<:Dependency} end
+abstract type ParserState{T<:Dependency} end
 
-deptype(::Type{<:TransitionParserConfiguration{T}}) where T = T
-deptype(g::TransitionParserConfiguration) = deptype(typeof(g))
+deptype(::Type{<:ParserState{T}}) where T = T
+deptype(g::ParserState) = deptype(typeof(g))
 
-initconfig(T::Type{<:TransitionParserConfiguration}, graph::DependencyGraph) =
+initconfig(T::Type{<:ParserState}, graph::DependencyGraph) =
     T([form(word) for word in graph])
-
-# "parametrizing" transition operaterators
-untyped(dep) = ()
-typed(dep) = (deprel(dep),)
+initconfig(C::Type{<:ParserState}, D::Type{<:Dependency}, words::AbstractArray) =
+    C{D}([words])
 
 include("transitions.jl")
 include("arc_standard.jl")
@@ -25,12 +29,3 @@ include("arc_swift.jl")
 include("listbased.jl")
 include("oracles.jl")
 include("training.jl")
-
-function Base.parse(C::Type{<:TransitionParserConfiguration}, words, oracle)
-    cfg = C(words)
-    while !isfinal(cfg)
-        t = oracle(cfg)
-        cfg = t(cfg)
-    end
-    return DependencyGraph(arcs(cfg))
-end

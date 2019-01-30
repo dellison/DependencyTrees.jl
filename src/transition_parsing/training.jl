@@ -1,4 +1,4 @@
-struct OnlineTrainer{O<:TrainingOracle,M,F,U}
+struct OnlineTrainer{O<:Oracle,M,F,U}
     oracle::O
     model::M
     featurize::F
@@ -35,7 +35,7 @@ end
 function train!(trainer::OnlineTrainer{<:DynamicOracle}, graph::DependencyGraph;
                 choose_next = choose_next_amb)
     fx, update, model = trainer.featurize, trainer.update_function, trainer.model
-    cfg = initconfig(trainer.oracle.config, graph)
+    cfg = initconfig(trainer.oracle.transition_system, graph)
     while !isfinal(cfg)
         features = fx(cfg)
         pred = model(features)

@@ -1,3 +1,7 @@
+# "parametrizing" transition operaterators
+untyped(dep) = ()
+typed(dep) = (deprel(dep),)
+
 """
     TransitionOperator
 
@@ -37,8 +41,7 @@ function LeftArc{A,K}(args...; kwargs...) where {A,K}
     LeftArc{A,K}(args, kwargs)
 end
 
-(op::LeftArc)(cfg::TransitionParserConfiguration) =
-    leftarc(cfg, op.args...; op.kwargs...)
+(op::LeftArc)(cfg::ParserState) = leftarc(cfg, op.args...; op.kwargs...)
 
 args(op::LeftArc) = op.args
 kwargs(op::LeftArc) = op.kwargs
@@ -61,8 +64,7 @@ end
     
 RightArc(args...; kwargs...) = RightArc(args, kwargs)
 
-(op::RightArc)(cfg::TransitionParserConfiguration) =
-    rightarc(cfg, op.args...; op.kwargs...)
+(op::RightArc)(cfg::ParserState) = rightarc(cfg, op.args...; op.kwargs...)
 
 args(op::RightArc) = op.args
 kwargs(op::RightArc) = op.kwargs

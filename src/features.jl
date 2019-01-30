@@ -64,9 +64,10 @@ function _format_fx_input(input)
 end
 
 
+const ArcXState = Union{ArcEagerState,ArcHybridState,ArcStandardState,ArcSwiftState}
 
 # si(cfg, 0) -> top of stack
-function si(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}, i)
+function si(cfg::ArcXState, i)
     S = length(cfg.σ)
     sid = S - i
     if 1 <= sid <= S
@@ -77,7 +78,7 @@ function si(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}, i)
     end
 end
 
-function bi(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}, i)
+function bi(cfg::ArcXState, i)
     B = length(cfg.β)
     if 1 <= i <= B
         cfg.A[cfg.β[i]]
@@ -87,19 +88,20 @@ function bi(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}, i)
 end
 
 # feature extraction helpers
-s(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}) = si(cfg, 0)
-s0(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}) = si(cfg, 0)
-s1(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}) = si(cfg, 1)
-s2(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}) = si(cfg, 2)
-stack(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}) = cfg.σ
-    
-b(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}) = bi(cfg, 1)
-b1(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}) = bi(cfg, 1)
-b2(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}) = bi(cfg, 2)
-b3(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}) = bi(cfg, 3)
-buffer(cfg::Union{ArcEager,ArcHybrid,ArcStandard,ArcSwift}) = cfg.σ
 
-function leftmostdep(cfg::TransitionParserConfiguration, i::Int, n::Int=1)
+s(cfg::ArcXState) = si(cfg, 0)
+s0(cfg::ArcXState) = si(cfg, 0)
+s1(cfg::ArcXState) = si(cfg, 1)
+s2(cfg::ArcXState) = si(cfg, 2)
+stack(cfg::ArcXState) = cfg.σ
+
+b(cfg::ArcXState) = bi(cfg, 1)
+b1(cfg::ArcXState) = bi(cfg, 1)
+b2(cfg::ArcXState) = bi(cfg, 2)
+b3(cfg::ArcXState) = bi(cfg, 3)
+buffer(cfg::ArcXState) = cfg.σ
+
+function leftmostdep(cfg::ParserState, i::Int, n::Int=1)
     A = arcs(cfg)
     ldep = leftmostdep(A, i, n)
     if iszero(ldep)
@@ -111,10 +113,10 @@ function leftmostdep(cfg::TransitionParserConfiguration, i::Int, n::Int=1)
     end
 end
 
-leftmostdep(cfg::TransitionParserConfiguration, dep::Dependency, n::Int=1) =
+leftmostdep(cfg::ParserState, dep::Dependency, n::Int=1) =
     leftmostdep(cfg, id(dep), n)
     
-function rightmostdep(cfg::TransitionParserConfiguration, i::Int, n::Int=1)
+function rightmostdep(cfg::ParserState, i::Int, n::Int=1)
     A = arcs(cfg)
     rdep = rightmostdep(A, i, n)
     if iszero(rdep)
@@ -126,5 +128,5 @@ function rightmostdep(cfg::TransitionParserConfiguration, i::Int, n::Int=1)
     end
 end
 
-rightmostdep(cfg::TransitionParserConfiguration, dep::Dependency, n::Int=1) =
+rightmostdep(cfg::ParserState, dep::Dependency, n::Int=1) =
     rightmostdep(cfg, id(dep))

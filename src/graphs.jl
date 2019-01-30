@@ -18,11 +18,9 @@ end
 Create a DependencyGraph for dependencies of type t with
 nodes `tokens`.
 
-```julia
 DependencyGraph(UntypedDependency, [(\"the\", 2),(\"cat\",3),(\"slept\",0)])
 
 DependencyGraph(TypedDependency, [(\"the\", \"DT\", 2),(\"cat\",\"NN\",3),(\"slept\",\"VBD\",0)])
-```
 """
 function DependencyGraph(T::Type{<:Dependency}, tokens; add_id=false, kwargs...)
     A, mwts, es = T[], MultiWordToken[], EmptyToken[]

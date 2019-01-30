@@ -1,34 +1,39 @@
 """
-    ArcSwift{T<:Dependency}
+    ArcSwift
 
 Parser configuration for arc-swift dependency parsing.
 
 Described in [Qi & Manning 2007](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
-struct ArcSwift{T} <: TransitionParserConfiguration{T}
+struct ArcSwift <: TransitionSystem end
+
+initconfig(s::ArcSwift, graph::DependencyGraph) = ArcSwiftState(graph)
+initconfig(s::ArcSwift, deptype, words) = ArcSwiftState{deptype}(words)
+
+struct ArcSwiftState{T} <: ParserState{T}
     σ::Vector{Int}
     β::Vector{Int}
     A::Vector{T}
 end
 
-function ArcSwift{T}(words) where T
+function ArcSwiftState{T}(words) where T
     σ = [0]
     β = collect(1:length(words))
     A = [unk(T, id, w) for (id,w) in enumerate(words)]
-    ArcSwift{T}(σ, β, A)
+    ArcSwiftState{T}(σ, β, A)
 end
 
-function ArcSwift{T}(gold::DependencyGraph) where T
+function ArcSwiftState{T}(gold::DependencyGraph) where T
     σ = [0]
     β = collect(1:length(gold))
     A = [dep(word, head=-1) for word in gold]
-    ArcSwift{T}(σ, β, A)
+    ArcSwiftState{T}(σ, β, A)
 end
-ArcSwift(gold::DependencyGraph) = ArcSwift{eltype(gold)}(gold)
+ArcSwiftState(gold::DependencyGraph) = ArcSwiftState{eltype(gold)}(gold)
 
-arcs(cfg::ArcSwift) = cfg.A
+arcs(cfg::ArcSwiftState) = cfg.A
 
-function leftarc(cfg::ArcSwift, k::Int, args...; kwargs...)
+function leftarc(cfg::ArcSwiftState, k::Int, args...; kwargs...)
     # Assert a head-dependent relation between the word at the front
     # of the input buffer and the word at the top of the stack; pop
     # the stack.
@@ -38,10 +43,10 @@ function leftarc(cfg::ArcSwift, k::Int, args...; kwargs...)
     if s > 0
         A[s] = dep(A[s], args...; head=b, kwargs...)
     end
-    ArcSwift(cfg.σ[1:i-1], cfg.β, A)
+    ArcSwiftState(cfg.σ[1:i-1], cfg.β, A)
 end
 
-function rightarc(cfg::ArcSwift, k::Int, args...; kwargs...)
+function rightarc(cfg::ArcSwiftState, k::Int, args...; kwargs...)
     # Assert a head-dependent relation between the word on the top of
     # the σ and the word at front of the input buffer; shift the
     # word at the front of the input buffer to the stack.
@@ -49,30 +54,31 @@ function rightarc(cfg::ArcSwift, k::Int, args...; kwargs...)
     s, b = cfg.σ[i], cfg.β[1]
     A = copy(cfg.A)
     A[b] = dep(A[b], args...; head=s, kwargs...)
-    ArcSwift([cfg.σ[1:i] ; b], cfg.β[2:end], A)
+    ArcSwiftState([cfg.σ[1:i] ; b], cfg.β[2:end], A)
 end
 
-function shift(cfg::ArcSwift)
+function shift(cfg::ArcSwiftState)
     # Remove the word from the front of the input buffer and push it
     # onto the stack.
-    ArcSwift([cfg.σ ; cfg.β[1]], cfg.β[2:end], cfg.A)
+    ArcSwiftState([cfg.σ ; cfg.β[1]], cfg.β[2:end], cfg.A)
 end
 
-isfinal(cfg::ArcSwift) =
+isfinal(cfg::ArcSwiftState) =
     all(a -> head(a) >= 0, cfg.A) #&& length(cfg.σ) > 0 && length(cfg.β) > 0
 
+
 """
-    static_oracle(::ArcSwift, graph)
+    static_oracle(::ArcSwiftState, graph)
 
 Return a training oracle function which returns gold transition
 operations from a parser configuration with reference to `graph`.
 
 Described in [Qi & Manning 2007](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
-function static_oracle(::Type{<:ArcSwift}, graph::DependencyGraph, tr = typed)
+function static_oracle(::ArcSwift, graph::DependencyGraph, tr = typed)
     args(i) = tr(graph[i])
 
-    function (cfg::ArcSwift)
+    function (cfg::ArcSwiftState)
         S = length(cfg.σ)
         if S >= 1 && length(cfg.β) >= 1
             b = cfg.β[1]
@@ -92,5 +98,5 @@ end
 
 
 import Base.==
-==(cfg1::ArcSwift, cfg2::ArcSwift) =
+==(cfg1::ArcSwiftState, cfg2::ArcSwiftState) =
     cfg1.σ == cfg2.σ && cfg1.β == cfg2.β && cfg1.A == cfg2.A

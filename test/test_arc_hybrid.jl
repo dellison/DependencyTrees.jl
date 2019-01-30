@@ -6,7 +6,7 @@
     @test length.(trees) == [6, 6, 9, 18]
 
     @testset "Static Oracle" begin
-        oracle = StaticOracle(ArcHybrid{CoNLLU})
+        oracle = StaticOracle(ArcHybrid())
         model(x) = nothing
         errorcb(x, ŷ, y) = nothing
 
@@ -15,7 +15,8 @@
         DependencyTrees.train!(trainer, tb)
 
         function test_oracle(gold)
-            cfg, t = last(collect(xys(oracle, gold)))
+            gold_xys = collect(xys(oracle, gold))
+            cfg, t = last(gold_xys)
             cfg = t(cfg)
             graph = DependencyGraph(cfg.A)
             @test all(enumerate(graph)) do (i, token)
@@ -60,10 +61,10 @@
 
     @testset "Dynamic Oracle" begin
         TS = Union{DependencyTrees.LeftArc, DependencyTrees.RightArc, DependencyTrees.Shift}
-        oracle = DynamicOracle(ArcHybrid{CoNLLU})
+        oracle = DynamicOracle(ArcHybrid())
         model(x) = nothing
         function errorcb(x, ŷ, y)
-            @test typeof(x) <: ArcHybrid && typeof(y) <: TS
+            @test typeof(x) <: DependencyTrees.ArcHybridState && typeof(y) <: TS
         end
         trainer = OnlineTrainer(oracle, model, identity, errorcb)
         for tree in tb

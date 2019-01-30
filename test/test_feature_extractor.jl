@@ -31,7 +31,7 @@
 
         for T in (ArcHybrid, ArcEager, ArcStandard, ArcSwift)
 
-            cfg = T(tree)
+            cfg = DependencyTrees.initconfig(T(), tree)
             features = featurize(cfg)
 
             @test "bias" in features

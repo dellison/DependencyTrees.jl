@@ -54,7 +54,7 @@
         @test trees2 == trees
 
         for TS in (ArcEager, ArcHybrid, ArcStandard, ArcSwift)
-            oracle = StaticOracle(TS{CoNLLU})
+            oracle = StaticOracle(TS())
             @test xys(oracle, trees) == xys(oracle, trees2)
         end
 
@@ -68,10 +68,10 @@
             tb = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "hybridtests.conll"))
 
             for TS in (ArcEager, ArcStandard, ArcHybrid, ArcSwift, ListBasedNonProjective)
-                oracle = StaticOracle(TS{CoNLLU})
+                oracle = StaticOracle(TS())
                 model(x) = nothing
                 update = function (x, pred, gold)
-                    @test typeof(x) <: TS
+                    # @show x
                 end
                 trainer = OnlineTrainer(oracle, model, identity, update)
 

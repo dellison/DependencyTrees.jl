@@ -24,7 +24,7 @@
     gold2 = DependencyGraph(TD, s2, add_id = true)
 
     @testset "Arc Eager Reduce" begin
-        oracle = StaticOracle(ArcEager{TD})
+        oracle = StaticOracle(ArcEager())
         (gold_cfgs1, gold_ts1) = zip(xys(oracle, gold1)...)
         @test gold_ts1 == (Shift(), LeftArc("nsubj"), RightArc("root"),
                            RightArc("dobj"), Reduce(), Shift(), LeftArc("case"),
@@ -37,7 +37,7 @@
     end
 
     @testset "Arc Eager Shift" begin
-        oracle = StaticOracle(ArcEager{TypedDependency}, static_oracle_shift)
+        oracle = StaticOracle(ArcEager(), static_oracle_shift)
         (gold_cfgs1, gold_ts1) = zip(xys(oracle, gold1)...)
 
         gold_ts1 = [Shift(), LeftArc("nsubj"), RightArc("root"),
@@ -55,7 +55,7 @@
 
     @testset "Arc Swift" begin
 
-        oracle = StaticOracle(ArcSwift{TD})
+        oracle = StaticOracle(ArcSwift())
 
         (gold_cfgs1, gold_ts1) = zip(xys(oracle, gold1)...)
         for (i, (cfg, t)) in enumerate(zip(gold_cfgs1, gold_ts1))

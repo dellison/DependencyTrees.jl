@@ -1,85 +1,88 @@
 """
-    ListBasedConfig
+    ListBasedNonProjective
 
-List-based parser configuration as described in Nivre 2008, "Algorithms for Deterministic Incremental Dependency Parsing."
-"""
-abstract type ListBasedConfig{T} <: TransitionParserConfiguration{T} end
+Transition system for list-based non-projective dependency parsing.
 
+Described in Nivre 2008, "Algorithms for Deterministic Incremental Dependency Parsing."
 """
-    ListBasedNonProjective{T}
+struct ListBasedNonProjective <: TransitionSystem end
 
-Non-projective list-based parser configuration (
-"""
-struct ListBasedNonProjective{T} <: ListBasedConfig{T}
+initconfig(s::ListBasedNonProjective, graph::DependencyGraph) =
+    ListBasedNonProjectiveState(graph)
+initconfig(s::ListBasedNonProjective, deptype, words) =
+    ListBasedNonProjectiveState{deptype}(words)
+
+struct ListBasedNonProjectiveState{T} <: ParserState{T}
     λ1::Vector{Int} # right-headed
     λ2::Vector{Int} # left-headed
     β::Vector{Int}
     A::Vector{T}
 end
 
-function ListBasedNonProjective{T}(words::Vector{String}) where {T<:Dependency}
+function ListBasedNonProjectiveState{T}(words::Vector{String}) where {T}
     λ1 = [0]
     λ2 = Int[]
     β = 1:length(words)
     A = [unk(T, id, w) for (id,w) in enumerate(words)]
-    ListBasedNonProjective{T}(λ1, λ2, β, A)
+    ListBasedNonProjectiveState{T}(λ1, λ2, β, A)
 end
 
-function ListBasedNonProjective{T}(gold::DependencyGraph) where {T<:Dependency}
+function ListBasedNonProjectiveState{T}(gold::DependencyGraph) where {T}
     λ1 = [0]
     λ2 = Int[]
     β = 1:length(gold)
     A = [dep(token, head=-1) for token in gold]
-    ListBasedNonProjective{T}(λ1, λ2, β, A)
+    ListBasedNonProjectiveState{T}(λ1, λ2, β, A)
 end
-ListBasedNonProjective(gold::DependencyGraph) =
-    ListBasedNonProjective{eltype(gold)}(gold)
+ListBasedNonProjectiveState(gold::DependencyGraph) =
+    ListBasedNonProjectiveState{eltype(gold)}(gold)
 
-arcs(cfg::ListBasedNonProjective) = cfg.A
+arcs(cfg::ListBasedNonProjectiveState) = cfg.A
 
-function leftarc(cfg::ListBasedNonProjective, args...; kwargs...)
+function leftarc(cfg::ListBasedNonProjectiveState, args...; kwargs...)
     λ1, i = cfg.λ1[1:end-1], cfg.λ1[end]
     j, β = cfg.β[1], cfg.β[2:end]
     A = copy(cfg.A)
     i != 0 && (A[i] = dep(A[i], args...; head=j, kwargs...))
-    ListBasedNonProjective(λ1, [i ; cfg.λ2], [j ; β], A)
+    ListBasedNonProjectiveState(λ1, [i ; cfg.λ2], [j ; β], A)
 end
 
-function rightarc(cfg::ListBasedNonProjective, args...; kwargs...)
+function rightarc(cfg::ListBasedNonProjectiveState, args...; kwargs...)
     λ1, i = cfg.λ1[1:end-1], cfg.λ1[end]
     j, β = cfg.β[1], cfg.β[2:end]
     A = copy(cfg.A)
     A[j] = dep(A[j], args...; head=i, kwargs...)
-    ListBasedNonProjective(λ1, [i ; cfg.λ2], [j ; β], A)
+    ListBasedNonProjectiveState(λ1, [i ; cfg.λ2], [j ; β], A)
 end
 
-function noarc(cfg::ListBasedNonProjective)
+function noarc(cfg::ListBasedNonProjectiveState)
     λ1, i = cfg.λ1[1:end-1], cfg.λ1[end]
     λ2, β, A = cfg.λ2, cfg.β, cfg.A
-    ListBasedNonProjective(λ1, [i ; λ2], β, A)
+    ListBasedNonProjectiveState(λ1, [i ; λ2], β, A)
 end
 
-function shift(cfg::ListBasedNonProjective)
+function shift(cfg::ListBasedNonProjectiveState)
     λ1, λ2 = cfg.λ1, cfg.λ2
     i, β = cfg.β[1], cfg.β[2:end]
-    ListBasedNonProjective([λ1 ; λ2 ; i], Int[], β, cfg.A)
+    ListBasedNonProjectiveState([λ1 ; λ2 ; i], Int[], β, cfg.A)
 end
 
-function isfinal(cfg::ListBasedNonProjective)
+function isfinal(cfg::ListBasedNonProjectiveState)
     return all(a -> head(a) != -1, arcs(cfg)) && length(cfg.λ1) == length(cfg.A) + 1 &&
         length(cfg.λ2) == 0 && length(cfg.β) == 0
 end
 
+
 """
-    static_oracle(::ListBasedNonProjective, graph)
+    static_oracle(::ListBasedNonProjectiveState, graph)
 
 Return a training oracle function which returns gold transition
 operations from a parser configuration with reference to `graph`.
 """
-function static_oracle(::Type{<:ListBasedNonProjective}, graph::DependencyGraph, tr = typed)
+function static_oracle(::ListBasedNonProjective, graph::DependencyGraph, tr = typed)
     arc(i) = tr(graph[i])
 
-    function (cfg::ListBasedNonProjective)
+    function (cfg::ListBasedNonProjectiveState)
         if length(cfg.λ1) >= 1 && length(cfg.β) >= 1
             i, λ1 = cfg.λ1[end], cfg.λ1[1:end-1]
             j, β = cfg.β[1], cfg.β[2:end]
@@ -100,6 +103,7 @@ function static_oracle(::Type{<:ListBasedNonProjective}, graph::DependencyGraph,
     end
 end
 
+
 import Base.==
-==(cfg1::ListBasedNonProjective, cfg2::ListBasedNonProjective) =
+==(cfg1::ListBasedNonProjectiveState, cfg2::ListBasedNonProjectiveState) =
     cfg1.λ1 == cfg2.λ1 && cfg1.λ2 == cfg2.λ2 && cfg1.β == cfg2.β && cfg1.A == cfg2.A
