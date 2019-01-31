@@ -91,6 +91,38 @@ end
 isfinal(cfg::ArcHybridState) = all(a -> head(a) != -1, cfg.A)
 
 
+"""
+    static_oracle(::ArcHybrid, graph)
+
+Return a static oracle function which maps parser states to gold transition
+operations with reference to `graph`.
+"""
+function static_oracle(::ArcHybrid, graph::DependencyGraph, tr = typed)
+    arc(i) = tr(graph[i])
+
+    function (cfg::ArcHybridState)
+        if length(cfg.σ) > 0
+            σ, s = cfg.σ[1:end-1], cfg.σ[end]
+            if length(cfg.β) > 0
+                b, β = cfg.β[1], cfg.β[2:end]
+                if has_arc(graph, b, s)
+                    return LeftArc(arc(s)...)
+                end
+            end
+            if length(σ) > 0
+                s2 = σ[end]
+                if has_arc(graph, s2, s) && !any(k -> has_arc(graph, s, k), cfg.β)
+                    return RightArc(arc(s)...)
+                end
+            end
+        end
+        if length(cfg.β) > 0
+            return Shift()
+        end
+    end
+end
+
+
 function cost(t::LeftArc, cfg::ArcHybridState, gold)
     # number of arcs (s0, d) and (h, s0) for h ϵ H and d ϵ D
     (σ, s0), (b, β) = σs0(cfg), bβ(cfg)
@@ -130,38 +162,6 @@ function possible_transitions(cfg::ArcHybridState, graph::DependencyGraph, tr = 
     end
     B >= 1 && push!(ops, Shift())
     ops
-end
-
-
-"""
-    static_oracle(::ArcHybrid, graph)
-
-Return a static oracle function which maps parser states to gold transition
-operations with reference to `graph`.
-"""
-function static_oracle(::ArcHybrid, graph::DependencyGraph, tr = typed)
-    arc(i) = tr(graph[i])
-
-    function (cfg::ArcHybridState)
-        if length(cfg.σ) > 0
-            σ, s = cfg.σ[1:end-1], cfg.σ[end]
-            if length(cfg.β) > 0
-                b, β = cfg.β[1], cfg.β[2:end]
-                if has_arc(graph, b, s)
-                    return LeftArc(arc(s)...)
-                end
-            end
-            if length(σ) > 0
-                s2 = σ[end]
-                if has_arc(graph, s2, s) && !any(k -> has_arc(graph, s, k), cfg.β)
-                    return RightArc(arc(s)...)
-                end
-            end
-        end
-        if length(cfg.β) > 0
-            return Shift()
-        end
-    end
 end
 
 

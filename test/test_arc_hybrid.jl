@@ -62,13 +62,28 @@
     @testset "Dynamic Oracle" begin
         TS = Union{DependencyTrees.LeftArc, DependencyTrees.RightArc, DependencyTrees.Shift}
         oracle = DynamicOracle(ArcHybrid())
-        model(x) = nothing
+        model(x) = Shift()
         function errorcb(x, ŷ, y)
             @test typeof(x) <: DependencyTrees.ArcHybridState && typeof(y) <: TS
+            @test ŷ == Shift()
+            @test typeof(y) <: Union{Shift, LeftArc, RightArc}
         end
         trainer = OnlineTrainer(oracle, model, identity, errorcb)
         for tree in tb
             DependencyTrees.train!(trainer, tree)
         end
     end
+
+    function showstr(op)
+        buf = IOBuffer()
+        show(buf, op)
+        return String(take!(buf))
+    end
+    @test showstr(Shift()) == "Shift()"
+    @test showstr(Reduce()) == "Reduce()"
+    @test showstr(LeftArc()) == "LeftArc()"
+    @test showstr(LeftArc("nsubj")) == "LeftArc(nsubj)"
+    @test showstr(RightArc()) == "RightArc()"
+    @test showstr(RightArc("nsubj")) == "RightArc(nsubj)"
+    @test showstr(LeftArc("dobj", upos="NN")) == "LeftArc(dobj; upos=NN)"
 end

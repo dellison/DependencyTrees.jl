@@ -83,6 +83,66 @@ isfinal(cfg::ArcEagerState) = all(a -> head(a) >= 0, cfg.A)
 hashead(cfg::ArcEagerState, k) = head(cfg.A[k]) != -1
 
 
+"""
+    static_oracle(::ArcEagerState, graph)
+
+Return a static oracle function which maps parser states to gold transition
+operations with reference to `graph`.
+
+Described in [Goldberg & Nivre 2012](https://www.aclweb.org/anthology/C/C12/C12-1059.pdf).
+Also called Arc-Eager-Reduce in [Qi & Manning 2007](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
+"""
+function static_oracle(::ArcEager, graph::DependencyGraph, tr = typed)
+    args(i) = tr(graph[i])
+    gold_arc(a, b) = has_arc(graph, a, b)
+
+    function (cfg::ArcEagerState)
+        if length(cfg.σ) >= 1 && length(cfg.β) >= 1
+            s, b = cfg.σ[end], cfg.β[1]
+            if gold_arc(b, s)
+                return LeftArc(args(s)...)
+            elseif gold_arc(s, b)
+                return RightArc(args(b)...)
+            elseif all(k -> k > 0 && hashead(cfg, k), [s ; dependents(graph, s)])
+                return Reduce()
+            end
+        end
+        return Shift()
+    end
+end
+
+"""
+    static_oracle_shift(::ArcEagerState, graph)
+
+Return a static oracle function which maps parser states to gold
+transition operations with reference to `graph`.  Similar to the
+standard static oracle, but always Shift when ambiguity is present.
+
+Described in [Qi & Manning 2007](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
+"""
+function static_oracle_shift(::ArcEager, graph::DependencyGraph, tr = typed)
+    args(i) = tr(graph[i])
+    gold_arc(a, b)= has_arc(graph, a, b)
+
+    function (cfg::ArcEagerState)
+        (σ, s), (b, β) = σs(cfg), bβ(cfg)
+        if gold_arc(b, s)
+            return LeftArc(args(s)...)
+        elseif gold_arc(s, b)
+            return RightArc(args(b)...)
+        end
+        must_reduce = !any(k -> gold_arc(k, b) || gold_arc(b, k), cfg.σ) ||
+            all(k -> k == 0 || hashead(cfg, k), cfg.σ)
+        has_right_children = any(k -> gold_arc(s, k), cfg.β)
+        if ! must_reduce || s > 0 && !hashead(cfg, s) || has_right_children
+            return Shift()
+        else
+            return Reduce()
+        end
+    end
+end
+
+
 # see figure 2 in goldberg & nivre 2012 "a dynamic oracle..."
 function possible_transitions(cfg::ArcEagerState, graph::DependencyGraph, tr = typed)
     ops = TransitionOperator[]
@@ -145,66 +205,6 @@ function cost(t::Shift, cfg::ArcEagerState, gold)
     # num of gold arcs (k,l',b), (b,l',k) s.t. k ϵ s|σ
     b, β = bβ(cfg)
     count(k -> has_arc(gold, k, b) || has_arc(gold, b, k), cfg.σ)
-end
-
-
-"""
-    static_oracle(::ArcEagerState, graph)
-
-Return a static oracle function which maps parser states to gold transition
-operations with reference to `graph`.
-
-Described in [Goldberg & Nivre 2012](https://www.aclweb.org/anthology/C/C12/C12-1059.pdf).
-Also called Arc-Eager-Reduce in [Qi & Manning 2007](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
-"""
-function static_oracle(::ArcEager, graph::DependencyGraph, tr = typed)
-    args(i) = tr(graph[i])
-    gold_arc(a, b) = has_arc(graph, a, b)
-
-    function (cfg::ArcEagerState)
-        if length(cfg.σ) >= 1 && length(cfg.β) >= 1
-            s, b = cfg.σ[end], cfg.β[1]
-            if gold_arc(b, s)
-                return LeftArc(args(s)...)
-            elseif gold_arc(s, b)
-                return RightArc(args(b)...)
-            elseif all(k -> k > 0 && hashead(cfg, k), [s ; dependents(graph, s)])
-                return Reduce()
-            end
-        end
-        return Shift()
-    end
-end
-
-"""
-    static_oracle_shift(::ArcEagerState, graph)
-
-Return a static oracle function which maps parser states to gold
-transition operations with reference to `graph`.  Similar to the
-standard static oracle, but always Shift when ambiguity is present.
-
-Described in [Qi & Manning 2007](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
-"""
-function static_oracle_shift(::ArcEager, graph::DependencyGraph, tr = typed)
-    args(i) = tr(graph[i])
-    gold_arc(a, b)= has_arc(graph, a, b)
-
-    function (cfg::ArcEagerState)
-        (σ, s), (b, β) = σs(cfg), bβ(cfg)
-        if gold_arc(b, s)
-            return LeftArc(args(s)...)
-        elseif gold_arc(s, b)
-            return RightArc(args(b)...)
-        end
-        must_reduce = !any(k -> gold_arc(k, b) || gold_arc(b, k), cfg.σ) ||
-            all(k -> k == 0 || hashead(cfg, k), cfg.σ)
-        has_right_children = any(k -> gold_arc(s, k), cfg.β)
-        if ! must_reduce || s > 0 && !hashead(cfg, s) || has_right_children
-            return Shift()
-        else
-            return Reduce()
-        end
-    end
 end
 
 

@@ -36,6 +36,7 @@ using DependencyTrees: OnlineTrainer, train!
 
             o = oracle(state)
             @test o == Shift()
+            @test DependencyTrees.args(o) == ()
             @test o(state) == shift(state)
             state = shift(state)
 
@@ -54,6 +55,7 @@ using DependencyTrees: OnlineTrainer, train!
 
             o = oracle(state)
             @test o == RightArc()
+            @test DependencyTrees.args(o) == ()
             @test o(state) == rightarc(state)
             state = rightarc(state)
 
@@ -93,6 +95,7 @@ using DependencyTrees: OnlineTrainer, train!
 
             o = oracle(state)
             @test o == LeftArc()
+            @test DependencyTrees.args(o) == ()
             @test o(state) == leftarc(state)
             state = leftarc(state)
 

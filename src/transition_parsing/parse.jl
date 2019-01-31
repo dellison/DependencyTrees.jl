@@ -1,7 +1,7 @@
 """
     TransitionSystem
 
-hi
+Transition system for dependency parsing.
 """
 abstract type TransitionSystem end
 
@@ -15,11 +15,6 @@ abstract type ParserState{T<:Dependency} end
 
 deptype(::Type{<:ParserState{T}}) where T = T
 deptype(g::ParserState) = deptype(typeof(g))
-
-initconfig(T::Type{<:ParserState}, graph::DependencyGraph) =
-    T([form(word) for word in graph])
-initconfig(C::Type{<:ParserState}, D::Type{<:Dependency}, words::AbstractArray) =
-    C{D}([words])
 
 include("transitions.jl")
 include("arc_standard.jl")

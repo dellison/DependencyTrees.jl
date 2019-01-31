@@ -3,9 +3,8 @@ abstract type Oracle{T<:TransitionSystem} end
 """
     StaticOracle(T, oracle_function = static_oracle; transition = typed)
 
-Create a static (deterministic) oracle for mapping parser
-configurations (of type T) to gold transitions with reference to
-a dependency graph.
+Static (deterministic) oracle for mapping parser configurations to
+gold transitions with reference to a gold dependency graph.
 """
 struct StaticOracle{T} <: Oracle{T}
     transition_system::T
@@ -16,6 +15,7 @@ end
 StaticOracle(system, oracle = static_oracle; transition = typed) =
     StaticOracle(system, oracle, transition)
 
+# iterator for (cfg, gold_transition) pairs
 struct StaticGoldPairs{T<:TransitionSystem}
     o::Function
     transition::Function
@@ -29,8 +29,6 @@ function StaticGoldPairs(oracle::StaticOracle, graph::DependencyGraph)
 end
 
 Base.IteratorSize(pairs::StaticGoldPairs) = Base.SizeUnknown()
-# Base.IteratorSize(pairs::StaticGoldPairs) = Base.HasLength()
-# Base.length(pairs::StaticGoldPairs) = length(collect(pairs))
 
 import Base.iterate
 function Base.iterate(ts::StaticGoldPairs)
@@ -47,10 +45,6 @@ function Base.iterate(ts::StaticGoldPairs, cfg)
     end
 end
 
-gold_transitions(oracle::StaticOracle, graph::DependencyGraph) =
-    map(last, StaticGoldPairs(oracle, graph))
-
-# iterator for (parser_config, gold_transition) pairs
 xys(oracle::StaticOracle, graph::DependencyGraph) = StaticGoldPairs(oracle, graph)
 
 xys(oracle::StaticOracle, graphs) =
@@ -59,7 +53,7 @@ xys(oracle::StaticOracle, graphs) =
 """
     DynamicOracle(T, oracle_function = haszerocost; transition = typed)
 
-Create a dynamic oracle for mapping parser configurations (of type T)
+Dynamic oracle for mapping parser configurations (of type T)
 to sets of gold transitions with reference to a dependency graph.
 See [Goldberg & Nivre, 2012](https://aclweb.org/anthology/C/C12/C12-1059.pdf)
 """
@@ -92,6 +86,7 @@ zero_cost_transitions(cfg, gold::DependencyGraph, transition = typed) =
     filter(t -> haszerocost(t, cfg, gold), possible_transitions(cfg, gold, transition))
 
 
+# iterator for (cfg, [gold_ts...]) pairs
 struct DynamicGoldTransitions{T}
     o::Function          # cfg -> [t, t2, t3]...
     transition::Function 
@@ -108,8 +103,6 @@ function DynamicGoldTransitions(oracle::DynamicOracle, graph::DependencyGraph;
 end
 
 Base.IteratorSize(pairs::DynamicGoldTransitions) = Base.SizeUnknown()
-# Base.IteratorSize(pairs::DynamicGoldTransitions) = Base.HasLength()
-# Base.length(pairs::DynamicGoldTransitions) = length(collect(pairs))
 
 import Base.iterate
 function Base.iterate(ts::DynamicGoldTransitions)
@@ -130,7 +123,6 @@ function Base.iterate(ts::DynamicGoldTransitions, cfg)
     end
 end
 
-# iterator for (parser_config, [gold_transitions...])
 function xys(oracle::DynamicOracle, gold::DependencyGraph;
              predict=identity, choose=choose_next_amb)
     DynamicGoldTransitions(oracle.oracle, oracle.transition, predict, choose, oracle.transition_system, gold)

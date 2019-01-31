@@ -1,4 +1,4 @@
-# "parametrizing" transition operaterators
+# transition arguments
 untyped(dep) = ()
 typed(dep) = (deprel(dep),)
 
@@ -8,7 +8,7 @@ typed(dep) = (deprel(dep),)
 An abstract type for representing a transition operation for
 dependency parsing. TransitionOperators can act as functions (with or
 without arguments) on parser configurations, but can also be easily
-used as labels in a classifier.
+used as labels for a classifier.
 """
 abstract type TransitionOperator end
 args(r::TransitionOperator) = ()
@@ -20,26 +20,21 @@ import Base.==
 
 
 struct NoArc <: TransitionOperator end
-(::NoArc)(config) = noarc(config)
+(::NoArc)(cfg) = noarc(cfg)
 
 struct Reduce <: TransitionOperator end
-(::Reduce)(config) = reduce(config)
+(::Reduce)(cfg) = reduce(cfg)
 
 struct Shift  <: TransitionOperator end
-(::Shift)(config) = shift(config)
+(::Shift)(cfg) = shift(cfg)
+
 
 struct LeftArc{A<:Tuple,K} <: TransitionOperator
     args::A
     kwargs::K
 end
 
-function LeftArc(args...; kwargs...)
-    A, K = typeof(args), typeof(kwargs)
-    LeftArc{A,K}(args, kwargs)
-end
-function LeftArc{A,K}(args...; kwargs...) where {A,K}
-    LeftArc{A,K}(args, kwargs)
-end
+LeftArc(args...; kwargs...) = LeftArc(args, kwargs)
 
 (op::LeftArc)(cfg::ParserState) = leftarc(cfg, op.args...; op.kwargs...)
 

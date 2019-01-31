@@ -20,6 +20,7 @@ struct Deplol <: DependencyTrees.Dependency end
             @test id(dep) == i
             @test !isroot(dep)
             @test head(dep) == token[2]
+            @test DependencyTrees.untyped(dep) == DependencyTrees.typed(dep) == ()
         end
 
         noval = DependencyTrees.noval(UntypedDependency)
@@ -43,6 +44,8 @@ struct Deplol <: DependencyTrees.Dependency end
             @test head(dep) == token[3]
             @test id(dep) == i
             @test !isroot(dep)
+            @test DependencyTrees.untyped(dep) == ()
+            @test DependencyTrees.typed(dep) == (token[2],)
         end
 
         noval = DependencyTrees.noval(TypedDependency)

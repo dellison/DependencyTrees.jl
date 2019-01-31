@@ -125,13 +125,13 @@ token(g::DependencyGraph, id) = g[id]
 
 function leftdeps(g::DependencyGraph, dep::Dependency)
     i = id(dep)
-    filter(d -> id(d) < i, dependents(g, dep))
+    g[filter(d -> d < i, dependents(g, id(dep)))]
 end
 leftdeps(g::DependencyGraph, i::Int) = filter(d -> d < i, dependents(g, i))
 
 function rightdeps(g::DependencyGraph, dep::Dependency)
     i = id(dep)
-    filter(d -> id(d) > i, dependents(g, dep))
+    g[filter(d -> d > i, dependents(g, id(dep)))]
 end
 rightdeps(g::DependencyGraph, i::Int) = filter(d -> d > i, dependents(g, i))
 

@@ -73,7 +73,7 @@ isfinal(cfg::ArcSwiftState) =
 Return a training oracle function which returns gold transition
 operations from a parser configuration with reference to `graph`.
 
-Described in [Qi & Manning 2007](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
+Described in [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
 function static_oracle(::ArcSwift, graph::DependencyGraph, tr = typed)
     args(i) = tr(graph[i])

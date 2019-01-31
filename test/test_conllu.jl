@@ -45,6 +45,10 @@
 6	.	.	PUNCT	.	_	2	punct	2:punct	_"""
 
     graph = DependencyGraph{CoNLLU}(sent)
+    for d in graph.tokens
+        @test DependencyTrees.untyped(d) == ()
+        @test DependencyTrees.typed(d) == (d.deprel,)
+    end
 
     c = CoNLLU("1	They	they	PRON	PRP	Case=Nom|Number=Plur	2	nsubj	2:nsubj|4:nsubj	_")
     @test length(c.deps) == 2

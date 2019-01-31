@@ -34,6 +34,9 @@ using DependencyTrees: dependents, leftdeps, rightdeps, leftmostdep, rightmostde
     end
     @test isprojective(graph)
 
+    @test leftdeps(graph, graph[0]) == []
+    @test rightdeps(graph, graph[0]) == [graph[3]]
+
     @test leftdeps(graph, 0) == []
     @test rightdeps(graph, 0) == [3]
     @test leftdeps(graph, 1) == []
@@ -125,6 +128,20 @@ using DependencyTrees: dependents, leftdeps, rightdeps, leftmostdep, rightmostde
     @test rightmostdep(graph, graph[9]).id == -1
     @test rightmostdep(graph.tokens, graph[9]).id == -1
 
+    sent1 = [
+        (1, "Economic", "ATT", 2),
+        (2, "news", "SBJ", 3),
+        (3, "had", "PRED", 0),
+        (4, "little", "ATT", 5),
+        (5, "effect", "OBJ", 3),
+        (6, "on", "ATT", 5),
+        (7, "financial", "ATT", 8),
+        (8, "markets", "PC", 6),
+        (9, ".", "PU", 3),
+    ]
+    @test graph == DependencyGraph(TypedDependency, sent1, add_id=false)
+
+
     sent = [
         ("Pierre", "NNP", 2),
         ("Vinken", "NNP", 8),
@@ -194,6 +211,7 @@ using DependencyTrees: dependents, leftdeps, rightdeps, leftmostdep, rightmostde
 
         graph = DependencyGraph(TypedDependency, sent, add_id=true)
         @test !isprojective(graph)
+        @test DependencyTrees.deprel(graph, 1) == "nsubj"
     end
 
     @testset "Errors" begin
@@ -205,6 +223,9 @@ using DependencyTrees: dependents, leftdeps, rightdeps, leftmostdep, rightmostde
 
         tworoots = [("two", 0), ("roots", 0)]
         @test_throws MultipleRootsError DependencyGraph(UntypedDependency, tworoots, add_id=true)
+        @test_throws GraphConnectivityError begin
+            DependencyGraph(UntypedDependency, [(1, "the", 0), (2, "cat", -1)])
+        end
 
         sent = [
             ("john", 2),      # 1
