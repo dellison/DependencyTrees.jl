@@ -1,68 +1,5 @@
-"""
-    @feature_template(input, block)
-
-Return a feature extraction function for sparse feature templates.
-Tuples are taken to be feature templates.
-"""
-macro feature_template(input, block)
-    assignment_exprs = Expr[]
-    features_expr = Expr(:tuple)
-    featureset = Set()
-    for expression in block.args
-        typeof(expression) != Expr && continue
-        if expression.head == :(=)
-            push!(assignment_exprs, expression)
-        elseif expression.head == :tuple
-            if in(expression, featureset)
-                println("ignoring duplicate feature template $expression")
-                continue
-            end
-            push!(featureset, expression)
-            ft_args = map(expression.args) do a
-                if isa(a, String)
-                    a
-                else
-                    feat = string(a)
-                    :(string($feat, "=", isempty($a) ? "_" : $a))
-                end
-            end
-            if length(ft_args) == 1
-                append!(features_expr.args, ft_args)
-            else
-                feature = Expr(:call, :string)
-                for (i, arg) in enumerate(ft_args)
-                    append!(feature.args, [arg.args[2:end]...])
-                    i < length(ft_args) && push!(feature.args, ",")
-                end
-                push!(features_expr.args, feature)
-            end
-        else
-            push!(assignment_exprs, expression)
-        end
-    end
-    args = _format_fx_input(input)
-    extractor_function_block = Expr(:function, :($args), Expr(:block))
-    extraction_code = extractor_function_block.args[end].args
-    append!(extraction_code, assignment_exprs)
-    if length(features_expr.args) == 1
-        push!(extraction_code, features_expr.args[1])
-    else
-        push!(extraction_code, features_expr)
-    end
-    return extractor_function_block
-end
-
-function _format_fx_input(input)
-    if isa(input, Symbol)
-        input = :($input,)
-    end
-    if input.head != :tuple
-        :($input...)
-    else # ?
-        input
-    end
-end
-
+# a collection of functions that are useful for getting features from
+# parser states (configurations)
 
 const ArcXState = Union{ArcEagerState,ArcHybridState,ArcStandardState,ArcSwiftState}
 
@@ -87,18 +24,18 @@ function bi(cfg::ArcXState, i)
     end
 end
 
-# feature extraction helpers
-
-s(cfg::ArcXState) = si(cfg, 0)
+s(cfg::ArcXState)  = si(cfg, 0)
 s0(cfg::ArcXState) = si(cfg, 0)
 s1(cfg::ArcXState) = si(cfg, 1)
 s2(cfg::ArcXState) = si(cfg, 2)
+s3(cfg::ArcXState) = si(cfg, 3)
 stack(cfg::ArcXState) = cfg.σ
 
-b(cfg::ArcXState) = bi(cfg, 1)
-b1(cfg::ArcXState) = bi(cfg, 1)
-b2(cfg::ArcXState) = bi(cfg, 2)
-b3(cfg::ArcXState) = bi(cfg, 3)
+b(cfg::ArcXState)  = bi(cfg, 1)
+b0(cfg::ArcXState) = bi(cfg, 1)
+b1(cfg::ArcXState) = bi(cfg, 2)
+b2(cfg::ArcXState) = bi(cfg, 3)
+b3(cfg::ArcXState) = bi(cfg, 4)
 buffer(cfg::ArcXState) = cfg.σ
 
 function leftmostdep(cfg::ParserState, i::Int, n::Int=1)

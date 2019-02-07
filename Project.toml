@@ -7,7 +7,8 @@ version = "0.1.0"
 LightGraphs = "093fc24a-ae57-5d10-9952-331d41423f4d"
 
 [extras]
+FeatureTemplates = "1e053e30-29cd-11e9-0965-152326b89634"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["Test", "FeatureTemplates"]

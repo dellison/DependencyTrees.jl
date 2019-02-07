@@ -4,6 +4,8 @@ using DependencyTrees: shift, leftarc, rightarc, reduce
 using DependencyTrees: LeftArc, RightArc, Shift, Reduce
 using DependencyTrees: isfinal, train!
 
+using FeatureTemplates
+
 # tests from sandra kubler, ryan mcdonald, joakim nivre 09 "dependency
 # parsing" (https://doi.org/10.2200/S00169ED1V01Y200901HLT002)
 
@@ -75,28 +77,28 @@ using DependencyTrees: isfinal, train!
     @testset "Features" begin
 
         # Table 3.2
-        fx = DependencyTrees.@feature_template (cfg, gold) begin
+        @fx function featurize(cfg, gold)
             s0 = DependencyTrees.s0(cfg)
             s1 = DependencyTrees.s1(cfg)
             ldep_s0 = DependencyTrees.leftmostdep(cfg, s0)
             rdep_s0 = DependencyTrees.rightmostdep(cfg, s0)
             b0 = DependencyTrees.b(cfg)
-            b1 = DependencyTrees.b2(cfg)
-            b2 = DependencyTrees.b3(cfg)
-            b3 = DependencyTrees.bi(cfg, 4)
+            b1 = DependencyTrees.b1(cfg)
+            b2 = DependencyTrees.b2(cfg)
+            b3 = DependencyTrees.b3(cfg)
             ldep_b0 = DependencyTrees.leftmostdep(cfg, b0)
             rdep_b0 = DependencyTrees.rightmostdep(cfg, b0)
             # feature set:
-            ("bias",)
-            (s0.form,); (s0.lemma,); (s0.upos,); (s0.feats,)
-            (s1.upos,)
-            (ldep_s0.deprel,); (rdep_s0.deprel,)
-            (b0.form,); (b0.lemma,); (b0.upos,); (b0.feats,)
-            (b1.form,); (b1.upos,)
-            (b2.upos,)
-            (b3.upos,)
-            (ldep_b0.deprel,)
-            (rdep_b0.deprel,)
+            f("bias")
+            f(s0.form); f(s0.lemma); f(s0.upos); f(s0.feats)
+            f(s1.upos)
+            f(ldep_s0.deprel); f(rdep_s0.deprel)
+            f(b0.form); f(b0.lemma); f(b0.upos); f(b0.feats)
+            f(b1.form); f(b1.upos)
+            f(b2.upos)
+            f(b3.upos)
+            f(ldep_b0.deprel)
+            f(rdep_b0.deprel)
         end
 
         tb = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "english.conllu"))
@@ -106,7 +108,7 @@ using DependencyTrees: isfinal, train!
             graph = first(tb)
             cfg = DependencyTrees.initconfig(T, graph)
 
-            features = fx(cfg, graph)
+            features = featurize(cfg, graph)
             @test "s0.form=ROOT" in features
             @test "s0.lemma=ROOT" in features
             @test "s0.upos=ROOT" in features
@@ -127,7 +129,7 @@ using DependencyTrees: isfinal, train!
 
             cfg = DependencyTrees.initconfig(ArcEager(), graph)
 
-            features = fx(cfg, graph)
+            features = featurize(cfg, graph)
             @test "s0.form=ROOT" in features
             @test "s0.lemma=ROOT" in features
             @test "s0.upos=ROOT" in features

@@ -1,3 +1,5 @@
+using DependencyTrees, FeatureTemplates
+
 @testset "Feature Extraction" begin
 
     tree = DependencyGraph{CoNLLU}("""
@@ -15,18 +17,18 @@
 
     @testset "Feature Templates" begin
 
-        featurize = DependencyTrees.@feature_template cfg begin
+        @fx function featurize(cfg)
             s0 = DependencyTrees.s0(cfg)
             b = DependencyTrees.b(cfg)
 
             # features
-            ("bias",)
-            (s0.form,)
-            (s0.upos,)
-            (s0.form, s0.upos)
-            (b.form,)
-            (b.upos,)
-            (b.form, b.upos)
+            f("bias",)
+            f(s0.form,)
+            f(s0.upos,)
+            f(s0.form, s0.upos)
+            f(b.form,)
+            f(b.upos,)
+            f(b.form, b.upos)
         end
 
         for T in (ArcHybrid, ArcEager, ArcStandard, ArcSwift)
