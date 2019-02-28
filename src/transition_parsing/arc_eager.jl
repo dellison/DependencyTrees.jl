@@ -6,48 +6,36 @@ Transition system for Arc-Eager dependency parsing.
 See [Nivre 2003](http://stp.lingfil.uu.se/~nivre/docs/iwpt03.pdf),
 [Nivre 2008](https://www.aclweb.org/anthology/J/J08/J08-4003.pdf).
 """
-struct ArcEager <: TransitionSystem end
+struct ArcEager <: AbstractTransitionSystem end
 
-initconfig(s::ArcEager, graph::DependencyGraph) = ArcEagerState(graph)
-initconfig(s::ArcEager, deptype, words) = ArcEagerState{deptype}(words)
+initconfig(s::ArcEager, graph::DependencyGraph) = ArcEagerConfig(graph)
+initconfig(s::ArcEager, deptype, words) = ArcEagerConfig{deptype}(words)
 
-struct ArcEagerState{T} <:ParserState{T}
+struct ArcEagerConfig{T} <: AbstractParserConfiguration{T}
     σ::Vector{Int}
     β::Vector{Int}
     A::Vector{T}
 end
 
-function ArcEagerState{T}(words) where T
+function ArcEagerConfig{T}(words) where T
     σ = [0]
     β = collect(1:length(words))
     A = [unk(T, i, word) for (i, word) in enumerate(words)]
-    ArcEagerState{T}(σ, β, A)
+    ArcEagerConfig{T}(σ, β, A)
 end
 
-function ArcEagerState{T}(gold::DependencyGraph) where T
+function ArcEagerConfig{T}(gold::DependencyGraph) where T
     σ = [0]
     β = collect(1:length(gold))
     A = [dep(word, head=-1) for word in gold]
-    ArcEagerState{T}(σ, β, A)
+    ArcEagerConfig{T}(σ, β, A)
 end
-ArcEagerState(gold::DependencyGraph) = ArcEagerState{eltype(gold)}(gold)
+ArcEagerConfig(gold::DependencyGraph) = ArcEagerConfig{eltype(gold)}(gold)
 
-arcs(cfg::ArcEagerState) = cfg.A
-deptype(cfg::ArcEagerState) = eltype(cfg.A)
+arcs(cfg::ArcEagerConfig) = cfg.A
+deptype(cfg::ArcEagerConfig) = eltype(cfg.A)
 
-function σs(cfg::ArcEagerState)
-    s = cfg.σ[end]
-    σ = length(cfg.σ) > 1 ? cfg.σ[1:end-1] : Int[]
-    return (σ, s)
-end
-
-function bβ(cfg::ArcEagerState)
-    b = cfg.β[1]
-    β = length(cfg.β) > 1 ? cfg.β[2:end] : Int[]
-    return (b, β)
-end
-
-function leftarc(cfg::ArcEagerState, args...; kwargs...)
+function leftarc(cfg::ArcEagerConfig, args...; kwargs...)
     # Assert a head-dependent relation between the word at the front
     # of the input buffer and the word at the top of the stack; pop
     # the stack.
@@ -55,36 +43,36 @@ function leftarc(cfg::ArcEagerState, args...; kwargs...)
     if s > 0
         A[s] = dep(A[s], args...; head=b, kwargs...)
     end
-    ArcEagerState(cfg.σ[1:end-1], cfg.β, A)
+    ArcEagerConfig(cfg.σ[1:end-1], cfg.β, A)
 end
 
-function rightarc(cfg::ArcEagerState, args...; kwargs...)
+function rightarc(cfg::ArcEagerConfig, args...; kwargs...)
     # Assert a head-dependent relation between the word on the top of
     # the σ and the word at front of the input buffer; shift the
     # word at the front of the input buffer to the stack.
     (σ, s), (b, β), A = σs(cfg), bβ(cfg), copy(cfg.A)
     A[b] = dep(A[b], args...; head=s, kwargs...)
-    ArcEagerState([cfg.σ ; b], β, A)
+    ArcEagerConfig([cfg.σ ; b], β, A)
 end
 
-function Base.reduce(cfg::ArcEagerState)
+function Base.reduce(cfg::ArcEagerConfig)
     # Pop the stack.
-    ArcEagerState(cfg.σ[1:end-1], cfg.β, cfg.A)
+    ArcEagerConfig(cfg.σ[1:end-1], cfg.β, cfg.A)
 end
 
-function shift(cfg::ArcEagerState)
+function shift(cfg::ArcEagerConfig)
     # Remove the word from the front of the input buffer and push it
     # onto the stack.
     (b, β) = bβ(cfg)
-    ArcEagerState([cfg.σ ; b], β, cfg.A)
+    ArcEagerConfig([cfg.σ ; b], β, cfg.A)
 end
 
-isfinal(cfg::ArcEagerState) = all(a -> head(a) >= 0, cfg.A)
-hashead(cfg::ArcEagerState, k) = head(cfg.A[k]) != -1
+isfinal(cfg::ArcEagerConfig) = all(a -> head(a) >= 0, cfg.A)
+hashead(cfg::ArcEagerConfig, k) = head(cfg.A[k]) != -1
 
 
 """
-    static_oracle(::ArcEagerState, graph)
+    static_oracle(::ArcEagerConfig, graph)
 
 Return a static oracle function which maps parser states to gold transition
 operations with reference to `graph`.
@@ -96,7 +84,7 @@ function static_oracle(::ArcEager, graph::DependencyGraph, tr = typed)
     args(i) = tr(graph[i])
     gold_arc(a, b) = has_arc(graph, a, b)
 
-    function (cfg::ArcEagerState)
+    function (cfg::ArcEagerConfig)
         if length(cfg.σ) >= 1 && length(cfg.β) >= 1
             s, b = cfg.σ[end], cfg.β[1]
             if gold_arc(b, s)
@@ -112,7 +100,7 @@ function static_oracle(::ArcEager, graph::DependencyGraph, tr = typed)
 end
 
 """
-    static_oracle_shift(::ArcEagerState, graph)
+    static_oracle_shift(::ArcEager, graph)
 
 Return a static oracle function which maps parser states to gold
 transition operations with reference to `graph`.  Similar to the
@@ -124,7 +112,7 @@ function static_oracle_shift(::ArcEager, graph::DependencyGraph, tr = typed)
     args(i) = tr(graph[i])
     gold_arc(a, b)= has_arc(graph, a, b)
 
-    function (cfg::ArcEagerState)
+    function (cfg::ArcEagerConfig)
         (σ, s), (b, β) = σs(cfg), bβ(cfg)
         if gold_arc(b, s)
             return LeftArc(args(s)...)
@@ -144,7 +132,7 @@ end
 
 
 # see figure 2 in goldberg & nivre 2012 "a dynamic oracle..."
-function possible_transitions(cfg::ArcEagerState, graph::DependencyGraph, tr = typed)
+function possible_transitions(cfg::ArcEagerConfig, graph::DependencyGraph, tr = typed)
     ops = TransitionOperator[]
     stacksize, bufsize = length(cfg.σ), length(cfg.β)
     if stacksize >= 1
@@ -172,7 +160,7 @@ function possible_transitions(cfg::ArcEagerState, graph::DependencyGraph, tr = t
 end
 
 
-function cost(t::LeftArc, cfg::ArcEagerState, gold)
+function cost(t::LeftArc, cfg::ArcEagerConfig, gold)
     # left arc cost: num of arcs (k,l',s), (s,l',k) s.t. k ϵ β
     σ, s = σs(cfg)
     b, β = bβ(cfg)
@@ -183,7 +171,7 @@ function cost(t::LeftArc, cfg::ArcEagerState, gold)
     end
 end
 
-function cost(t::RightArc, cfg::ArcEagerState, gold)
+function cost(t::RightArc, cfg::ArcEagerConfig, gold)
     # right arc cost: num of gold arcs (k,l',b), s.t. k ϵ σ or k ϵ β,
     #                 plus num of gold arcs (b,l',k) s.t. k ϵ σ
     σ, s = σs(cfg)
@@ -195,13 +183,13 @@ function cost(t::RightArc, cfg::ArcEagerState, gold)
     end
 end
 
-function cost(t::Reduce, cfg::ArcEagerState, gold)
+function cost(t::Reduce, cfg::ArcEagerConfig, gold)
     # num of gold arcs (s,l',k) s.t. k ϵ b|β
     σ, s = σs(cfg)
     count(k -> has_arc(gold, s, k), cfg.β)
 end
 
-function cost(t::Shift, cfg::ArcEagerState, gold)
+function cost(t::Shift, cfg::ArcEagerConfig, gold)
     # num of gold arcs (k,l',b), (b,l',k) s.t. k ϵ s|σ
     b, β = bβ(cfg)
     count(k -> has_arc(gold, k, b) || has_arc(gold, b, k), cfg.σ)
@@ -209,5 +197,5 @@ end
 
 
 import Base.==
-==(cfg1::ArcEagerState, cfg2::ArcEagerState) =
+==(cfg1::ArcEagerConfig, cfg2::ArcEagerConfig) =
     cfg1.σ == cfg2.σ && cfg1.β == cfg2.β && cfg1.A == cfg2.A

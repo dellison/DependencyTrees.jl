@@ -5,14 +5,14 @@ Transition system for list-based non-projective dependency parsing.
 
 Described in Nivre 2008, "Algorithms for Deterministic Incremental Dependency Parsing."
 """
-struct ListBasedNonProjective <: TransitionSystem end
+struct ListBasedNonProjective <: AbstractTransitionSystem end
 
 initconfig(s::ListBasedNonProjective, graph::DependencyGraph) =
     ListBasedNonProjectiveState(graph)
 initconfig(s::ListBasedNonProjective, deptype, words) =
     ListBasedNonProjectiveState{deptype}(words)
 
-struct ListBasedNonProjectiveState{T} <: ParserState{T}
+struct ListBasedNonProjectiveState{T} <: AbstractParserConfiguration{T}
     λ1::Vector{Int} # right-headed
     λ2::Vector{Int} # left-headed
     β::Vector{Int}

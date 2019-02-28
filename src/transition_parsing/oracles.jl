@@ -1,4 +1,4 @@
-abstract type Oracle{T<:TransitionSystem} end
+abstract type Oracle{T<:AbstractTransitionSystem} end
 
 """
     StaticOracle(T, oracle_function = static_oracle; transition = typed)
@@ -16,7 +16,7 @@ StaticOracle(system, oracle = static_oracle; transition = typed) =
     StaticOracle(system, oracle, transition)
 
 # iterator for (cfg, gold_transition) pairs
-struct StaticGoldPairs{T<:TransitionSystem}
+struct StaticGoldPairs{T<:AbstractTransitionSystem}
     o::Function
     transition::Function
     transition_system::T

@@ -36,7 +36,7 @@ end
 
 LeftArc(args...; kwargs...) = LeftArc(args, kwargs)
 
-(op::LeftArc)(cfg::ParserState) = leftarc(cfg, op.args...; op.kwargs...)
+(op::LeftArc)(cfg::AbstractParserConfiguration) = leftarc(cfg, op.args...; op.kwargs...)
 
 args(op::LeftArc) = op.args
 kwargs(op::LeftArc) = op.kwargs
@@ -59,7 +59,7 @@ end
     
 RightArc(args...; kwargs...) = RightArc(args, kwargs)
 
-(op::RightArc)(cfg::ParserState) = rightarc(cfg, op.args...; op.kwargs...)
+(op::RightArc)(cfg::AbstractParserConfiguration) = rightarc(cfg, op.args...; op.kwargs...)
 
 args(op::RightArc) = op.args
 kwargs(op::RightArc) = op.kwargs

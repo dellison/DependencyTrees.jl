@@ -11,5 +11,4 @@ using DependencyTrees, Test
     include("test_dynamic.jl")
     include("test_arc_hybrid.jl")
     include("test_arc_swift.jl")
-    include("test_feature_extractor.jl")
 end

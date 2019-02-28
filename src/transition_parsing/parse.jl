@@ -1,20 +1,9 @@
-"""
-    TransitionSystem
+abstract type AbstractTransitionSystem end
 
-Transition system for dependency parsing.
-"""
-abstract type TransitionSystem end
+abstract type AbstractParserConfiguration{T<:Dependency} end
 
-
-"""
-    ParserState
-
-Parser state representation for transition-based dependency parsing.
-"""
-abstract type ParserState{T<:Dependency} end
-
-deptype(::Type{<:ParserState{T}}) where T = T
-deptype(g::ParserState) = deptype(typeof(g))
+deptype(::Type{<:AbstractParserConfiguration{T}}) where T = T
+deptype(g::AbstractParserConfiguration) = deptype(typeof(g))
 
 include("transitions.jl")
 include("arc_standard.jl")

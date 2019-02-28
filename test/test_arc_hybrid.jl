@@ -64,7 +64,7 @@
         oracle = DynamicOracle(ArcHybrid())
         model(x) = Shift()
         function errorcb(x, ŷ, y)
-            @test typeof(x) <: DependencyTrees.ArcHybridState && typeof(y) <: TS
+            @test typeof(x) <: DependencyTrees.ArcHybridConfig && typeof(y) <: TS
             @test ŷ == Shift()
             @test typeof(y) <: Union{Shift, LeftArc, RightArc}
         end

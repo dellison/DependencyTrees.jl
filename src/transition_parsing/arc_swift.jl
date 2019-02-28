@@ -5,35 +5,35 @@ Parser configuration for arc-swift dependency parsing.
 
 Described in [Qi & Manning 2007](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
-struct ArcSwift <: TransitionSystem end
+struct ArcSwift <: AbstractTransitionSystem end
 
-initconfig(s::ArcSwift, graph::DependencyGraph) = ArcSwiftState(graph)
-initconfig(s::ArcSwift, deptype, words) = ArcSwiftState{deptype}(words)
+initconfig(s::ArcSwift, graph::DependencyGraph) = ArcSwiftConfig(graph)
+initconfig(s::ArcSwift, deptype, words) = ArcSwiftConfig{deptype}(words)
 
-struct ArcSwiftState{T} <: ParserState{T}
+struct ArcSwiftConfig{T} <: AbstractParserConfiguration{T}
     σ::Vector{Int}
     β::Vector{Int}
     A::Vector{T}
 end
 
-function ArcSwiftState{T}(words) where T
+function ArcSwiftConfig{T}(words) where T
     σ = [0]
     β = collect(1:length(words))
     A = [unk(T, id, w) for (id,w) in enumerate(words)]
-    ArcSwiftState{T}(σ, β, A)
+    ArcSwiftConfig{T}(σ, β, A)
 end
 
-function ArcSwiftState{T}(gold::DependencyGraph) where T
+function ArcSwiftConfig{T}(gold::DependencyGraph) where T
     σ = [0]
     β = collect(1:length(gold))
     A = [dep(word, head=-1) for word in gold]
-    ArcSwiftState{T}(σ, β, A)
+    ArcSwiftConfig{T}(σ, β, A)
 end
-ArcSwiftState(gold::DependencyGraph) = ArcSwiftState{eltype(gold)}(gold)
+ArcSwiftConfig(gold::DependencyGraph) = ArcSwiftConfig{eltype(gold)}(gold)
 
-arcs(cfg::ArcSwiftState) = cfg.A
+arcs(cfg::ArcSwiftConfig) = cfg.A
 
-function leftarc(cfg::ArcSwiftState, k::Int, args...; kwargs...)
+function leftarc(cfg::ArcSwiftConfig, k::Int, args...; kwargs...)
     # Assert a head-dependent relation between the word at the front
     # of the input buffer and the word at the top of the stack; pop
     # the stack.
@@ -43,10 +43,10 @@ function leftarc(cfg::ArcSwiftState, k::Int, args...; kwargs...)
     if s > 0
         A[s] = dep(A[s], args...; head=b, kwargs...)
     end
-    ArcSwiftState(cfg.σ[1:i-1], cfg.β, A)
+    ArcSwiftConfig(cfg.σ[1:i-1], cfg.β, A)
 end
 
-function rightarc(cfg::ArcSwiftState, k::Int, args...; kwargs...)
+function rightarc(cfg::ArcSwiftConfig, k::Int, args...; kwargs...)
     # Assert a head-dependent relation between the word on the top of
     # the σ and the word at front of the input buffer; shift the
     # word at the front of the input buffer to the stack.
@@ -54,21 +54,21 @@ function rightarc(cfg::ArcSwiftState, k::Int, args...; kwargs...)
     s, b = cfg.σ[i], cfg.β[1]
     A = copy(cfg.A)
     A[b] = dep(A[b], args...; head=s, kwargs...)
-    ArcSwiftState([cfg.σ[1:i] ; b], cfg.β[2:end], A)
+    ArcSwiftConfig([cfg.σ[1:i] ; b], cfg.β[2:end], A)
 end
 
-function shift(cfg::ArcSwiftState)
+function shift(cfg::ArcSwiftConfig)
     # Remove the word from the front of the input buffer and push it
     # onto the stack.
-    ArcSwiftState([cfg.σ ; cfg.β[1]], cfg.β[2:end], cfg.A)
+    ArcSwiftConfig([cfg.σ ; cfg.β[1]], cfg.β[2:end], cfg.A)
 end
 
-isfinal(cfg::ArcSwiftState) =
+isfinal(cfg::ArcSwiftConfig) =
     all(a -> head(a) >= 0, cfg.A) #&& length(cfg.σ) > 0 && length(cfg.β) > 0
 
 
 """
-    static_oracle(::ArcSwiftState, graph)
+    static_oracle(::ArcSwiftConfig, graph)
 
 Return a training oracle function which returns gold transition
 operations from a parser configuration with reference to `graph`.
@@ -78,7 +78,7 @@ Described in [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pd
 function static_oracle(::ArcSwift, graph::DependencyGraph, tr = typed)
     args(i) = tr(graph[i])
 
-    function (cfg::ArcSwiftState)
+    function (cfg::ArcSwiftConfig)
         S = length(cfg.σ)
         if S >= 1 && length(cfg.β) >= 1
             b = cfg.β[1]
@@ -98,5 +98,5 @@ end
 
 
 import Base.==
-==(cfg1::ArcSwiftState, cfg2::ArcSwiftState) =
+==(cfg1::ArcSwiftConfig, cfg2::ArcSwiftConfig) =
     cfg1.σ == cfg2.σ && cfg1.β == cfg2.β && cfg1.A == cfg2.A
