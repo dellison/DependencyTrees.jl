@@ -46,7 +46,7 @@ Dynamic Oracles map parser configurations to sets of gold transitions.
 julia> oracle = DynamicOracle(ArcHybrid())
 julia> for (cfg, gold_ts) in DependencyTrees.xys(oracle, tb)
            # ...
-	   end
+       end
 ```
 
 The `LeftArc` and `RightArc` transition operations can be either typed (e.g., `LeftArc("nsubj")`), or untyped (e.g., `LeftArc()`), depending on the `transition` keyword argument passed to the oracle. Typed transitions are default. `DependencyTrees.typed` and `DependencyTrees.untyped` work as described here, but it's also possible to write functions to parameterize these transitions in arbitrary ways.
