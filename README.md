@@ -26,7 +26,7 @@ DependencyTrees.jl implements a number of transition systems:
 
 ### Oracles
 
-Oracles map configuration to map parser configurations to one or more gold transitions.
+Oracles map parser configurations to one or more gold transitions.
 
 Static Oracles are deterministic, mapping each parser configurations to a single gold transition.
 
