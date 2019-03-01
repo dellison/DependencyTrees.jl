@@ -145,7 +145,7 @@ using DependencyTrees: OnlineTrainer, train!
             end
             model = static_oracle(ArcStandard(), gold_graph)
             trainer = DependencyTrees.OnlineTrainer(oracle, model, identity, error_cb)
-            pairs = xys(oracle, gold_graph)
+            pairs = DependencyTrees.xys(oracle, gold_graph)
             @test last.(pairs) == [Shift(), Shift(), RightArc(), Shift(), Shift(), Shift(),
                                    LeftArc(), LeftArc(), RightArc(), RightArc()]
 
@@ -273,7 +273,7 @@ using DependencyTrees: OnlineTrainer, train!
             oracle = StaticOracle(ArcStandard())
             error_cb(args...) = @assert false
             trainer = OnlineTrainer(oracle, model, identity, error_cb) 
-            pairs = xys(oracle, gold_graph)
+            pairs = DependencyTrees.xys(oracle, gold_graph)
             @test last.(pairs) == [Shift(), Shift(), RightArc("indobj"),
                                    Shift(), Shift(), Shift(), LeftArc("adv"),
                                    LeftArc("dt"), RightArc("dobj"), RightArc("pred")]
@@ -373,7 +373,7 @@ using DependencyTrees: OnlineTrainer, train!
             o = DependencyTrees.static_oracle(ArcEager(), gold_graph)
 
             trainer = DependencyTrees.OnlineTrainer(StaticOracle(ArcEager()), o, identity, (args...) -> error("oh no"))
-            pairs = xys(trainer.oracle, gold_graph)
+            pairs = DependencyTrees.xys(trainer.oracle, gold_graph)
             # @test last.(pairs) == [Shift(), Shift(), RightArc(), Shift(), Shift(), Shift(),
             #                        LeftArc(), LeftArc(), RightArc(), RightArc()]
 
@@ -479,7 +479,7 @@ using DependencyTrees: OnlineTrainer, train!
             # make sure trainer parses correctly
             error_cb(args...) = @assert false
             trainer = OnlineTrainer(StaticOracle(ArcEager()), oracle, identity, error_cb)
-            pairs = xys(trainer.oracle, gold_graph)
+            pairs = DependencyTrees.xys(trainer.oracle, gold_graph)
             @test last.(pairs) == [RightArc("root"), Shift(), LeftArc("det"), RightArc("dobj"), Shift(),
                                    LeftArc("case"), RightArc("nmod")]#, Reduce(), Reduce(), Reduce()]
 

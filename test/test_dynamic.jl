@@ -46,7 +46,7 @@ using DependencyTrees: TreebankReader
 
     # make sure this works the same for untyped oracles too
     oracle_ut = DynamicOracle(ArcEager(), transition=DependencyTrees.untyped)
-    xys(oracle_ut, graph)
+    DependencyTrees.xys(oracle_ut, graph)
     model = static_oracle(ArcEager(), graph, DependencyTrees.untyped)
     cfg = DependencyTrees.initconfig(oracle_ut.transition_system, graph)
     while !isfinal(cfg)
@@ -77,7 +77,7 @@ using DependencyTrees: TreebankReader
     @test DependencyTrees.choose_next_exp(0, 1:5, () -> false) != 0
     @test DependencyTrees.zero_cost_transitions(cfg, graph) == [Reduce()]
 
-    for (cfg, gold) in xys(oracle, graph)
+    for (cfg, gold) in DependencyTrees.xys(oracle, graph)
         @test length(gold) >= 1
     end
 end

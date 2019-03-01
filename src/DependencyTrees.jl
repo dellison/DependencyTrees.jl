@@ -13,7 +13,7 @@ export
 
     OnlineTrainer,
 
-    isprojective, xys
+    isprojective
 
 
 using LightGraphs

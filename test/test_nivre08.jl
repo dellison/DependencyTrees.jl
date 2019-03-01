@@ -138,7 +138,7 @@ using DependencyTrees: OnlineTrainer
         @test graph2 == graph
 
         o = StaticOracle(ListBasedNonProjective())
-        pairs = xys(o, graph)
+        pairs = DependencyTrees.xys(o, graph)
         @test last.(pairs) == gold_transitions
         trainer = OnlineTrainer(o, oracle, identity, error_cb)
         train!(trainer, graph)

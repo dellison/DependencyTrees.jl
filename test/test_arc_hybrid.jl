@@ -1,3 +1,5 @@
+using DependencyTrees: xys
+
 @testset "Arc-Hybrid" begin
 
     tb = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "hybridtests.conll"))

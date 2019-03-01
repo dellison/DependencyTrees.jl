@@ -1,3 +1,5 @@
+using DependencyTrees: xys
+
 @testset "Arc-Swift" begin
 
     TD = TypedDependency
