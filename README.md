@@ -4,11 +4,17 @@
 
 DependencyTrees.jl is a Julia package for dependency parsing of natural language. It provide implementations of dependency graphs, a treebank reader, and implementations of a number of transition systems (including oracles).
 
-## Features
+# Features
 
-### Treebanks and Dependency Graphs
+## Treebanks and Dependency Graphs
 
-### Transition-Based Dependency Parsing
+The `Treebank{T}` (parametric) type is a lazy treebank reader, where `T` is the type of the nodes in the graph. Supported dependency types:
+
+- `UntypedDependency`
+- `TypedDependency`
+- `CoNLLU` (see [universaldependencies.org](https://universaldependencies.org/))
+
+## Transition-Based Dependency Parsing
 
 DependencyTrees.jl implements a number of transition systems:
 
@@ -18,16 +24,30 @@ DependencyTrees.jl implements a number of transition systems:
 * `ArcSwift` (supports `StaticOracle`)
 * `ListBasedNonProjective` (supports `StaticOracle`)
 
-#### Oracles
+### Oracles
 
-Oracles are used to map a configuration (parser state) to one (`StaticOracle`) or more (`DynamicOracle`) gold transitions.
+Oracles map configuration to map parser configurations to one or more gold transitions.
+
+Static Oracles are deterministic, mapping each parser configurations to a single gold transition.
 
 ```julia
 julia> using DependencyTrees
 
 julia> tb = Treebank{CoNLLU}("/path/to/traindata.conllu")
 julia> oracle = StaticOracle(ArcEager())
-julia> for (cfg, gold_t) in xys(oracle, tb)
+julia> for (cfg, gold_t) in DependencyTrees.xys(oracle, tb)
            # ...
        end
 ```
+
+Dynamic Oracles map parser configurations to sets of gold transitions.
+
+```julia
+julia> oracle = DynamicOracle(ArcHybrid())
+julia> for (cfg, gold_ts) in DependencyTrees.xys(oracle, tb)
+           # ...
+	   end
+```
+
+The `LeftArc` and `RightArc` transition operations can be either typed (e.g., `LeftArc("nsubj")`), or untyped (e.g., `LeftArc()`), depending on the `transition` keyword argument passed to the oracle. Typed transitions are default. `DependencyTrees.typed` and `DependencyTrees.untyped` work as described here, but it's also possible to write functions to parameterize these transitions in arbitrary ways.
+
