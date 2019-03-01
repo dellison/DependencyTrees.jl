@@ -52,7 +52,7 @@ function Base.iterate(t::TreebankReader, state)
         return nothing
     else
         try
-            g = DependencyGraph(tokens; mwts=mwts, emptytokens=emptytokens, t.kwargs...)
+            g = DependencyTree(tokens; mwts=mwts, emptytokens=emptytokens, t.kwargs...)
             return (g, state)
         catch err
             if isa(err, GraphConnectivityError)
@@ -68,7 +68,7 @@ deptype(::Type{<:TreebankReader{T}}) where T = T
 deptype(g::TreebankReader) = deptype(typeof(g))
 
 function Base.collect(t::TreebankReader)
-    trees = DependencyGraph{deptype(t)}[]
+    trees = DependencyTree{deptype(t)}[]
     for tree in t
         push!(trees, tree)
     end

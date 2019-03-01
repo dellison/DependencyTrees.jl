@@ -32,7 +32,7 @@ using DependencyTrees: OnlineTrainer
     ]
 
     @testset "Figure 6" begin
-        graph = DependencyGraph(TypedDependency, figure_2_sent, add_id=true)
+        graph = DependencyTree(TypedDependency, figure_2_sent, add_id=true)
 
         words = first.(figure_2_sent)
         config = DependencyTrees.initconfig(ArcEager(), TypedDependency, first.(figure_2_sent))
@@ -78,7 +78,7 @@ using DependencyTrees: OnlineTrainer
             @test oracle(config) == t
             config = t(config)
         end
-        graph2 = DependencyGraph(config.A)
+        graph2 = DependencyTree(config.A)
         @test graph == graph2
 
         # trainer = OnlineTrainer(StaticOracle(ArcEager{TypedDependency}), oracle, identity, error_cb)
@@ -91,8 +91,8 @@ using DependencyTrees: OnlineTrainer
         using DependencyTrees: NoArc
         using DependencyTrees: isfinal
 
-        @test_throws MultipleRootsError DependencyGraph(TypedDependency, figure_1_sent, add_id=true)
-        graph = DependencyGraph(TypedDependency, figure_1_sent; add_id=true, check_single_head=false)
+        @test_throws MultipleRootsError DependencyTree(TypedDependency, figure_1_sent, add_id=true)
+        graph = DependencyTree(TypedDependency, figure_1_sent; add_id=true, check_single_head=false)
         words = form.(graph)
 
         oracle = DependencyTrees.static_oracle(ListBasedNonProjective(), graph)
@@ -134,7 +134,7 @@ using DependencyTrees: OnlineTrainer
             cfg = t(cfg) 
         end
         @test isfinal(cfg)
-        graph2 = DependencyGraph(cfg.A, check_single_head=false)
+        graph2 = DependencyTree(cfg.A, check_single_head=false)
         @test graph2 == graph
 
         o = StaticOracle(ListBasedNonProjective())

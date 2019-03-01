@@ -8,7 +8,7 @@ See [Nivre 2003](http://stp.lingfil.uu.se/~nivre/docs/iwpt03.pdf),
 """
 struct ArcEager <: AbstractTransitionSystem end
 
-initconfig(s::ArcEager, graph::DependencyGraph) = ArcEagerConfig(graph)
+initconfig(s::ArcEager, graph::DependencyTree) = ArcEagerConfig(graph)
 initconfig(s::ArcEager, deptype, words) = ArcEagerConfig{deptype}(words)
 
 struct ArcEagerConfig{T} <: AbstractParserConfiguration{T}
@@ -24,13 +24,13 @@ function ArcEagerConfig{T}(words) where T
     ArcEagerConfig{T}(σ, β, A)
 end
 
-function ArcEagerConfig{T}(gold::DependencyGraph) where T
+function ArcEagerConfig{T}(gold::DependencyTree) where T
     σ = [0]
     β = collect(1:length(gold))
     A = [dep(word, head=-1) for word in gold]
     ArcEagerConfig{T}(σ, β, A)
 end
-ArcEagerConfig(gold::DependencyGraph) = ArcEagerConfig{eltype(gold)}(gold)
+ArcEagerConfig(gold::DependencyTree) = ArcEagerConfig{eltype(gold)}(gold)
 
 arcs(cfg::ArcEagerConfig) = cfg.A
 deptype(cfg::ArcEagerConfig) = eltype(cfg.A)
@@ -80,7 +80,7 @@ operations with reference to `graph`.
 Described in [Goldberg & Nivre 2012](https://www.aclweb.org/anthology/C/C12/C12-1059.pdf).
 Also called Arc-Eager-Reduce in [Qi & Manning 2007](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
-function static_oracle(::ArcEager, graph::DependencyGraph, tr = typed)
+function static_oracle(::ArcEager, graph::DependencyTree, tr = typed)
     args(i) = tr(graph[i])
     gold_arc(a, b) = has_arc(graph, a, b)
 
@@ -108,7 +108,7 @@ standard static oracle, but always Shift when ambiguity is present.
 
 Described in [Qi & Manning 2007](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
-function static_oracle_shift(::ArcEager, graph::DependencyGraph, tr = typed)
+function static_oracle_shift(::ArcEager, graph::DependencyTree, tr = typed)
     args(i) = tr(graph[i])
     gold_arc(a, b)= has_arc(graph, a, b)
 
@@ -132,7 +132,7 @@ end
 
 
 # see figure 2 in goldberg & nivre 2012 "a dynamic oracle..."
-function possible_transitions(cfg::ArcEagerConfig, graph::DependencyGraph, tr = typed)
+function possible_transitions(cfg::ArcEagerConfig, graph::DependencyTree, tr = typed)
     ops = TransitionOperator[]
     stacksize, bufsize = length(cfg.σ), length(cfg.β)
     if stacksize >= 1

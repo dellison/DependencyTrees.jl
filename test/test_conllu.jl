@@ -44,7 +44,7 @@
 5	books	book	NOUN	NNS	Number=Plur	2	obj	2:obj|4:obj	_
 6	.	.	PUNCT	.	_	2	punct	2:punct	_"""
 
-    graph = DependencyGraph{CoNLLU}(sent)
+    graph = DependencyTree{CoNLLU}(sent)
     for d in graph.tokens
         @test DependencyTrees.untyped(d) == ()
         @test DependencyTrees.typed(d) == (d.deprel,)
@@ -63,7 +63,7 @@
 6	tea	tea	_	_	_	2	_	_	_
 """
 
-    graph = DependencyGraph{CoNLLU}(sent)
+    graph = DependencyTree{CoNLLU}(sent)
     @test length(graph.emptytokens) == 1
     @test length(graph) == 6
 
@@ -77,7 +77,7 @@
 5	mar	mar	_	_	_	1	_	_	_
 """
 
-    graph = DependencyGraph{CoNLLU}(sent)
+    graph = DependencyTree{CoNLLU}(sent)
     @test length(graph.emptytokens) == 0
     @test length(graph.mwts) == 2
     @test length(graph) == 5

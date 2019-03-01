@@ -22,7 +22,7 @@ using DependencyTrees: TreebankReader
         (".", "P", 3),            # 9
     ]
 
-    graph = DependencyGraph(TypedDependency, sent, add_id=true)
+    graph = DependencyTree(TypedDependency, sent, add_id=true)
     DependencyTrees.train!(trainer, graph)
 
     model = static_oracle(ArcEager(), graph)

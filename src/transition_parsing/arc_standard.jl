@@ -5,7 +5,7 @@ Transition system for for Arc-Standard dependency parsing.
 """
 struct ArcStandard <: AbstractTransitionSystem end
 
-initconfig(s::ArcStandard, graph::DependencyGraph) = ArcStandardConfig(graph)
+initconfig(s::ArcStandard, graph::DependencyTree) = ArcStandardConfig(graph)
 initconfig(s::ArcStandard, deptype, words) = ArcStandardConfig{deptype}(words)
 
 struct ArcStandardConfig{T} <: AbstractParserConfiguration{T}
@@ -21,13 +21,13 @@ function ArcStandardConfig{T}(words) where T
     ArcStandardConfig{T}(σ, β, A)
 end
 
-function ArcStandardConfig{T}(gold::DependencyGraph) where T
+function ArcStandardConfig{T}(gold::DependencyTree) where T
     σ = [0]
     β = collect(1:length(gold))
     A = [dep(word, head=-1) for word in gold]
     ArcStandardConfig{T}(σ, β, A)
 end
-ArcStandardConfig(gold::DependencyGraph) = ArcStandardConfig{eltype(gold)}(gold)
+ArcStandardConfig(gold::DependencyTree) = ArcStandardConfig{eltype(gold)}(gold)
 
 arcs(cfg::ArcStandardConfig) = cfg.A
 
@@ -67,7 +67,7 @@ isfinal(state::ArcStandardConfig) =
 Return a training oracle function which returns gold transition
 operations from a parser configuration with reference to `graph`.
 """
-function static_oracle(::ArcStandard, graph::DependencyGraph, tr = typed)
+function static_oracle(::ArcStandard, graph::DependencyTree, tr = typed)
     args(i) = tr(graph[i])
 
     function (cfg::ArcStandardConfig)

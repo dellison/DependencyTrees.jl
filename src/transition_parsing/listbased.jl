@@ -7,7 +7,7 @@ Described in Nivre 2008, "Algorithms for Deterministic Incremental Dependency Pa
 """
 struct ListBasedNonProjective <: AbstractTransitionSystem end
 
-initconfig(s::ListBasedNonProjective, graph::DependencyGraph) =
+initconfig(s::ListBasedNonProjective, graph::DependencyTree) =
     ListBasedNonProjectiveState(graph)
 initconfig(s::ListBasedNonProjective, deptype, words) =
     ListBasedNonProjectiveState{deptype}(words)
@@ -27,14 +27,14 @@ function ListBasedNonProjectiveState{T}(words::Vector{String}) where {T}
     ListBasedNonProjectiveState{T}(λ1, λ2, β, A)
 end
 
-function ListBasedNonProjectiveState{T}(gold::DependencyGraph) where {T}
+function ListBasedNonProjectiveState{T}(gold::DependencyTree) where {T}
     λ1 = [0]
     λ2 = Int[]
     β = 1:length(gold)
     A = [dep(token, head=-1) for token in gold]
     ListBasedNonProjectiveState{T}(λ1, λ2, β, A)
 end
-ListBasedNonProjectiveState(gold::DependencyGraph) =
+ListBasedNonProjectiveState(gold::DependencyTree) =
     ListBasedNonProjectiveState{eltype(gold)}(gold)
 
 arcs(cfg::ListBasedNonProjectiveState) = cfg.A
@@ -79,7 +79,7 @@ end
 Return a training oracle function which returns gold transition
 operations from a parser configuration with reference to `graph`.
 """
-function static_oracle(::ListBasedNonProjective, graph::DependencyGraph, tr = typed)
+function static_oracle(::ListBasedNonProjective, graph::DependencyTree, tr = typed)
     arc(i) = tr(graph[i])
 
     function (cfg::ListBasedNonProjectiveState)

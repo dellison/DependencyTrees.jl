@@ -5,7 +5,7 @@ struct OnlineTrainer{O<:Oracle,M,F,U}
     update_function::U
 end
 
-function train!(trainer::OnlineTrainer{<:StaticOracle}, graph::DependencyGraph)
+function train!(trainer::OnlineTrainer{<:StaticOracle}, graph::DependencyTree)
     f = trainer.featurize
     update = trainer.update_function
     model = trainer.model
@@ -32,7 +32,7 @@ function train!(trainer::OnlineTrainer{<:StaticOracle}, graphs::Treebank;
     end
 end
 
-function train!(trainer::OnlineTrainer{<:DynamicOracle}, graph::DependencyGraph;
+function train!(trainer::OnlineTrainer{<:DynamicOracle}, graph::DependencyTree;
                 choose_next = choose_next_amb)
     fx, update, model = trainer.featurize, trainer.update_function, trainer.model
     cfg = initconfig(trainer.oracle.transition_system, graph)

@@ -1,7 +1,7 @@
 module DependencyTrees
 
 export
-    DependencyGraph, Treebank,
+    DependencyTree, Treebank,
 
     TypedDependency, UntypedDependency, CoNLLU,
 

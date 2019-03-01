@@ -7,7 +7,7 @@ Described in [Qi & Manning 2007](https://nlp.stanford.edu/pubs/qi2017arcswift.pd
 """
 struct ArcSwift <: AbstractTransitionSystem end
 
-initconfig(s::ArcSwift, graph::DependencyGraph) = ArcSwiftConfig(graph)
+initconfig(s::ArcSwift, graph::DependencyTree) = ArcSwiftConfig(graph)
 initconfig(s::ArcSwift, deptype, words) = ArcSwiftConfig{deptype}(words)
 
 struct ArcSwiftConfig{T} <: AbstractParserConfiguration{T}
@@ -23,13 +23,13 @@ function ArcSwiftConfig{T}(words) where T
     ArcSwiftConfig{T}(σ, β, A)
 end
 
-function ArcSwiftConfig{T}(gold::DependencyGraph) where T
+function ArcSwiftConfig{T}(gold::DependencyTree) where T
     σ = [0]
     β = collect(1:length(gold))
     A = [dep(word, head=-1) for word in gold]
     ArcSwiftConfig{T}(σ, β, A)
 end
-ArcSwiftConfig(gold::DependencyGraph) = ArcSwiftConfig{eltype(gold)}(gold)
+ArcSwiftConfig(gold::DependencyTree) = ArcSwiftConfig{eltype(gold)}(gold)
 
 arcs(cfg::ArcSwiftConfig) = cfg.A
 
@@ -75,7 +75,7 @@ operations from a parser configuration with reference to `graph`.
 
 Described in [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
-function static_oracle(::ArcSwift, graph::DependencyGraph, tr = typed)
+function static_oracle(::ArcSwift, graph::DependencyTree, tr = typed)
     args(i) = tr(graph[i])
 
     function (cfg::ArcSwiftConfig)

@@ -22,13 +22,13 @@ using DependencyTrees: xys
         (".", "PU", 3),
     ]
 
-    graph = DependencyGraph(TypedDependency, fig_1_1, add_id=true)
+    graph = DependencyTree(TypedDependency, fig_1_1, add_id=true)
     @test length(graph) == length(fig_1_1)
 
     @testset "Figure 3.7" begin
         sent = first.(fig_1_1)
 
-        graph = DependencyGraph(TypedDependency, fig_1_1, add_id=true)
+        graph = DependencyTree(TypedDependency, fig_1_1, add_id=true)
 
         oracle = DependencyTrees.static_oracle(ArcEager(), graph)
 
@@ -60,7 +60,7 @@ using DependencyTrees: xys
             config = t(config)
         end
         @test isfinal(config)
-        graph2 = DependencyGraph(config.A)
+        graph2 = DependencyTree(config.A)
         @test graph == graph2
 
         oracle = StaticOracle(ArcEager())

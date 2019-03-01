@@ -8,7 +8,7 @@ Described in [Kuhlmann et al, 2011](https://www.aclweb.org/anthology/P/P11/P11-1
 """
 struct ArcHybrid <: AbstractTransitionSystem end
 
-initconfig(s::ArcHybrid, graph::DependencyGraph) = ArcHybridConfig(graph)
+initconfig(s::ArcHybrid, graph::DependencyTree) = ArcHybridConfig(graph)
 initconfig(s::ArcHybrid, deptype, words) = ArcHybridConfig{deptype}(words)
 
 struct ArcHybridConfig{T} <: AbstractParserConfiguration{T}
@@ -24,13 +24,13 @@ function ArcHybridConfig{T}(words) where T
     ArcHybridConfig{T}(σ, β, A)
 end
 
-function ArcHybridConfig{T}(gold::DependencyGraph) where T
+function ArcHybridConfig{T}(gold::DependencyTree) where T
     σ = [0]
     β = collect(1:length(gold))
     A = [dep(token, head=-1) for token in gold]
     ArcHybridConfig{T}(σ, β, A)
 end
-ArcHybridConfig(gold::DependencyGraph) = ArcHybridConfig{eltype(gold)}(gold)
+ArcHybridConfig(gold::DependencyTree) = ArcHybridConfig{eltype(gold)}(gold)
 
 arcs(cfg::ArcHybridConfig) = cfg.A
 deptype(cfg::ArcHybridConfig) = eltype(cfg.A)
@@ -97,7 +97,7 @@ isfinal(cfg::ArcHybridConfig) = all(a -> head(a) != -1, cfg.A)
 Return a static oracle function which maps parser states to gold transition
 operations with reference to `graph`.
 """
-function static_oracle(::ArcHybrid, graph::DependencyGraph, tr = typed)
+function static_oracle(::ArcHybrid, graph::DependencyTree, tr = typed)
     arc(i) = tr(graph[i])
 
     function (cfg::ArcHybridConfig)
@@ -148,7 +148,7 @@ function cost(t::Shift, cfg::ArcHybridConfig, gold)
     count(h -> has_arc(gold, h, b), H) + count(d -> has_arc(gold, b, d), D)
 end
 
-function possible_transitions(cfg::ArcHybridConfig, graph::DependencyGraph, tr = typed)
+function possible_transitions(cfg::ArcHybridConfig, graph::DependencyTree, tr = typed)
     ops = TransitionOperator[]
     S, B = length(cfg.σ), length(cfg.β)
     if S >= 1

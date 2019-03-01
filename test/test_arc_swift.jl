@@ -22,8 +22,8 @@ using DependencyTrees: xys
         (".", ".", 2)
     ]
 
-    gold1 = DependencyGraph(TD, s1, add_id = true)
-    gold2 = DependencyGraph(TD, s2, add_id = true)
+    gold1 = DependencyTree(TD, s1, add_id = true)
+    gold2 = DependencyTree(TD, s2, add_id = true)
 
     @testset "Arc Eager Reduce" begin
         oracle = StaticOracle(ArcEager())

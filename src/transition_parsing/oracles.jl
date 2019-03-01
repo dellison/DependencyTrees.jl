@@ -20,10 +20,10 @@ struct StaticGoldPairs{T<:AbstractTransitionSystem}
     o::Function
     transition::Function
     transition_system::T
-    graph::DependencyGraph
+    graph::DependencyTree
 end
 
-function StaticGoldPairs(oracle::StaticOracle, graph::DependencyGraph)
+function StaticGoldPairs(oracle::StaticOracle, graph::DependencyTree)
     o = oracle.oracle(oracle.transition_system, graph, oracle.transition)
     StaticGoldPairs(o, oracle.transition, oracle.transition_system, graph)
 end
@@ -45,7 +45,7 @@ function Base.iterate(ts::StaticGoldPairs, cfg)
     end
 end
 
-xys(oracle::StaticOracle, graph::DependencyGraph) = StaticGoldPairs(oracle, graph)
+xys(oracle::StaticOracle, graph::DependencyTree) = StaticGoldPairs(oracle, graph)
 
 xys(oracle::StaticOracle, graphs) =
     reduce(vcat, [collect(xys(oracle, graph)) for graph in graphs])
@@ -66,7 +66,7 @@ end
 DynamicOracle(T, oracle = haszerocost; transition = typed) =
     DynamicOracle(T, oracle, transition)
 
-gold_transitions(oracle::DynamicOracle, cfg, gold::DependencyGraph) =
+gold_transitions(oracle::DynamicOracle, cfg, gold::DependencyTree) =
     filter(t -> oracle.oracle(t, cfg, gold), possible_transitions(cfg, gold, oracle.transition))
 
 # only follow optimal transitions, but allow "spurious ambiguity"
@@ -76,13 +76,13 @@ choose_next_amb(pred, gold) = pred in gold ? pred : rand(gold)
 choose_next_exp(pred, gold, filterfunc) =
     filterfunc() ? pred : choose_next_amb(pred, gold)
 
-haszerocost(t::TransitionOperator, cfg, gold::DependencyGraph) =
+haszerocost(t::TransitionOperator, cfg, gold::DependencyTree) =
     cost(t, cfg, gold) == 0
 
-hascost(t::TransitionOperator, cfg, gold::DependencyGraph) =
+hascost(t::TransitionOperator, cfg, gold::DependencyTree) =
     cost(t, cfg, gold) >= 0
 
-zero_cost_transitions(cfg, gold::DependencyGraph, transition = typed) =
+zero_cost_transitions(cfg, gold::DependencyTree, transition = typed) =
     filter(t -> haszerocost(t, cfg, gold), possible_transitions(cfg, gold, transition))
 
 
@@ -93,10 +93,10 @@ struct DynamicGoldTransitions{T}
     predict::Function    # cfg -> t'
     choose::Function     # (t', [tgold...]) -> tgold
     transition_system::T
-    gold::DependencyGraph
+    gold::DependencyTree
 end
 
-function DynamicGoldTransitions(oracle::DynamicOracle, graph::DependencyGraph;
+function DynamicGoldTransitions(oracle::DynamicOracle, graph::DependencyTree;
                                 predict=identity, choose=choose_next_amb)
     o = oracle.oracle_fn(oracle.config, graph, oracle.transition)
     DynamicGoldTransitions(o, oracle.transition, predict, choose, oracle.config, graph)
@@ -123,7 +123,7 @@ function Base.iterate(ts::DynamicGoldTransitions, cfg)
     end
 end
 
-function xys(oracle::DynamicOracle, gold::DependencyGraph;
+function xys(oracle::DynamicOracle, gold::DependencyTree;
              predict=identity, choose=choose_next_amb)
     DynamicGoldTransitions(oracle.oracle, oracle.transition, predict, choose, oracle.transition_system, gold)
 end

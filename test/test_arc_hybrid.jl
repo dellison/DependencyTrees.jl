@@ -20,7 +20,7 @@ using DependencyTrees: xys
             gold_xys = collect(xys(oracle, gold))
             cfg, t = last(gold_xys)
             cfg = t(cfg)
-            graph = DependencyGraph(cfg.A)
+            graph = DependencyTree(cfg.A)
             @test all(enumerate(graph)) do (i, token)
                 g = gold[i]
                 token.form == g.form && token.deprel == g.deprel && token.head == g.head

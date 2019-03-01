@@ -22,7 +22,7 @@ using DependencyTrees: OnlineTrainer, train!
             # head --> dep
             hasdep(state, head, dep) = state.A[word2id[dep]].head == word2id[head]
 
-            gold_graph = DependencyGraph(UntypedDependency, [("book",0),
+            gold_graph = DependencyTree(UntypedDependency, [("book",0),
                                                              ("me",1),
                                                              ("the",5),
                                                              ("morning",5),
@@ -155,7 +155,7 @@ using DependencyTrees: OnlineTrainer, train!
 
         @testset "Typed" begin
 
-            gold_graph = DependencyGraph(TypedDependency, [("book","pred",0),("me","indobj",1),("the","dt",5),("morning","adv",5),("flight","dobj",1)], add_id=true)
+            gold_graph = DependencyTree(TypedDependency, [("book","pred",0),("me","indobj",1),("the","dt",5),("morning","adv",5),("flight","dobj",1)], add_id=true)
             oracle = static_oracle(ArcStandard(), gold_graph)
 
             # head --> dep
@@ -298,7 +298,7 @@ using DependencyTrees: OnlineTrainer, train!
 
             using DependencyTrees: ArcEager, leftarc, rightarc, shift, reduce, isfinal
 
-            gold_graph = DependencyGraph([UntypedDependency(i, t...)
+            gold_graph = DependencyTree([UntypedDependency(i, t...)
                                           for (i, t) in enumerate([("book", 0),
                                                                    ("the", 3),
                                                                    ("flight", 1),
@@ -391,7 +391,7 @@ using DependencyTrees: OnlineTrainer, train!
             hasdeprel(state, head, deprel, dep) =
                 state.A[word2id[dep]].head == word2id[head] && state.A[word2id[dep]].deprel == deprel
 
-            gold_graph = DependencyGraph([TypedDependency(i, t...)
+            gold_graph = DependencyTree([TypedDependency(i, t...)
                                           for (i, t) in enumerate([("book", "root", 0),
                                                                    ("the", "det", 3),
                                                                    ("flight", "dobj", 1),

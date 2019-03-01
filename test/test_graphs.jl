@@ -18,7 +18,7 @@ using DependencyTrees: dependents, leftdeps, rightdeps, leftmostdep, rightmostde
         (".", "PU", 3),
     ]
 
-    graph = DependencyGraph(TypedDependency, sent, add_id=true)
+    graph = DependencyTree(TypedDependency, sent, add_id=true)
 
     @test eltype(graph) == DependencyTrees.deptype(graph) == TypedDependency
     @test isroot(root(graph))
@@ -139,7 +139,7 @@ using DependencyTrees: dependents, leftdeps, rightdeps, leftmostdep, rightmostde
         (8, "markets", "PC", 6),
         (9, ".", "PU", 3),
     ]
-    @test graph == DependencyGraph(TypedDependency, sent1, add_id=false)
+    @test graph == DependencyTree(TypedDependency, sent1, add_id=false)
 
 
     sent = [
@@ -163,7 +163,7 @@ using DependencyTrees: dependents, leftdeps, rightdeps, leftmostdep, rightmostde
         (".", ".", 8)
     ]
 
-    graph = DependencyGraph(TypedDependency, sent, add_id=true)
+    graph = DependencyTree(TypedDependency, sent, add_id=true)
 
     @test length(graph) == length(sent) == 18
     @test isroot(graph[0])
@@ -192,7 +192,7 @@ using DependencyTrees: dependents, leftdeps, rightdeps, leftmostdep, rightmostde
             ("yorkshire", 10),# 9
             ("terrier", 7)    # 10
         ]
-        graph = DependencyGraph(UntypedDependency, sent, add_id=true)
+        graph = DependencyTree(UntypedDependency, sent, add_id=true)
         @test !isprojective(graph)
 
         # jurafsky & martin, speech & language processing (3ed)
@@ -209,7 +209,7 @@ using DependencyTrees: dependents, leftdeps, rightdeps, leftmostdep, rightmostde
             ("late", "mod", 7)       # 10
         ]
 
-        graph = DependencyGraph(TypedDependency, sent, add_id=true)
+        graph = DependencyTree(TypedDependency, sent, add_id=true)
         @test !isprojective(graph)
         @test DependencyTrees.deprel(graph, 1) == "nsubj"
     end
@@ -219,12 +219,12 @@ using DependencyTrees: dependents, leftdeps, rightdeps, leftmostdep, rightmostde
         using DependencyTrees: GraphConnectivityError, RootlessGraphError, MultipleRootsError, NonProjectiveGraphError
 
         noroot = [("no", 2), ("root", 1)]
-        @test_throws RootlessGraphError DependencyGraph(UntypedDependency, noroot, add_id=true)
+        @test_throws RootlessGraphError DependencyTree(UntypedDependency, noroot, add_id=true)
 
         tworoots = [("two", 0), ("roots", 0)]
-        @test_throws MultipleRootsError DependencyGraph(UntypedDependency, tworoots, add_id=true)
+        @test_throws MultipleRootsError DependencyTree(UntypedDependency, tworoots, add_id=true)
         @test_throws GraphConnectivityError begin
-            DependencyGraph(UntypedDependency, [(1, "the", 0), (2, "cat", -1)])
+            DependencyTree(UntypedDependency, [(1, "the", 0), (2, "cat", -1)])
         end
 
         sent = [
@@ -239,7 +239,7 @@ using DependencyTrees: dependents, leftdeps, rightdeps, leftmostdep, rightmostde
             ("yorkshire", 10),# 9
             ("terrier", 7)    # 10
         ]
-        @test_throws NonProjectiveGraphError DependencyGraph(UntypedDependency, sent, add_id=true, check_projective=true)
+        @test_throws NonProjectiveGraphError DependencyTree(UntypedDependency, sent, add_id=true, check_projective=true)
     end
 
 end
