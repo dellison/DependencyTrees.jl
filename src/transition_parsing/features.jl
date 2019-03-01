@@ -36,19 +36,7 @@ b0(cfg::ArcX)     = bi(cfg, 1)
 b1(cfg::ArcX)     = bi(cfg, 2)
 b2(cfg::ArcX)     = bi(cfg, 3)
 b3(cfg::ArcX)     = bi(cfg, 4)
-buffer(cfg::ArcX) = cfg.σ
-
-function popstack(cfg::ArcX, n=1)
-    @assert 1 <= n "n must be positive!"
-    tup = ()
-    for i in n:-1:1
-        push!(tup, cfg.σ[end-i+1])
-    end
-    push!(tup, cfg.σ[end-n])
-    popped = reverse(tup)
-    stack = length(cfg.σ) > 1 ? cfg.σ[1:end-1] : Int[]
-    return stack, popped
-end
+buffer(cfg::ArcX) = cfg.β
 
 function σs(cfg::ArcEagerConfig)
     s = cfg.σ[end]

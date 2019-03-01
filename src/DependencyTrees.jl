@@ -24,6 +24,5 @@ include("conllu.jl")
 include("graphs.jl")
 include("treebanks/treebanks.jl")
 include("transition_parsing/parse.jl")
-include("features.jl")
 
 end # module
