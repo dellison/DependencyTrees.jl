@@ -21,7 +21,7 @@ using LightGraphs
 include("errors.jl")
 include("dependencies.jl")
 include("conllu.jl")
-include("graphs.jl")
+include("trees.jl")
 include("treebanks/treebanks.jl")
 include("transition_parsing/parse.jl")
 
