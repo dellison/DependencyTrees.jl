@@ -8,6 +8,8 @@ struct ArcStandard <: AbstractTransitionSystem end
 initconfig(s::ArcStandard, graph::DependencyTree) = ArcStandardConfig(graph)
 initconfig(s::ArcStandard, deptype, words) = ArcStandardConfig{deptype}(words)
 
+projective_only(::ArcStandard) = true
+
 struct ArcStandardConfig{T} <: AbstractParserConfiguration{T}
     σ::Vector{Int}
     β::Vector{Int}

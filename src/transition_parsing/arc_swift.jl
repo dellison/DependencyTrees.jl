@@ -10,6 +10,8 @@ struct ArcSwift <: AbstractTransitionSystem end
 initconfig(s::ArcSwift, graph::DependencyTree) = ArcSwiftConfig(graph)
 initconfig(s::ArcSwift, deptype, words) = ArcSwiftConfig{deptype}(words)
 
+projective_only(::ArcSwift) = true
+
 struct ArcSwiftConfig{T} <: AbstractParserConfiguration{T}
     σ::Vector{Int}
     β::Vector{Int}

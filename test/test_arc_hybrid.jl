@@ -7,6 +7,8 @@ using DependencyTrees: xys
     @test length(trees) == 4
     @test length.(trees) == [6, 6, 9, 18]
 
+    @test DependencyTrees.projective_only(ArcHybrid())
+
     @testset "Static Oracle" begin
         oracle = StaticOracle(ArcHybrid())
         model(x) = nothing

@@ -11,6 +11,8 @@ struct ArcHybrid <: AbstractTransitionSystem end
 initconfig(s::ArcHybrid, graph::DependencyTree) = ArcHybridConfig(graph)
 initconfig(s::ArcHybrid, deptype, words) = ArcHybridConfig{deptype}(words)
 
+projective_only(::ArcHybrid) = true
+
 struct ArcHybridConfig{T} <: AbstractParserConfiguration{T}
     σ::Vector{Int}
     β::Vector{Int}

@@ -12,6 +12,8 @@ initconfig(s::ListBasedNonProjective, graph::DependencyTree) =
 initconfig(s::ListBasedNonProjective, deptype, words) =
     ListBasedNonProjectiveState{deptype}(words)
 
+projective_only(::ListBasedNonProjective) = false
+
 struct ListBasedNonProjectiveState{T} <: AbstractParserConfiguration{T}
     λ1::Vector{Int} # right-headed
     λ2::Vector{Int} # left-headed

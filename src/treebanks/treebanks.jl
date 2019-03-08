@@ -4,6 +4,10 @@ include("reader.jl")
     Treebank{T<:Dependency}
 
 A lazily-accessed corpus of dependency trees.
+
+Treebank{CoNLLU}("/path/to/treebank")
+
+Treebank{CoNLLU}(["file1", "file2", ...])
 """
 struct Treebank{T<:Dependency}
     files::Vector{String}

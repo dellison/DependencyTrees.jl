@@ -11,6 +11,8 @@ struct ArcEager <: AbstractTransitionSystem end
 initconfig(s::ArcEager, graph::DependencyTree) = ArcEagerConfig(graph)
 initconfig(s::ArcEager, deptype, words) = ArcEagerConfig{deptype}(words)
 
+projective_only(::ArcEager) = true
+
 struct ArcEagerConfig{T} <: AbstractParserConfiguration{T}
     σ::Vector{Int}
     β::Vector{Int}

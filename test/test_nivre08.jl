@@ -97,6 +97,8 @@ using DependencyTrees: OnlineTrainer
 
         oracle = DependencyTrees.static_oracle(ListBasedNonProjective(), graph)
 
+        @test ! DependencyTrees.projective_only(ListBasedNonProjective())
+
         cfg = DependencyTrees.initconfig(ListBasedNonProjective(), TypedDependency, words)
         gold_transitions = [Shift(),
                             RightArc("Atr"),

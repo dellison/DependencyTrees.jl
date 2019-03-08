@@ -1,5 +1,12 @@
 abstract type Oracle{T<:AbstractTransitionSystem} end
 
+# this helps for somewhat gracefully e.g. skipping non-projective trees
+struct EmptyGoldPairs end
+import Base.iterate
+Base.iterate(pairs::EmptyGoldPairs, state...) = nothing
+Base.IteratorSize(pairs::EmptyGoldPairs) = Base.HasLength()
+Base.length(::EmptyGoldPairs) = 0
+
 """
     StaticOracle(T, oracle_function = static_oracle; transition = typed)
 
@@ -24,8 +31,13 @@ struct StaticGoldPairs{T<:AbstractTransitionSystem}
 end
 
 function StaticGoldPairs(oracle::StaticOracle, graph::DependencyTree)
-    o = oracle.oracle(oracle.transition_system, graph, oracle.transition)
-    StaticGoldPairs(o, oracle.transition, oracle.transition_system, graph)
+    if projective_only(oracle.transition_system) && !isprojective(graph)
+        # @warn "skipping projective tree" tree=graph
+        EmptyGoldPairs()
+    else
+        o = oracle.oracle(oracle.transition_system, graph, oracle.transition)
+        StaticGoldPairs(o, oracle.transition, oracle.transition_system, graph)
+    end
 end
 
 Base.IteratorSize(pairs::StaticGoldPairs) = Base.SizeUnknown()
@@ -98,8 +110,13 @@ end
 
 function DynamicGoldTransitions(oracle::DynamicOracle, graph::DependencyTree;
                                 predict=identity, choose=choose_next_amb)
-    o = oracle.oracle_fn(oracle.config, graph, oracle.transition)
-    DynamicGoldTransitions(o, oracle.transition, predict, choose, oracle.config, graph)
+    if projective_only(oracle.transition_system) && !isprojective(graph)
+        # @warn "skipping projective tree" tree=graph
+        EmptyGoldPairs()
+    else
+        o = oracle.oracle_fn(oracle.config, graph, oracle.transition)
+        DynamicGoldTransitions(o, oracle.transition, predict, choose, oracle.config, graph)
+    end
 end
 
 Base.IteratorSize(pairs::DynamicGoldTransitions) = Base.SizeUnknown()

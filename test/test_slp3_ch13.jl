@@ -17,16 +17,18 @@ using DependencyTrees: OnlineTrainer, train!
 
         words(ids) = [(id == 0 ? "root" : sent[id]) for id in ids]
 
+        @test DependencyTrees.projective_only(ArcStandard())
+
         @testset "Untyped" begin
 
             # head --> dep
             hasdep(state, head, dep) = state.A[word2id[dep]].head == word2id[head]
 
             gold_graph = DependencyTree(UntypedDependency, [("book",0),
-                                                             ("me",1),
-                                                             ("the",5),
-                                                             ("morning",5),
-                                                             ("flight",1)], add_id=true)
+                                                            ("me",1),
+                                                            ("the",5),
+                                                            ("morning",5),
+                                                            ("flight",1)], add_id=true)
             oracle = static_oracle(ArcStandard(), gold_graph)
 
             # step 0
@@ -285,6 +287,8 @@ using DependencyTrees: OnlineTrainer, train!
     end
 
     @testset "ArcEager" begin
+
+        @test DependencyTrees.projective_only(ArcEager())
 
         # figure 13.8 in jurafsky & martin SLP 3rd ed., aug 2018 draft
         sent = ["book", "the", "flight", "through", "houston"]

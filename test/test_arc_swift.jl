@@ -2,6 +2,8 @@ using DependencyTrees: xys
 
 @testset "Arc-Swift" begin
 
+    @test DependencyTrees.projective_only(ArcSwift())
+
     TD = TypedDependency
 
     s1 = [

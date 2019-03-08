@@ -80,4 +80,19 @@
 
         end
     end
+
+    @testset "Oracles & Projectivity" begin
+        tb = Treebank{CoNLLU}(joinpath(datadir, "nonprojective1.conll"))
+        np_oracle = StaticOracle(ListBasedNonProjective())
+        p_oracle  = StaticOracle(ArcEager())
+        @test length(xys(np_oracle, tb)) > 1
+        @test length(xys(p_oracle, tb)) == 0
+        @test length(xys(p_oracle, first(tb))) == 0
+
+        count = 0
+        for (cfg, t) in xys(p_oracle, first(tb))
+            count += 1
+        end
+        @test count == 0
+    end
 end

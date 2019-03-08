@@ -22,6 +22,8 @@ using DependencyTrees: xys
         (".", "PU", 3),
     ]
 
+    @test DependencyTrees.projective_only(ArcEager())
+
     graph = DependencyTree(TypedDependency, fig_1_1, add_id=true)
     @test length(graph) == length(fig_1_1)
 
