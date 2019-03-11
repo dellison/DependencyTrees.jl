@@ -80,4 +80,11 @@ using DependencyTrees: TreebankReader
     for (cfg, gold) in DependencyTrees.xys(oracle, graph)
         @test length(gold) >= 1
     end
+
+    @testset "Projectivity" begin
+        oracle = DynamicOracle(ArcHybrid())
+        tb = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "nonprojective1.conll"))
+        @test length(collect(tb)) == 1
+        @test length(DependencyTrees.xys(oracle, tb)) == 0
+    end
 end

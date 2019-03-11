@@ -57,7 +57,7 @@ function Base.iterate(ts::StaticGoldPairs, cfg)
     end
 end
 
-xys(oracle::StaticOracle, graph::DependencyTree) = StaticGoldPairs(oracle, graph)
+xys(oracle::StaticOracle, tree::DependencyTree) = StaticGoldPairs(oracle, tree)
 
 xys(oracle::StaticOracle, graphs) =
     reduce(vcat, [collect(xys(oracle, graph)) for graph in graphs])
@@ -114,8 +114,9 @@ function DynamicGoldTransitions(oracle::DynamicOracle, graph::DependencyTree;
         # @warn "skipping projective tree" tree=graph
         EmptyGoldPairs()
     else
-        o = oracle.oracle_fn(oracle.config, graph, oracle.transition)
-        DynamicGoldTransitions(o, oracle.transition, predict, choose, oracle.config, graph)
+        o = cfg -> oracle.oracle(cfg, graph, oracle.transition)
+        t, ts = oracle.transition, oracle.transition_system
+        DynamicGoldTransitions(o, t, predict, choose, ts, graph)
     end
 end
 
@@ -140,10 +141,9 @@ function Base.iterate(ts::DynamicGoldTransitions, cfg)
     end
 end
 
-function xys(oracle::DynamicOracle, gold::DependencyTree;
-             predict=identity, choose=choose_next_amb)
-    DynamicGoldTransitions(oracle.oracle, oracle.transition, predict, choose, oracle.transition_system, gold)
-end
+xys(oracle::DynamicOracle, gold::DependencyTree;
+             predict=identity, choose=choose_next_amb) =
+    DynamicGoldTransitions(oracle, gold; predict=predict, choose=choose)
 
 xys(oracle::DynamicOracle, graphs; predict=identity, choose=choose_next_amb) =
     reduce(vcat, [collect(xys(oracle, graph; predict=predict, choose=choose))
