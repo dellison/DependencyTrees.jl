@@ -45,7 +45,7 @@
 
         treebank = Treebank{CoNLLU}(files)
         trees = collect(treebank)
-        @test length(trees) == 4
+        @test length(treebank) == length(trees) == 4
         @test DependencyTrees.deptype(treebank) == CoNLLU
 
         treebank2 = Treebank{CoNLLU}(datadir, pattern=r".conllu$")

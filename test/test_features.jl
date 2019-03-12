@@ -13,10 +13,16 @@
     @test si(cfg, 0) == s0(cfg) == s(cfg)
     @test bi(cfg, 1) == b(cfg) == b0(cfg)
     @test s1(cfg) == s2(cfg) == s3(cfg) == DependencyTrees.noval(CoNLLU)
+    @test b1(cfg).id == 2
+    @test b2(cfg).id == 3
+    @test b3(cfg).id == 4
+    @test bi(cfg, 100) == DependencyTrees.noval(CoNLLU)
     @test stack(cfg) == [0]
     @test buffer(cfg) == 1:6
     # no transitions yet
     @test leftmostdep(cfg,0) == rightmostdep(cfg,0) == DependencyTrees.noval(CoNLLU)
+    @test leftmostdep(cfg, DependencyTrees.root(CoNLLU)) == DependencyTrees.noval(CoNLLU)
+    @test rightmostdep(cfg, DependencyTrees.root(CoNLLU)) == DependencyTrees.noval(CoNLLU)
 
     for i=1:3
         cfg = DependencyTrees.Shift()(cfg)
