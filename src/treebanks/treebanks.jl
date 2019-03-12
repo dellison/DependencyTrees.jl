@@ -38,16 +38,16 @@ function Treebank{T}(files::Vector{String}; add_id=false, remove_nonprojective=f
 end
 
 deptype(::Type{<:Treebank{T}}) where T = T
-deptype(g::Treebank) = deptype(typeof(g))
+deptype(treebank::Treebank) = deptype(typeof(treebank))
 
 trees(treebank::Treebank) = TreebankIterator(treebank)
 
-function Base.iterate(t::Treebank)
-    iter = TreebankIterator(t)
+function Base.iterate(treebank::Treebank)
+    iter = TreebankIterator(treebank)
     graph, state = iterate(iter)
     return (graph, (iter, state))
 end
-function Base.iterate(t::Treebank, state)
+function Base.iterate(treebank::Treebank, state)
     (iter, st) = state
     next = iterate(iter, st)
     if next == nothing
@@ -58,8 +58,9 @@ function Base.iterate(t::Treebank, state)
     end
 end
     
-Base.IteratorSize(t::Treebank) = Base.SizeUnknown()
+Base.IteratorSize(treebank::Treebank) = Base.SizeUnknown()
 
+Base.length(treebank::Treebank) = length(collect(treebank))
 
 mutable struct TreebankIterator{T}
     t::Treebank{T}
