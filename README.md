@@ -6,13 +6,20 @@ DependencyTrees.jl is a Julia package for dependency parsing of natural language
 
 # Features
 
-## Treebanks and Dependency Graphs
+## Treebanks and Dependency Trees
 
-The `Treebank{T}` (parametric) type is a lazy treebank reader, where `T` is the type of the nodes in the graph. Supported dependency types:
+The `Treebank{T}` type is a lazy treebank reader, where `T` is the type of the nodes in the graph. Supported dependency types:
 
 - `UntypedDependency`
 - `TypedDependency`
 - `CoNLLU` (see [universaldependencies.org](https://universaldependencies.org/))
+
+```julia
+julia> treebank = Treebank{CoNLLU}("/path/to/treebank.conllu")
+julia> for tree in treebank
+           # ...
+	   end
+```
 
 ## Transition-Based Dependency Parsing
 
