@@ -6,7 +6,9 @@ DependencyTrees.jl is a Julia package for dependency parsing of natural language
 
 Install it with Julia's built-in package manager:
 
-`julia> ]add DependencyTrees`
+```julia
+julia> ]add DependencyTrees
+```
 
 # Features
 
@@ -30,14 +32,18 @@ julia> for tree in treebank
 DependencyTrees.jl implements the following transition systems:
 
 * `ArcStandard` (supports `StaticOracle`)
-* `ArcEager`[1],[2] (supports `StaticOracle` and `DynamicOracle`)
-* `ArcHybrid`[3],[4] (supports `StaticOracle` and `DynamicOracle`)
-* `ArcSwift`[5] (supports `StaticOracle`)
-* `ListBasedNonProjective`[2] (supports `StaticOracle`)
+* `ArcEager`<sup>[1],[2]</sup> (supports `StaticOracle` and `DynamicOracle`)
+* `ArcHybrid`<sup>[3],[4]</sup> (supports `StaticOracle` and `DynamicOracle`)
+* `ArcSwift`<sup>[5]</sup> (supports `StaticOracle`)
+* `ListBasedNonProjective`<sup>[2]</sup> (supports `StaticOracle`)
 
 ### Oracles
 
-Oracles map parser configurations to one or more gold transitions.
+Oracles map parser configurations to one or more gold transitions. In other words, they provide a way to transform any well-formed dependency tree into a series of (x, y) pairs. 
+
+The interface for oracles is `DependencyTrees.xys(oracle, data)`, which returns a lazy iterator over one or more gold dependency trees.
+
+#### Static Oracles
 
 Static Oracles are deterministic, mapping each parser configurations to a single gold transition.
 
@@ -51,6 +57,8 @@ julia> for (cfg, gold_t) in DependencyTrees.xys(oracle, tb)
        end
 ```
 
+#### Dynamic Oracles
+
 Dynamic Oracles map parser configurations to sets of gold transitions.
 
 ```julia
@@ -60,7 +68,17 @@ julia> for (cfg, gold_ts) in DependencyTrees.xys(oracle, tb)
        end
 ```
 
+#### Typed and Untyped Dependency Arcs
+
 The `LeftArc` and `RightArc` transition operations can be either typed (e.g., `LeftArc("nsubj")`), or untyped (e.g., `LeftArc()`), depending on the `transition` keyword argument passed to the oracle. Typed transitions are default. `DependencyTrees.typed` and `DependencyTrees.untyped` work as described here, but it's also possible to write functions to parameterize these transitions in arbitrary ways.
+
+```julia
+julia> # example oracles
+julia> oracle = StaticOracle(ArcEager(), transition=DependencyTrees.typed)
+julia> oracle = DynamicOracle(ArcHybrid(), transition=DependencyTrees.untyped)
+```
+
+Transition systems vary on their support for nonprojective trees, so it's common to filter a treebank ahead of time to remove nonprojective trees for certain transition systems. `StaticOracle`s and `DynamicOracle`s will automatically skip nonprojective trees for projective-only transition systems when iterating over treebanks, so this step can be skipped.
 
 ## Contributing & Help
 
