@@ -2,7 +2,11 @@
 
 [![Build Status](https://travis-ci.org/dellison/DependencyTrees.jl.svg?branch=master)](https://travis-ci.org/dellison/DependencyTrees.jl) [![CodeCov](https://codecov.io/gh/dellison/DependencyTrees.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/dellison/DependencyTrees.jl)
 
-DependencyTrees.jl is a Julia package for dependency parsing of natural language. It provides implementations of dependency parse structures (`DependencyTree`), a treebank reader, and implementations of a number of transition systems (including oracles).
+DependencyTrees.jl is a Julia package for dependency parsing of natural language. It provides implementations of dependency parse structures (`DependencyTree`), a treebank reader, and implementations of several transition systems (including oracles).
+
+Install it with Julia's built-in package manager:
+
+`julia> ]add DependencyTrees`
 
 # Features
 
@@ -23,13 +27,13 @@ julia> for tree in treebank
 
 ## Transition-Based Dependency Parsing
 
-DependencyTrees.jl implements a number of transition systems:
+DependencyTrees.jl implements the following transition systems:
 
 * `ArcStandard` (supports `StaticOracle`)
-* `ArcEager` (supports `StaticOracle` and `DynamicOracle`)
-* `ArcHybrid` (supports `StaticOracle` and `DynamicOracle`)
-* `ArcSwift` (supports `StaticOracle`)
-* `ListBasedNonProjective` (supports `StaticOracle`)
+* `ArcEager`[1],[2] (supports `StaticOracle` and `DynamicOracle`)
+* `ArcHybrid`[3],[4] (supports `StaticOracle` and `DynamicOracle`)
+* `ArcSwift`[5] (supports `StaticOracle`)
+* `ListBasedNonProjective`[2] (supports `StaticOracle`)
 
 ### Oracles
 
@@ -58,3 +62,18 @@ julia> for (cfg, gold_ts) in DependencyTrees.xys(oracle, tb)
 
 The `LeftArc` and `RightArc` transition operations can be either typed (e.g., `LeftArc("nsubj")`), or untyped (e.g., `LeftArc()`), depending on the `transition` keyword argument passed to the oracle. Typed transitions are default. `DependencyTrees.typed` and `DependencyTrees.untyped` work as described here, but it's also possible to write functions to parameterize these transitions in arbitrary ways.
 
+## Contributing & Help
+
+[Open an issue](https://github.com/dellison/DependencyTrees.jl/issues/new)! Bug reports, feature requests, etc. are all welcome. 
+
+## References
+
+[1]: Nivre 2003: An efficient algorithm for dependency parsing. http://stp.lingfil.uu.se/~nivre/docs/iwpt03.pdf
+
+[2]: Nivre 2008: Algorithms for Deterministic Incremental Dependency Parsing. https://www.aclweb.org/anthology/J/J08/J08-4003.pdf
+
+[3]: Kuhlmann et all 2011: Dynamic programming algorithms for transition-based dependency parsers. https://www.aclweb.org/anthology/P/P11/P11-1068.pdf
+
+[4]: Goldberg & Nivre 2013: Training deterministic parsers with non-deterministic oracles. https://aclweb.org/anthology/Q/Q13/Q13-1033.pdf
+
+[5]: Qi & Manning 2016: Arc-swift: a novel transition system for dependency parsing. https://nlp.stanford.edu/pubs/qi2017arcswift.pdf

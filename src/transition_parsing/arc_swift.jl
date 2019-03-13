@@ -3,7 +3,7 @@
 
 Parser configuration for arc-swift dependency parsing.
 
-Described in [Qi & Manning 2007](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
+Described in [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
 struct ArcSwift <: AbstractTransitionSystem end
 
