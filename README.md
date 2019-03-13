@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/dellison/DependencyTrees.jl.svg?branch=master)](https://travis-ci.org/dellison/DependencyTrees.jl) [![CodeCov](https://codecov.io/gh/dellison/DependencyTrees.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/dellison/DependencyTrees.jl)
 
-DependencyTrees.jl is a Julia package for dependency parsing of natural language. It provide implementations of dependency parse structures (`DependencyTree`), a treebank reader, and implementations of a number of transition systems (including oracles).
+DependencyTrees.jl is a Julia package for dependency parsing of natural language. It provides implementations of dependency parse structures (`DependencyTree`), a treebank reader, and implementations of a number of transition systems (including oracles).
 
 # Features
 
@@ -18,7 +18,7 @@ The `Treebank{T}` type is a lazy treebank reader, where `T` is the type of the n
 julia> treebank = Treebank{CoNLLU}("/path/to/treebank.conllu")
 julia> for tree in treebank
            # ...
-	   end
+       end
 ```
 
 ## Transition-Based Dependency Parsing
