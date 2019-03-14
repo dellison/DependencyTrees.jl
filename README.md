@@ -86,7 +86,7 @@ Transition systems vary on their support for nonprojective trees, so it's common
 
 ## References
 
-[1]: Nivre 2003: An efficient algorithm for dependency parsing. http://stp.lingfil.uu.se/~nivre/docs/iwpt03.pdf
+[1]: Nivre 2003: An efficient algorithm for projective dependency parsing. http://stp.lingfil.uu.se/~nivre/docs/iwpt03.pdf
 
 [2]: Nivre 2008: Algorithms for Deterministic Incremental Dependency Parsing. https://www.aclweb.org/anthology/J/J08/J08-4003.pdf
 
