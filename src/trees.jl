@@ -140,6 +140,17 @@ rightmostdep(g::DependencyTree, args...) = rightmostdep(g.tokens, args...)
 
 toconllu(g::DependencyTree) = string(toconllu.(g)...)
 
+function Base.show(io::IO, g::DependencyTree)
+    T = "DependencyTree{$(eltype(g))}\n"
+    token(t) = "$(id(t))\t$(form(t))\t$(deprel(t))\t$(head(t))"
+    print(io,T,join([token(t) for t in g],"\n"))
+end
+function Base.show(io::IO, g::DependencyTree{UntypedDependency})
+    T = "DependencyTree{$(eltype(g))}\n"
+    token(t) = "$(id(t))\t$(form(t))\t$(head(t))"
+    print(io,T,join([token(t) for t in g],"\n"))
+end
+
 import Base.==
 ==(g1::DependencyTree, g2::DependencyTree) = all(g1.tokens .== g2.tokens)
 Base.eltype(g::DependencyTree) = eltype(g.tokens)

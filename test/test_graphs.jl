@@ -32,6 +32,26 @@ using DependencyTrees: dependents, leftdeps, rightdeps, leftmostdep, rightmostde
 9	.	_	_	_	_	3	PU	_	_
 """ |> strip
 
+    function tostr(g)
+        buf = IOBuffer()
+        Base.show(buf, g)
+        String(take!(buf))
+    end
+
+    @test tostr(graph) |> strip == """
+DependencyTree{TypedDependency}
+1	Economic	ATT	2
+2	news	SBJ	3
+3	had	PRED	0
+4	little	ATT	5
+5	effect	OBJ	3
+6	on	ATT	5
+7	financial	ATT	8
+8	markets	PC	6
+9	.	PU	3
+""" |> strip
+
+
     @test eltype(graph) == DependencyTrees.deptype(graph) == TypedDependency
     @test isroot(root(graph))
 
@@ -218,6 +238,20 @@ using DependencyTrees: dependents, leftdeps, rightdeps, leftmostdep, rightmostde
 8	a	_	_	_	_	9	_	_	_
 9	yorkshire	_	_	_	_	10	_	_	_
 10	terrier	_	_	_	_	7	_	_	_
+""" |> strip
+
+        @test tostr(graph) |> strip == """
+DependencyTree{UntypedDependency}
+1	john	2
+2	saw	0
+3	a	4
+4	dog	2
+5	yesterday	2
+6	which	7
+7	was	4
+8	a	9
+9	yorkshire	10
+10	terrier	7
 """ |> strip
 
         # jurafsky & martin, speech & language processing (3ed)
