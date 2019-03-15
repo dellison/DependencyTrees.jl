@@ -20,6 +20,18 @@ using DependencyTrees: dependents, leftdeps, rightdeps, leftmostdep, rightmostde
 
     graph = DependencyTree(TypedDependency, sent, add_id=true)
 
+    @test DependencyTrees.toconllu(graph) |> strip == """
+1	Economic	_	_	_	_	2	ATT	_	_
+2	news	_	_	_	_	3	SBJ	_	_
+3	had	_	_	_	_	0	PRED	_	_
+4	little	_	_	_	_	5	ATT	_	_
+5	effect	_	_	_	_	3	OBJ	_	_
+6	on	_	_	_	_	5	ATT	_	_
+7	financial	_	_	_	_	8	ATT	_	_
+8	markets	_	_	_	_	6	PC	_	_
+9	.	_	_	_	_	3	PU	_	_
+""" |> strip
+
     @test eltype(graph) == DependencyTrees.deptype(graph) == TypedDependency
     @test isroot(root(graph))
 
@@ -194,6 +206,19 @@ using DependencyTrees: dependents, leftdeps, rightdeps, leftmostdep, rightmostde
         ]
         graph = DependencyTree(UntypedDependency, sent, add_id=true)
         @test !isprojective(graph)
+
+        @test DependencyTrees.toconllu(graph) |> strip == """
+1	john	_	_	_	_	2	_	_	_
+2	saw	_	_	_	_	0	_	_	_
+3	a	_	_	_	_	4	_	_	_
+4	dog	_	_	_	_	2	_	_	_
+5	yesterday	_	_	_	_	2	_	_	_
+6	which	_	_	_	_	7	_	_	_
+7	was	_	_	_	_	4	_	_	_
+8	a	_	_	_	_	9	_	_	_
+9	yorkshire	_	_	_	_	10	_	_	_
+10	terrier	_	_	_	_	7	_	_	_
+""" |> strip
 
         # jurafsky & martin, speech & language processing (3ed)
         sent = [

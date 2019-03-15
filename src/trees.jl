@@ -138,6 +138,8 @@ rightdeps(g::DependencyTree, i::Int) = filter(d -> d > i, dependents(g, i))
 leftmostdep(g::DependencyTree, args...) = leftmostdep(g.tokens, args...)
 rightmostdep(g::DependencyTree, args...) = rightmostdep(g.tokens, args...)
 
+toconllu(g::DependencyTree) = string(toconllu.(g)...)
+
 import Base.==
 ==(g1::DependencyTree, g2::DependencyTree) = all(g1.tokens .== g2.tokens)
 Base.eltype(g::DependencyTree) = eltype(g.tokens)

@@ -129,6 +129,9 @@ isroot(d::UntypedDependency) = (d.form == ROOT && d.id == 0)
 noval(::Type{UntypedDependency}) = UntypedDependency(-1, NOVAL, -1)
 root(::Type{UntypedDependency}) = UntypedDependency(0, ROOT, 0)
 
+toconllu(d::UntypedDependency) =
+    join([d.id,d.form,"_","_","_","_",d.head,"_","_","_"],"\t")*"\n"
+
 unk(::Type{UntypedDependency}, id, word) = UntypedDependency(id, word, -1)
 
 import Base.==
@@ -178,6 +181,10 @@ head(d::TypedDependency) = d.head
 isroot(d::TypedDependency) = (d.form == ROOT && d.id == 0)
 root(::Type{<:TypedDependency}) = TypedDependency(0, ROOT, ROOT, 0)
 noval(::Type{<:TypedDependency}) = TypedDependency(-1, NOVAL, NOVAL, -1)
+
+toconllu(d::TypedDependency) =
+    join([d.id,d.form,"_","_","_","_",d.head,d.deprel,"_","_"],"\t")*"\n"
+
 unk(::Type{TypedDependency}, id, word) = TypedDependency(id, word, undef, -1)
 
 import Base.==
