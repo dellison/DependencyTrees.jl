@@ -2,7 +2,8 @@
 
     using DependencyTrees: si, bi, s, s0, s1, s2, s3, stack,
                            b, b0, b1, b2, b3, buffer,
-                           leftmostdep, rightmostdep
+                           leftmostdep, rightmostdep,
+                           leftdeps, rightdeps
 
     tb = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "hybridtests.conll"))
 
@@ -33,6 +34,8 @@
     @test stack(cfg) == 0:3
     @test buffer(cfg) == 4:6
     @test leftmostdep(cfg,0) == rightmostdep(cfg,0) == DependencyTrees.noval(CoNLLU)
+
+    @test leftdeps(cfg, 0) == rightdeps(cfg, 0) == []
 
     cfg, t = last(collect(DependencyTrees.xys(oracle, first(tb))))
     cfg = t(cfg)
