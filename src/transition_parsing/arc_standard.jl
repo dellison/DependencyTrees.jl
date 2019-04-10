@@ -31,7 +31,9 @@ function ArcStandardConfig{T}(gold::DependencyTree) where T
 end
 ArcStandardConfig(gold::DependencyTree) = ArcStandardConfig{eltype(gold)}(gold)
 
-arcs(cfg::ArcStandardConfig) = cfg.A
+token(cfg::ArcStandardConfig, i) = iszero(i) ? root(deptype(cfg)) : cfg.A[i]
+tokens(cfg::ArcStandardConfig) = cfg.A
+deptype(cfg::ArcStandardConfig) = eltype(cfg.A)
 
 function leftarc(cfg::ArcStandardConfig, args...; kwargs...)
     # assert a head-dependent relation between the word at the top of

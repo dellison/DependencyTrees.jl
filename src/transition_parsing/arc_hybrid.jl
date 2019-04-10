@@ -34,7 +34,8 @@ function ArcHybridConfig{T}(gold::DependencyTree) where T
 end
 ArcHybridConfig(gold::DependencyTree) = ArcHybridConfig{eltype(gold)}(gold)
 
-arcs(cfg::ArcHybridConfig) = cfg.A
+token(cfg::ArcHybridConfig, i) = iszero(i) ? root(deptype(cfg)) : cfg.A[i]
+tokens(cfg::ArcHybridConfig) = cfg.A
 deptype(cfg::ArcHybridConfig) = eltype(cfg.A)
 
 # get σ|s0 as (σ, s0)

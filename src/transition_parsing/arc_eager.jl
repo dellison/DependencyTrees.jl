@@ -34,7 +34,8 @@ function ArcEagerConfig{T}(gold::DependencyTree) where T
 end
 ArcEagerConfig(gold::DependencyTree) = ArcEagerConfig{eltype(gold)}(gold)
 
-arcs(cfg::ArcEagerConfig) = cfg.A
+token(cfg::ArcEagerConfig, i) = iszero(i) ? root(deptype(cfg)) : cfg.A[i]
+tokens(cfg::ArcEagerConfig) = cfg.A
 deptype(cfg::ArcEagerConfig) = eltype(cfg.A)
 
 function leftarc(cfg::ArcEagerConfig, args...; kwargs...)
@@ -198,6 +199,7 @@ function cost(t::Shift, cfg::ArcEagerConfig, gold)
 end
 
 
-import Base.==
+import Base.==, Base.getindex
 ==(cfg1::ArcEagerConfig, cfg2::ArcEagerConfig) =
     cfg1.σ == cfg2.σ && cfg1.β == cfg2.β && cfg1.A == cfg2.A
+Base.getindex(cfg::ArcEagerConfig, i) = arc(cfg, i)

@@ -33,7 +33,9 @@ function ArcSwiftConfig{T}(gold::DependencyTree) where T
 end
 ArcSwiftConfig(gold::DependencyTree) = ArcSwiftConfig{eltype(gold)}(gold)
 
-arcs(cfg::ArcSwiftConfig) = cfg.A
+token(cfg::ArcSwiftConfig, i) = iszero(i) ? root(deptype(cfg)) : cfg.A[i]
+tokens(cfg::ArcSwiftConfig) = cfg.A
+deptype(cfg::ArcSwiftConfig) = eltype(cfg.A)
 
 function leftarc(cfg::ArcSwiftConfig, k::Int, args...; kwargs...)
     # Assert a head-dependent relation between the word at the front

@@ -56,11 +56,11 @@ function leftdeps(cfg::AbstractParserConfiguration, dep::Dependency)
 end
 function leftdeps(cfg::AbstractParserConfiguration, i::Int)
     # filter(d -> d < i, dependents(g, i))
-    [id(t) for t in arcs(cfg) if id(t) > i && head(t) == i]
+    [id(t) for t in tokens(cfg) if id(t) > i && head(t) == i]
 end
 
 function leftmostdep(cfg::AbstractParserConfiguration, i::Int, n::Int=1)
-    A = arcs(cfg)
+    A = tokens(cfg)
     ldep = leftmostdep(A, i, n)
     if iszero(ldep)
         root(eltype(A))
@@ -75,15 +75,15 @@ leftmostdep(cfg::AbstractParserConfiguration, dep::Dependency, n::Int=1) =
     leftmostdep(cfg, id(dep), n)
     
 function rightdeps(cfg::AbstractParserConfiguration, dep::Dependency)
-    i, A = id(dep), arcs(cfg)
+    i, A = id(dep), tokens(cfg)
     filter(t -> id(t) > i && head(t) == i, A)
 end
 function rightdeps(cfg::AbstractParserConfiguration, i::Int)
-    return [id(t) for t in arcs(cfg) if id(t) > i && head(t) == i]
+    return [id(t) for t in tokens(cfg) if id(t) > i && head(t) == i]
 end
 
 function rightmostdep(cfg::AbstractParserConfiguration, i::Int, n::Int=1)
-    A = arcs(cfg)
+    A = tokens(cfg)
     rdep = rightmostdep(A, i, n)
     if iszero(rdep)
         root(eltype(A))
