@@ -34,9 +34,11 @@ function ArcEagerConfig{T}(gold::DependencyTree) where T
 end
 ArcEagerConfig(gold::DependencyTree) = ArcEagerConfig{eltype(gold)}(gold)
 
+deptype(cfg::ArcEagerConfig) = eltype(cfg.A)
+
 token(cfg::ArcEagerConfig, i) = iszero(i) ? root(deptype(cfg)) : cfg.A[i]
 tokens(cfg::ArcEagerConfig) = cfg.A
-deptype(cfg::ArcEagerConfig) = eltype(cfg.A)
+tokens(cfg::ArcEagerConfig, is) = [token(cfg, i) for i in is if 0 <= i <= length(cfg.A)]
 
 function leftarc(cfg::ArcEagerConfig, args...; kwargs...)
     # Assert a head-dependent relation between the word at the front

@@ -10,43 +10,46 @@
 
     tb = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "hybridtests.conll"))
 
-    oracle = StaticOracle(ArcHybrid())
+    for TS in (ArcEager, ArcStandard, ArcHybrid, ArcSwift)
+        oracle = StaticOracle(TS())
 
-    cfg = first(first(collect(DependencyTrees.xys(oracle, first(tb)))))
+        cfg = first(first(collect(DependencyTrees.xys(oracle, first(tb)))))
 
-    @test si(cfg, 0) == s0(cfg) == s(cfg)
-    @test bi(cfg, 1) == b(cfg) == b0(cfg)
-    @test s1(cfg) == s2(cfg) == s3(cfg) == noval(CoNLLU)
-    @test b1(cfg).id == 2
-    @test b2(cfg).id == 3
-    @test b3(cfg).id == 4
-    @test bi(cfg, 100) == noval(CoNLLU)
-    @test stack(cfg) == [0]
-    @test buffer(cfg) == 1:6
-    # no transitions yet
-    @test leftmostdep(cfg,0) == rightmostdep(cfg,0) == noval(CoNLLU)
-    @test leftmostdep(cfg, DependencyTrees.root(CoNLLU)) == noval(CoNLLU)
-    @test rightmostdep(cfg, DependencyTrees.root(CoNLLU)) == noval(CoNLLU)
+        @test si(cfg, 0) == s0(cfg) == s(cfg)
+        @test bi(cfg, 1) == b(cfg) == b0(cfg)
+        @test s1(cfg) == s2(cfg) == s3(cfg) == noval(CoNLLU)
+        @test b1(cfg).id == 2
+        @test b2(cfg).id == 3
+        @test b3(cfg).id == 4
+        @test bi(cfg, 100) == noval(CoNLLU)
+        @test stack(cfg) == [0]
+        @test buffer(cfg) == 1:6
+        # no transitions yet
+        @test leftmostdep(cfg,0) == rightmostdep(cfg,0) == noval(CoNLLU)
+        @test leftmostdep(cfg, DependencyTrees.root(CoNLLU)) == noval(CoNLLU)
+        @test rightmostdep(cfg, DependencyTrees.root(CoNLLU)) == noval(CoNLLU)
 
-    for i=1:3
-        cfg = DependencyTrees.Shift()(cfg)
+        for i=1:3
+            cfg = DependencyTrees.Shift()(cfg)
+            @test token(cfg, i).id == i
+        end
         @test [id(t) for t in tokens(cfg)] == 1:6
-        @test token(cfg, i).id == i
+        @test [id(t) for t in tokens(cfg, [1,2,3])] == 1:3
+
+        @test si(cfg, 0) == s0(cfg) == s(cfg)
+        @test bi(cfg, 1) == b(cfg) == b0(cfg)
+        @test stack(cfg) == 0:3
+        @test buffer(cfg) == 4:6
+        @test leftmostdep(cfg,0) == rightmostdep(cfg,0) == noval(CoNLLU)
+
+        @test leftdeps(cfg, 0) == rightdeps(cfg, 0) == []
+
+        @test leftdeps(cfg, 0) == rightdeps(cfg, 0) == []
+
+        cfg, t = last(collect(DependencyTrees.xys(oracle, first(tb))))
+        cfg = t(cfg)
+        @test isfinal(cfg)
+        @test leftmostdep(cfg, 0) == noval(CoNLLU)
+        @test rightmostdep(cfg, 0) == cfg.A[2]
     end
-
-    @test si(cfg, 0) == s0(cfg) == s(cfg)
-    @test bi(cfg, 1) == b(cfg) == b0(cfg)
-    @test stack(cfg) == 0:3
-    @test buffer(cfg) == 4:6
-    @test leftmostdep(cfg,0) == rightmostdep(cfg,0) == noval(CoNLLU)
-
-    @test leftdeps(cfg, 0) == rightdeps(cfg, 0) == []
-
-    @test leftdeps(cfg, 0) == rightdeps(cfg, 0) == []
-
-    cfg, t = last(collect(DependencyTrees.xys(oracle, first(tb))))
-    cfg = t(cfg)
-    @test isfinal(cfg)
-    @test leftmostdep(cfg, 0) == noval(CoNLLU)
-    @test rightmostdep(cfg, 0) == cfg.A[2]
 end
