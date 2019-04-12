@@ -34,8 +34,6 @@ function ArcHybridConfig{T}(gold::DependencyTree) where T
 end
 ArcHybridConfig(gold::DependencyTree) = ArcHybridConfig{eltype(gold)}(gold)
 
-deptype(cfg::ArcHybridConfig) = eltype(cfg.A)
-
 token(cfg::ArcHybridConfig, i) = iszero(i) ? root(deptype(cfg)) : cfg.A[i]
 tokens(cfg::ArcHybridConfig) = cfg.A
 tokens(cfg::ArcHybridConfig, is) = [token(cfg, i) for i in is if 0 <= i <= length(cfg.A)]

@@ -41,7 +41,6 @@ ListBasedNonProjectiveConfig(gold::DependencyTree) =
 
 token(cfg::ListBasedNonProjectiveConfig, i) = iszero(i) ? root(deptype(cfg)) : cfg.A[i]
 tokens(cfg::ListBasedNonProjectiveConfig) = cfg.A
-deptype(cfg::ListBasedNonProjectiveConfig) = eltype(cfg.A)
 
 function leftarc(cfg::ListBasedNonProjectiveConfig, args...; kwargs...)
     λ1, i = cfg.λ1[1:end-1], cfg.λ1[end]

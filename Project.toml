@@ -4,6 +4,7 @@ authors = ["David Ellison <davidehellison@gmail.com>"]
 version = "0.1.1"
 
 [deps]
+Coverage = "a2441757-f6aa-5fb2-8edb-039e3f45d037"
 LightGraphs = "093fc24a-ae57-5d10-9952-331d41423f4d"
 
 [extras]
