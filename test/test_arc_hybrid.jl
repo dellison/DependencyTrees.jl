@@ -9,6 +9,12 @@ using DependencyTrees: xys
 
     @test DependencyTrees.projective_only(ArcHybrid())
 
+    t1 = first(trees)
+    using DependencyTrees: initconfig
+    c1,c2 = initconfig(ArcHybrid(), CoNLLU, [t.form for t in t1]), initconfig(ArcHybrid(), t1)
+    @test [t.form for t in c1.A] == [t.form for t in c2.A]
+
+
     @testset "Static Oracle" begin
         oracle = StaticOracle(ArcHybrid())
         model(x) = nothing

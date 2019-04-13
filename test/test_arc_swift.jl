@@ -86,4 +86,8 @@ using DependencyTrees: xys
                                     RightArc(1, "case"), RightArc(4, ".")]
 
     end
+
+    using DependencyTrees: initconfig
+    c1,c2 = initconfig(ArcSwift(), TD, [t.form for t in gold1]), initconfig(ArcSwift(), gold1)
+    @test [t.form for t in c1.A] == [t.form for t in c2.A]
 end
