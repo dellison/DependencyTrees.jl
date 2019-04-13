@@ -10,6 +10,10 @@ initconfig(s::ArcStandard, deptype, words) = ArcStandardConfig{deptype}(words)
 
 projective_only(::ArcStandard) = true
 
+transition_space(::ArcStandard, labels=[]) =
+    isempty(labels) ? [LeftArc(), RightArc(), Shift()] :
+    [LeftArc.(labels)..., RightArc.(labels)..., Shift()]
+
 struct ArcStandardConfig{T} <: AbstractParserConfiguration{T}
     σ::Vector{Int}
     β::Vector{Int}

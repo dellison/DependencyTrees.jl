@@ -8,8 +8,12 @@ See [Nivre 2003](http://stp.lingfil.uu.se/~nivre/docs/iwpt03.pdf),
 """
 struct ArcEager <: AbstractTransitionSystem end
 
-initconfig(s::ArcEager, graph::DependencyTree) = ArcEagerConfig(graph)
-initconfig(s::ArcEager, deptype, words) = ArcEagerConfig{deptype}(words)
+initconfig(::ArcEager, graph::DependencyTree) = ArcEagerConfig(graph)
+initconfig(::ArcEager, deptype, words) = ArcEagerConfig{deptype}(words)
+
+transition_space(::ArcEager, labels=[]) =
+    isempty(labels) ? [LeftArc(), RightArc(), Reduce(), Shift()] :
+    [LeftArc.(labels)..., RightArc.(labels)..., Reduce(), Shift()]
 
 projective_only(::ArcEager) = true
 

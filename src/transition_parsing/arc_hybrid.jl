@@ -8,10 +8,14 @@ Described in [Kuhlmann et al, 2011](https://www.aclweb.org/anthology/P/P11/P11-1
 """
 struct ArcHybrid <: AbstractTransitionSystem end
 
-initconfig(s::ArcHybrid, graph::DependencyTree) = ArcHybridConfig(graph)
-initconfig(s::ArcHybrid, deptype, words) = ArcHybridConfig{deptype}(words)
+initconfig(::ArcHybrid, graph::DependencyTree) = ArcHybridConfig(graph)
+initconfig(::ArcHybrid, deptype, words) = ArcHybridConfig{deptype}(words)
 
 projective_only(::ArcHybrid) = true
+
+transition_space(::ArcHybrid, labels=[]) =
+    isempty(labels) ? [LeftArc(), RightArc(), Shift()] :
+    [LeftArc.(labels)..., RightArc.(labels)..., Shift()]
 
 struct ArcHybridConfig{T} <: AbstractParserConfiguration{T}
     σ::Vector{Int}

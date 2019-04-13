@@ -88,3 +88,38 @@ using DependencyTrees: TreebankReader
         @test length(DependencyTrees.xys(oracle, tb)) == 0
     end
 end
+
+@testset "Transition Output Spaces" begin
+    using DependencyTrees: transition_space, LeftArc, RightArc, NoArc, Reduce, Shift
+    
+    @test transition_space(ArcEager()) == [LeftArc(), RightArc(), Reduce(), Shift()]
+    @test transition_space(ArcEager(), ["a","b"]) == [LeftArc("a"), LeftArc("b"),
+                                                      RightArc("a"), RightArc("b"),
+                                                      Reduce(), Shift()]
+
+    @test transition_space(ArcHybrid()) == [LeftArc(), RightArc(), Shift()]
+    @test transition_space(ArcHybrid(), ["a","b"]) == [LeftArc("a"), LeftArc("b"),
+                                                       RightArc("a"), RightArc("b"),
+                                                       Shift()]
+
+    @test transition_space(ArcStandard()) == [LeftArc(), RightArc(), Shift()]
+    @test transition_space(ArcStandard(), ["a","b"]) == [LeftArc("a"), LeftArc("b"),
+                                                         RightArc("a"), RightArc("b"),
+                                                         Shift()]
+
+    @test transition_space(ArcSwift(); max_k=2) == [LeftArc(1), LeftArc(2),
+                                                    RightArc(1), RightArc(2),
+                                                    Shift()]
+    ts1 = Set(transition_space(ArcSwift(), ["a","b"]; max_k=2))
+    ts2 = Set([LeftArc(1, "a"), LeftArc(2, "a"),
+               LeftArc(1, "b"), LeftArc(2, "b"),
+               RightArc(1, "a"), RightArc(2, "a"),
+               RightArc(1, "b"), RightArc(2, "b"),
+               Shift()])
+    @test  ts1 == ts2
+
+    @test transition_space(ListBasedNonProjective()) == [LeftArc(), RightArc(), NoArc(), Shift()]
+    @test transition_space(ListBasedNonProjective(), ["a","b"]) == [LeftArc("a"), LeftArc("b"),
+                                                                    RightArc("a"), RightArc("b"),
+                                                                    NoArc(), Shift()]
+end

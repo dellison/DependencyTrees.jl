@@ -10,6 +10,12 @@ struct ArcSwift <: AbstractTransitionSystem end
 initconfig(s::ArcSwift, graph::DependencyTree) = ArcSwiftConfig(graph)
 initconfig(s::ArcSwift, deptype, words) = ArcSwiftConfig{deptype}(words)
 
+transition_space(::ArcSwift, labels=[]; max_k=5) =
+    isempty(labels) ? [LeftArc.(1:max_k)..., RightArc.(1:max_k)..., Shift()] :
+    [[LeftArc(k, l) for k in 1:max_k for l in labels]...,
+     [RightArc(k, l) for k in 1:max_k for l in labels]...,
+     Shift()]
+
 projective_only(::ArcSwift) = true
 
 struct ArcSwiftConfig{T} <: AbstractParserConfiguration{T}

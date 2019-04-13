@@ -14,6 +14,10 @@ initconfig(s::ListBasedNonProjective, deptype, words) =
 
 projective_only(::ListBasedNonProjective) = false
 
+transition_space(::ListBasedNonProjective, labels=[]) =
+    isempty(labels) ? [LeftArc(), RightArc(), NoArc(), Shift()] :
+    [LeftArc.(labels)..., RightArc.(labels)..., NoArc(), Shift()]
+
 struct ListBasedNonProjectiveConfig{T} <: AbstractParserConfiguration{T}
     λ1::Vector{Int} # right-headed
     λ2::Vector{Int} # left-headed
