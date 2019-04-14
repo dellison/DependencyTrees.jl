@@ -39,7 +39,9 @@ function ArcSwiftConfig{T}(gold::DependencyTree) where T
 end
 ArcSwiftConfig(gold::DependencyTree) = ArcSwiftConfig{eltype(gold)}(gold)
 
-token(cfg::ArcSwiftConfig, i) = iszero(i) ? root(deptype(cfg)) : cfg.A[i]
+token(cfg::ArcSwiftConfig, i) = iszero(i) ? root(deptype(cfg)) :
+                                i == -1   ? noval(deptype(cfg)) :
+                                cfg.A[i]
 tokens(cfg::ArcSwiftConfig) = cfg.A
 tokens(cfg::ArcSwiftConfig, is) = [token(cfg, i) for i in is if 0 <= i <= length(cfg.A)]
 

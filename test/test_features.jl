@@ -34,6 +34,8 @@
         end
         @test [id(t) for t in tokens(cfg)] == 1:6
         @test [id(t) for t in tokens(cfg, [1,2,3])] == 1:3
+        @test token(cfg, 0)  == root(CoNLLU)
+        @test token(cfg, -1) == noval(CoNLLU)
 
         @test si(cfg, 0) == s0(cfg) == s(cfg)
         @test bi(cfg, 1) == b(cfg) == b0(cfg)
@@ -52,5 +54,14 @@
         @test leftmostdep(cfg, 0) == noval(CoNLLU)
         @test rightmostdep(cfg, 0) == cfg.A[2]
         @test leftmostdep(cfg, cfg.A[2]).form == "I"
+    end
+
+    oracle = StaticOracle(ListBasedNonProjective())
+    for (cfg, t) in xys(oracle, t1)
+        @test token(cfg, 0) == root(CoNLLU)
+        @test [id(t) for t in tokens(cfg)] == 1:6
+        @test [id(t) for t in tokens(cfg, [1,2,3])] == 1:3
+        @test token(cfg, 0)  == root(CoNLLU)
+        @test token(cfg, -1) == noval(CoNLLU)
     end
 end

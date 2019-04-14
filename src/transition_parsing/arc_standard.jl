@@ -35,7 +35,9 @@ function ArcStandardConfig{T}(gold::DependencyTree) where T
 end
 ArcStandardConfig(gold::DependencyTree) = ArcStandardConfig{eltype(gold)}(gold)
 
-token(cfg::ArcStandardConfig, i) = iszero(i) ? root(deptype(cfg)) : cfg.A[i]
+token(cfg::ArcStandardConfig, i) = iszero(i) ? root(deptype(cfg)) :
+                                   i == -1   ? noval(deptype(cfg)) :
+                                   cfg.A[i]
 tokens(cfg::ArcStandardConfig) = cfg.A
 tokens(cfg::ArcStandardConfig, is) = [token(cfg, i) for i in is if 0 <= i <= length(cfg.A)]
 

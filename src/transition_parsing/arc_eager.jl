@@ -38,7 +38,9 @@ function ArcEagerConfig{T}(gold::DependencyTree) where T
 end
 ArcEagerConfig(gold::DependencyTree) = ArcEagerConfig{eltype(gold)}(gold)
 
-token(cfg::ArcEagerConfig, i) = iszero(i) ? root(deptype(cfg)) : cfg.A[i]
+token(cfg::ArcEagerConfig, i) = iszero(i) ? root(deptype(cfg)) :
+                                i == -1   ? noval(deptype(cfg)) :
+                                cfg.A[i]
 tokens(cfg::ArcEagerConfig) = cfg.A
 tokens(cfg::ArcEagerConfig, is) = [token(cfg, i) for i in is if 0 <= i <= length(cfg.A)]
 
