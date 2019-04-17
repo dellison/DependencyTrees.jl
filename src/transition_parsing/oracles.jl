@@ -100,23 +100,27 @@ zero_cost_transitions(cfg, gold::DependencyTree, transition = typed) =
 
 # iterator for (cfg, [gold_ts...]) pairs
 struct DynamicGoldTransitions{T}
-    o::Function          # cfg -> [t, t2, t3]...
-    transition::Function 
-    predict::Function    # cfg -> t'
-    choose::Function     # (t', [tgold...]) -> tgold
+    transition::Function
+    o::Function          # cfg -> G
+    encodec::Function    # cfg -> X
+    encodet::Function    # t -> Y
+    decodet::Function    # Y -> t
+    predict::Function    # C   -> t'
+    choose::Function     # (t', [tgold...]) -> t
     transition_system::T
     gold::DependencyTree
 end
 
-function DynamicGoldTransitions(oracle::DynamicOracle, graph::DependencyTree;
-                                predict=identity, choose=choose_next_amb)
-    if projective_only(oracle.transition_system) && !isprojective(graph)
-        # @warn "skipping projective tree" tree=graph
+function DynamicGoldTransitions(oracle::DynamicOracle, gold::DependencyTree;
+                                encodec=identity,encodet=identity,
+                                decodet=identity, predict=identity, choose=choose_next_amb)
+    if projective_only(oracle.transition_system) && !isprojective(gold)
+        # @warn "skipping projective tree" tree=gold
         EmptyGoldPairs()
     else
-        o = cfg -> oracle.oracle(cfg, graph, oracle.transition)
-        t, ts = oracle.transition, oracle.transition_system
-        DynamicGoldTransitions(o, t, predict, choose, ts, graph)
+        o = cfg -> oracle.oracle(cfg, gold, oracle.transition)
+        DynamicGoldTransitions(oracle.transition, o, encodec, encodet, decodet,
+                               predict, choose, oracle.transition_system, gold)
     end
 end
 
@@ -125,26 +129,31 @@ Base.IteratorSize(pairs::DynamicGoldTransitions) = Base.SizeUnknown()
 import Base.iterate
 function Base.iterate(ts::DynamicGoldTransitions)
     cfg = initconfig(ts.transition_system, ts.gold)
-    pred = ts.predict(cfg)
-    gold = zero_cost_transitions(cfg, ts.gold, ts.transition)
-    t = ts.choose(pred, gold)
-    return ((cfg, gold), t(cfg))
+    G = zero_cost_transitions(cfg, ts.gold, ts.transition)
+    G′ = ts.encodet(G)
+    C = ts.encodec(cfg)
+    pred = ts.predict(C)
+    t̂ = ts.decodet(pred)
+    t = ts.choose(t̂, G)
+    return ((C, G′), t(cfg))
 end
 function Base.iterate(ts::DynamicGoldTransitions, cfg)
     if isfinal(cfg)
         return nothing
     else
-        pred = ts.predict(cfg)
-        gold = zero_cost_transitions(cfg, ts.gold, ts.transition)
-        t = ts.choose(pred, gold)
-        return ((cfg, gold), t(cfg))
+        G = zero_cost_transitions(cfg, ts.gold, ts.transition)
+        G′ = ts.encodet(G)
+        C = ts.encodec(cfg)
+        pred = ts.predict(C)
+        t̂ = ts.decodet(pred)
+        t = ts.choose(t̂, G)
+        return ((C, G′), t(cfg))
     end
 end
 
-xys(oracle::DynamicOracle, gold::DependencyTree;
-             predict=identity, choose=choose_next_amb) =
-    DynamicGoldTransitions(oracle, gold; predict=predict, choose=choose)
+xys(oracle::DynamicOracle, gold::DependencyTree; kwargs...) =
+    DynamicGoldTransitions(oracle, gold; kwargs...)
 
-xys(oracle::DynamicOracle, graphs; predict=identity, choose=choose_next_amb) =
-    reduce(vcat, [collect(xys(oracle, graph; predict=predict, choose=choose))
+xys(oracle::DynamicOracle, graphs; kwargs...) =
+    reduce(vcat, [collect(xys(oracle, graph; kwargs...))
                   for graph in graphs])

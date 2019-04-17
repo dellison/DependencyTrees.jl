@@ -87,6 +87,25 @@ using DependencyTrees: TreebankReader
         @test length(collect(tb)) == 1
         @test length(DependencyTrees.xys(oracle, tb)) == 0
     end
+
+    @testset "Dynamic Iteration" begin
+        oracle = DynamicOracle(ArcHybrid(), transition=DependencyTrees.untyped)
+        tb = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "hybridtests.conll"))
+
+        for tree in treebank
+            for (cfg, G) in DependencyTrees.xys(oracle, tree)
+                @test cfg isa DependencyTrees.ArcHybridConfig
+                for t in G
+                    T = typeof(t)
+                    @test T <: DependencyTrees.LeftArc || T <: DependencyTrees.RightArc || T <: DependencyTrees.Shift
+                end
+            end
+            for (x, y) in DependencyTrees.xys(oracle, tree, encodec=string, encodet=string)
+                @test x isa AbstractString
+                @test y isa AbstractString
+            end
+        end
+    end
 end
 
 @testset "Transition Output Spaces" begin
