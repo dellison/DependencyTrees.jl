@@ -9,3 +9,5 @@ Base.length(::EmptyGoldPairs) = 0
 
 include("static.jl")
 include("dynamic.jl")
+
+include("exploration.jl")

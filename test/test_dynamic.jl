@@ -100,9 +100,9 @@ using DependencyTrees: TreebankReader
                     @test T <: DependencyTrees.LeftArc || T <: DependencyTrees.RightArc || T <: DependencyTrees.Shift
                 end
             end
-            for (x, y) in DependencyTrees.xys(oracle, tree, encodec=string, encodet=string)
-                @test x isa AbstractString
-                @test y isa AbstractString
+
+            for state in DependencyTrees.DynamicGoldSearch(oracle, tree)
+                @test state.G ⊆ state.A
             end
         end
     end

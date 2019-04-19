@@ -17,6 +17,12 @@ DynamicOracle(T, oracle = haszerocost; transition = typed) =
 gold_transitions(oracle::DynamicOracle, cfg, gold::DependencyTree) =
     filter(t -> oracle.oracle(t, cfg, gold), possible_transitions(cfg, gold, oracle.transition))
 
+function AG(oracle::DynamicOracle, cfg, tree)
+    A = possible_transitions(cfg, tree, oracle.transition)
+    G = filter(t -> oracle.oracle(t, cfg, tree), A)
+    return A, G
+end
+
 # only follow optimal transitions, but allow "spurious ambiguity"
 choose_next_amb(pred, gold) = pred in gold ? pred : rand(gold)
 
@@ -33,63 +39,52 @@ hascost(t::TransitionOperator, cfg, gold::DependencyTree) =
 zero_cost_transitions(cfg, gold::DependencyTree, transition = typed) =
     filter(t -> haszerocost(t, cfg, gold), possible_transitions(cfg, gold, transition))
 
-
-# iterator for (cfg, [gold_ts...]) pairs
-struct DynamicGoldTransitions{T}
-    transition::Function
-    o::Function          # cfg -> G
-    encodec::Function    # cfg -> X
-    encodet::Function    # t -> Y
-    decodet::Function    # Y -> t
-    predict::Function    # C   -> t'
-    choose::Function     # (t', [tgold...]) -> t
-    transition_system::T
-    gold::DependencyTree
+struct DynamicGoldState{C}
+    cfg::C
+    A::Vector{TransitionOperator}
+    G::Vector{TransitionOperator}
 end
 
-function DynamicGoldTransitions(oracle::DynamicOracle, gold::DependencyTree;
-                                encodec=identity,encodet=identity,
-                                decodet=identity, predict=identity, choose=choose_next_amb)
-    if projective_only(oracle.transition_system) && !isprojective(gold)
-        # @warn "skipping projective tree" tree=gold
+function DynamicGoldState(oracle::DynamicOracle, cfg, gold)
+    A, G = AG(oracle, cfg, gold)
+    DynamicGoldState(cfg, A, G)
+end
+
+# 
+struct DynamicGoldSearch{S,T,P}
+    oracle::DynamicOracle{S}
+    tree::DependencyTree{T}
+    o::Function
+    predict::Function
+    policy::P
+    choose::Function
+end
+function DynamicGoldSearch(oracle::DynamicOracle, tree::DependencyTree;
+                           predict=identity, policy=ExplorationNever(),
+                           choose=choose_next_amb)
+    if projective_only(oracle.transition_system) && !isprojective(tree)
         EmptyGoldPairs()
     else
-        o = cfg -> oracle.oracle(cfg, gold, oracle.transition)
-        DynamicGoldTransitions(oracle.transition, o, encodec, encodet, decodet,
-                               predict, choose, oracle.transition_system, gold)
+        o = cfg -> oracle.oracle(cfg, tree, oracle.transition)
+        DynamicGoldSearch(oracle, tree, o, predict, policy, choose)
     end
 end
-
-Base.IteratorSize(pairs::DynamicGoldTransitions) = Base.SizeUnknown()
 
 import Base.iterate
-function Base.iterate(ts::DynamicGoldTransitions)
-    cfg = initconfig(ts.transition_system, ts.gold)
-    G = zero_cost_transitions(cfg, ts.gold, ts.transition)
-    G′ = ts.encodet(G)
-    C = ts.encodec(cfg)
-    pred = ts.predict(C)
-    t̂ = ts.decodet(pred)
-    t = ts.choose(t̂, G)
-    return ((C, G′), t(cfg))
-end
-function Base.iterate(ts::DynamicGoldTransitions, cfg)
-    if isfinal(cfg)
-        return nothing
-    else
-        G = zero_cost_transitions(cfg, ts.gold, ts.transition)
-        G′ = ts.encodet(G)
-        C = ts.encodec(cfg)
-        pred = ts.predict(C)
-        t̂ = ts.decodet(pred)
-        t = ts.choose(t̂, G)
-        return ((C, G′), t(cfg))
-    end
+Base.iterate(search::DynamicGoldSearch) =
+    _iterate(search, initconfig(search.oracle.transition_system, search.tree))
+Base.iterate(search::DynamicGoldSearch, cfg) =
+    isfinal(cfg) ? nothing : _iterate(search, cfg)
+function _iterate(search::DynamicGoldSearch, cfg)
+    A, G = AG(search.oracle, cfg, search.tree)
+    t = search.policy() ? search.predict(cfg) : search.choose(search.predict(cfg), G)
+    return (DynamicGoldState(cfg, A, G), t(cfg))
 end
 
-xys(oracle::DynamicOracle, gold::DependencyTree; kwargs...) =
-    DynamicGoldTransitions(oracle, gold; kwargs...)
+Base.IteratorSize(pairs::DynamicGoldSearch) = Base.SizeUnknown()
 
-xys(oracle::DynamicOracle, graphs; kwargs...) =
-    reduce(vcat, [collect(xys(oracle, graph; kwargs...))
-                  for graph in graphs])
+xys(oracle::DynamicOracle, gold::DependencyTree; ks...) =
+    [(s.cfg, s.G) for s in DynamicGoldSearch(oracle, gold; ks...)]
+
+xys(oracle::DynamicOracle, trees; kws...) =
+    reduce(vcat, [collect(xys(oracle, tree; kws...)) for tree in trees])
