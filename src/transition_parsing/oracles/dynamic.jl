@@ -50,6 +50,21 @@ function DynamicGoldState(oracle::DynamicOracle, cfg, gold)
     DynamicGoldState(cfg, A, G)
 end
 
+function next_state(state::DynamicGoldState, t)
+    @assert t in state.A
+    t(state.cfg)
+end
+
+function explore(state::DynamicGoldState)
+    t = rand(state.A)
+    (t, t(state.cfg))
+end
+
+function explore(state::DynamicGoldState, t)
+    @assert t in state.A
+    (t, t(state.cfg))
+end
+
 # 
 struct DynamicGoldSearch{S,T,P}
     oracle::DynamicOracle{S}

@@ -103,6 +103,10 @@ using DependencyTrees: TreebankReader
 
             for state in DependencyTrees.DynamicGoldSearch(oracle, tree)
                 @test state.G ⊆ state.A
+                t, next = DependencyTrees.explore(state)
+                @test t(state.cfg) == next == DependencyTrees.next_state(state, t)
+                @test t in state.A
+                @test DependencyTrees.explore(state, t) == (t, next)
             end
         end
     end
