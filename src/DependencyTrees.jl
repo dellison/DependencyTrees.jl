@@ -16,6 +16,7 @@ export
     isprojective
 
 
+using Random
 using LightGraphs
 
 include("errors.jl")

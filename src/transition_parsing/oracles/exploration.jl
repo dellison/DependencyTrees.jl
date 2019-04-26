@@ -1,11 +1,12 @@
 abstract type AbstractExplorationPolicy end
-# (policy::AbstractExplorationPolicy)(args...) = error("not implemented lol")
 
 struct ExplorationAlways <: AbstractExplorationPolicy end
 (::ExplorationAlways)(args...) = true
+const AlwaysExplore = ExplorationAlways
 
 struct ExplorationNever <: AbstractExplorationPolicy end
 (::ExplorationNever)(args...) = false
+const NeverExplore = ExplorationNever
 
 """
     ExplorationPolicy(k, p)

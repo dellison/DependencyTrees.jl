@@ -142,3 +142,13 @@ end
                                                                     RightArc("a"), RightArc("b"),
                                                                     NoArc(), Shift()]
 end
+
+@testset "Exploration Policies" begin
+    using DependencyTrees: AlwaysExplore, NeverExplore, ExplorationPolicy
+    always1, never1 = AlwaysExplore(), NeverExplore()
+    always2, never2 = ExplorationPolicy(0,1), ExplorationPolicy(0,0)
+    for i = 1:10
+        @test always1(i) == always2(i) == true
+        @test never1(i)  == never2(i)  == false
+    end
+end
