@@ -122,6 +122,8 @@ has_dependency(g::DependencyTree, h::Int, d::Int) = head(g[d]) == h
 head(g::DependencyTree, id::Int) = head(g[id])
 root(g::DependencyTree) = g[0]
 token(g::DependencyTree, id) = g[id]
+tokens(g::DependencyTree) = g.tokens
+tokens(g::DependencyTree, is) = [token(g, i) for i in is if 0 <= i <= length(g)]
 
 function leftdeps(g::DependencyTree, dep::Dependency)
     i = id(dep)

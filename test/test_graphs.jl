@@ -1,4 +1,5 @@
 using DependencyTrees: dependents, leftdeps, rightdeps, leftmostdep, rightmostdep
+using DependencyTrees: token, tokens
 
 @testset "Graphs" begin
 
@@ -19,6 +20,12 @@ using DependencyTrees: dependents, leftdeps, rightdeps, leftmostdep, rightmostde
     ]
 
     graph = DependencyTree(TypedDependency, sent, add_id=true)
+
+    @test [t.form for t in tokens(graph)] == [first(t) for t in sent]
+    for (i, t) in enumerate(sent)
+        @test token(graph, i).form == first(t)
+        @test [t.form for t in tokens(graph, [1, i])] == ["Economic", first(t)]
+    end
 
     @test DependencyTrees.toconllu(graph) |> strip == """
 1	Economic	_	_	_	_	2	ATT	_	_
@@ -199,7 +206,7 @@ DependencyTree{TypedDependency}
 
     @test length(graph) == length(sent) == 18
     @test isroot(graph[0])
-    for (i, token) in enumerate(sent)
+    for i in 1:length(sent)
         @test i == id(graph[i])
         sent_deps = filter(x -> x[3] == i, sent)
         deps_ = dependents(graph, i)
