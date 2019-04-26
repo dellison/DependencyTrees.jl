@@ -1,6 +1,6 @@
-using DependencyTrees: leftarc, rightarc, shift, isfinal
-using DependencyTrees: LeftArc, RightArc, Reduce, Shift
-using DependencyTrees: OnlineTrainer, train!
+using DependencyTrees.Parse: leftarc, rightarc, shift, isfinal
+using DependencyTrees.Parse: LeftArc, RightArc, Reduce, Shift
+using DependencyTrees.Parse: OnlineTrainer, train!
 
 # tests from chapter 13 of the draft of "Speech and Language
 # Processing" 3rd edition by Jurafsky & Martin
@@ -38,7 +38,7 @@ using DependencyTrees: OnlineTrainer, train!
 
             o = oracle(state)
             @test o == Shift()
-            @test DependencyTrees.args(o) == ()
+            @test DependencyTrees.Parse.args(o) == ()
             @test o(state) == shift(state)
             state = shift(state)
 
@@ -57,7 +57,7 @@ using DependencyTrees: OnlineTrainer, train!
 
             o = oracle(state)
             @test o == RightArc()
-            @test DependencyTrees.args(o) == ()
+            @test DependencyTrees.Parse.args(o) == ()
             @test o(state) == rightarc(state)
             state = rightarc(state)
 
@@ -97,7 +97,7 @@ using DependencyTrees: OnlineTrainer, train!
 
             o = oracle(state)
             @test o == LeftArc()
-            @test DependencyTrees.args(o) == ()
+            @test DependencyTrees.Parse.args(o) == ()
             @test o(state) == leftarc(state)
             state = leftarc(state)
 
@@ -300,7 +300,7 @@ using DependencyTrees: OnlineTrainer, train!
 
         @testset "Untyped" begin
 
-            using DependencyTrees: ArcEager, leftarc, rightarc, shift, reduce, isfinal
+            using DependencyTrees.Parse: ArcEager, leftarc, rightarc, shift, reduce, isfinal
 
             gold_graph = DependencyTree([UntypedDependency(i, t...)
                                           for (i, t) in enumerate([("book", 0),
@@ -389,7 +389,7 @@ using DependencyTrees: OnlineTrainer, train!
 
         @testset "Typed" begin
 
-            using DependencyTrees: ArcEager, leftarc, rightarc, shift, reduce, isfinal
+            using DependencyTrees.Parse: ArcEager, leftarc, rightarc, shift, reduce, isfinal
 
             # head --> dep
             hasdeprel(state, head, deprel, dep) =
@@ -403,7 +403,7 @@ using DependencyTrees: OnlineTrainer, train!
                                                                    ("houston", "nmod", 3)])])
             
             # step 0
-            state = DependencyTrees.initconfig(ArcEager(), TypedDependency, sent)
+            state = DependencyTrees.Parse.initconfig(ArcEager(), TypedDependency, sent)
             @test words(state.σ) == ["root"]
             @test words(state.β) == ["book", "the", "flight", "through", "houston"]
 

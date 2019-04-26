@@ -1,4 +1,4 @@
-using DependencyTrees: xys
+using DependencyTrees.Parse: LeftArc, RightArc, Shift, xys
 
 @testset "Arc-Hybrid" begin
 
@@ -70,11 +70,11 @@ using DependencyTrees: xys
     end
 
     @testset "Dynamic Oracle" begin
-        TS = Union{DependencyTrees.LeftArc, DependencyTrees.RightArc, DependencyTrees.Shift}
+        TS = Union{LeftArc, RightArc, Shift}
         oracle = DynamicOracle(ArcHybrid())
         model(x) = Shift()
         function errorcb(x, ŷ, y)
-            @test typeof(x) <: DependencyTrees.ArcHybridConfig && typeof(y) <: TS
+            @test typeof(x) <: DependencyTrees.Parse.ArcHybridConfig && typeof(y) <: TS
             @test ŷ == Shift()
             @test typeof(y) <: Union{Shift, LeftArc, RightArc}
         end

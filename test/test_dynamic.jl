@@ -35,28 +35,28 @@ using DependencyTrees: TreebankReader
     cfg = DependencyTrees.initconfig(oracle.transition_system, graph)
     while !isfinal(cfg)
         pred = model(cfg)
-        gold = DependencyTrees.gold_transitions(oracle, cfg, graph)
-        zeroc = DependencyTrees.zero_cost_transitions(cfg, graph)
+        gold = DependencyTrees.Parse.gold_transitions(oracle, cfg, graph)
+        zeroc = DependencyTrees.Parse.zero_cost_transitions(cfg, graph)
         @test gold == zeroc
         @test pred in gold
-        @test any(t -> DependencyTrees.hascost(t, cfg, graph), [Shift(), Reduce(), LeftArc("lol"), RightArc("lol")])
-        @test all(t -> DependencyTrees.haszerocost(t, cfg, graph), gold)
+        @test any(t -> DependencyTrees.Parse.hascost(t, cfg, graph), [Shift(), Reduce(), LeftArc("lol"), RightArc("lol")])
+        @test all(t -> DependencyTrees.Parse.haszerocost(t, cfg, graph), gold)
         cfg = pred(cfg)
     end
 
     # make sure this works the same for untyped oracles too
-    oracle_ut = DynamicOracle(ArcEager(), transition=DependencyTrees.untyped)
+    oracle_ut = DynamicOracle(ArcEager(), transition=untyped)
     DependencyTrees.xys(oracle_ut, graph)
-    model = static_oracle(ArcEager(), graph, DependencyTrees.untyped)
+    model = static_oracle(ArcEager(), graph, untyped)
     cfg = DependencyTrees.initconfig(oracle_ut.transition_system, graph)
     while !isfinal(cfg)
         pred = model(cfg)
-        gold = DependencyTrees.gold_transitions(oracle_ut, cfg, graph)
-        zeroc = DependencyTrees.zero_cost_transitions(cfg, graph, DependencyTrees.untyped)
+        gold = DependencyTrees.Parse.gold_transitions(oracle_ut, cfg, graph)
+        zeroc = DependencyTrees.Parse.zero_cost_transitions(cfg, graph, untyped)
         @test gold == zeroc
         @test pred in gold
-        @test any(t -> DependencyTrees.hascost(t, cfg, graph), [Shift(), Reduce(), LeftArc(), RightArc()])
-        @test all(t -> DependencyTrees.haszerocost(t, cfg, graph), gold)
+        @test any(t -> DependencyTrees.Parse.hascost(t, cfg, graph), [Shift(), Reduce(), LeftArc(), RightArc()])
+        @test all(t -> DependencyTrees.Parse.haszerocost(t, cfg, graph), gold)
         cfg = pred(cfg)
     end
 
@@ -72,10 +72,10 @@ using DependencyTrees: TreebankReader
     treebank = Treebank{TypedDependency}(tbfile, add_id=true)
     # DependencyTrees.train!(trainer, treebank)
 
-    @test DependencyTrees.choose_next_amb(1, 1:5) == 1
-    @test DependencyTrees.choose_next_exp(0, 1:5, () -> true) == 0
-    @test DependencyTrees.choose_next_exp(0, 1:5, () -> false) != 0
-    @test DependencyTrees.zero_cost_transitions(cfg, graph) == [Reduce()]
+    @test DependencyTrees.Parse.choose_next_amb(1, 1:5) == 1
+    @test DependencyTrees.Parse.choose_next_exp(0, 1:5, () -> true) == 0
+    @test DependencyTrees.Parse.choose_next_exp(0, 1:5, () -> false) != 0
+    @test DependencyTrees.Parse.zero_cost_transitions(cfg, graph) == [Reduce()]
 
     for (cfg, gold) in DependencyTrees.xys(oracle, graph)
         @test length(gold) >= 1
@@ -89,31 +89,31 @@ using DependencyTrees: TreebankReader
     end
 
     @testset "Dynamic Iteration" begin
-        oracle = DynamicOracle(ArcHybrid(), transition=DependencyTrees.untyped)
+        oracle = DynamicOracle(ArcHybrid(), transition=untyped)
         tb = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "hybridtests.conll"))
 
         for tree in treebank
             for (cfg, G) in DependencyTrees.xys(oracle, tree)
-                @test cfg isa DependencyTrees.ArcHybridConfig
+                @test cfg isa DependencyTrees.Parse.ArcHybridConfig
                 for t in G
                     T = typeof(t)
-                    @test T <: DependencyTrees.LeftArc || T <: DependencyTrees.RightArc || T <: DependencyTrees.Shift
+                    @test T <: DependencyTrees.Parse.LeftArc || T <: DependencyTrees.Parse.RightArc || T <: DependencyTrees.Parse.Shift
                 end
             end
 
-            for state in DependencyTrees.DynamicGoldSearch(oracle, tree)
+            for state in DependencyTrees.Parse.DynamicGoldSearch(oracle, tree)
                 @test state.G ⊆ state.A
-                t, next = DependencyTrees.explore(state)
-                @test t(state.cfg) == next == DependencyTrees.next_state(state, t)
+                t, next = DependencyTrees.Parse.explore(state)
+                @test t(state.cfg) == next == DependencyTrees.Parse.next_state(state, t)
                 @test t in state.A
-                @test DependencyTrees.explore(state, t) == (t, next)
+                @test DependencyTrees.Parse.explore(state, t) == (t, next)
             end
         end
     end
 end
 
 @testset "Transition Output Spaces" begin
-    using DependencyTrees: transition_space, LeftArc, RightArc, NoArc, Reduce, Shift
+    using DependencyTrees.Parse: transition_space, LeftArc, RightArc, NoArc, Reduce, Shift
     
     @test transition_space(ArcEager()) == [LeftArc(), RightArc(), Reduce(), Shift()]
     @test transition_space(ArcEager(), ["a","b"]) == [LeftArc("a"), LeftArc("b"),
@@ -148,7 +148,7 @@ end
 end
 
 @testset "Exploration Policies" begin
-    using DependencyTrees: AlwaysExplore, NeverExplore, ExplorationPolicy
+    using DependencyTrees.Parse: AlwaysExplore, NeverExplore, ExplorationPolicy
     always1, never1 = AlwaysExplore(), NeverExplore()
     always2, never2 = ExplorationPolicy(0,1), ExplorationPolicy(0,0)
     for i = 1:10

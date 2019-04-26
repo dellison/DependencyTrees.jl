@@ -19,9 +19,9 @@
     end
 
     for C in [ArcEager(), ArcHybrid()]
-        oracle = StaticOracle(C, transition = DependencyTrees.untyped)
+        oracle = StaticOracle(C, transition = untyped)
         for (cfg, t) in DependencyTrees.xys(oracle, trees)
-            @test DependencyTrees.args(t) == ()
+            @test DependencyTrees.Parse.args(t) == ()
         end
     end
 
@@ -46,8 +46,8 @@
 
     graph = DependencyTree{CoNLLU}(sent)
     for d in graph.tokens
-        @test DependencyTrees.untyped(d) == ()
-        @test DependencyTrees.typed(d) == (d.deprel,)
+        @test untyped(d) == ()
+        @test typed(d) == (d.deprel,)
     end
 
     c = CoNLLU("1	They	they	PRON	PRP	Case=Nom|Number=Plur	2	nsubj	2:nsubj|4:nsubj	_")

@@ -1,5 +1,5 @@
-using DependencyTrees: shift, leftarc, rightarc
-using DependencyTrees: OnlineTrainer
+using DependencyTrees.Parse: shift, leftarc, rightarc
+using DependencyTrees.Parse: OnlineTrainer
 
 # tests from nivre 08 "algorithms for deterministic incremental
 # dependency parsing"
@@ -88,8 +88,7 @@ using DependencyTrees: OnlineTrainer
     @testset "Figure 8" begin
 
         using DependencyTrees: MultipleRootsError, ListBasedNonProjective
-        using DependencyTrees: NoArc
-        using DependencyTrees: isfinal
+        using DependencyTrees.Parse: NoArc, isfinal
 
         @test_throws MultipleRootsError DependencyTree(TypedDependency, figure_1_sent, add_id=true)
         graph = DependencyTree(TypedDependency, figure_1_sent; add_id=true, check_single_head=false)

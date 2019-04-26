@@ -1,8 +1,8 @@
 using DependencyTrees, Test
 
-using DependencyTrees: shift, leftarc, rightarc, reduce
-using DependencyTrees: LeftArc, RightArc, Shift, Reduce
-using DependencyTrees: isfinal, train!
+using DependencyTrees.Parse: shift, leftarc, rightarc, reduce
+using DependencyTrees.Parse: LeftArc, RightArc, Shift, Reduce
+using DependencyTrees.Parse: isfinal, train!
 using DependencyTrees: xys
 
 # tests from sandra kubler, ryan mcdonald, joakim nivre 09 "dependency
