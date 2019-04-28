@@ -2,7 +2,7 @@ using DependencyTrees, Test
 
 using DependencyTrees.Parse: shift, leftarc, rightarc, reduce
 using DependencyTrees.Parse: LeftArc, RightArc, Shift, Reduce
-using DependencyTrees.Parse: isfinal, train!
+using DependencyTrees.Parse: isfinal
 using DependencyTrees: xys
 
 # tests from sandra kubler, ryan mcdonald, joakim nivre 09 "dependency
@@ -62,9 +62,5 @@ using DependencyTrees: xys
         pairs = DependencyTrees.xys(oracle, graph)
         @test collect(last.(pairs)) == gold_transitions
         @test collect(xys(oracle, [graph])) == collect(pairs)
-
-        model = static_oracle(oracle.transition_system, graph)
-        trainer = OnlineTrainer(oracle, model, identity, (x, ŷ, y) -> error("oracle was wrong"))
-        train!(trainer, graph)
     end
 end

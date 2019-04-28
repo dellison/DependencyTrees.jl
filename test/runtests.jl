@@ -8,7 +8,7 @@ using DependencyTrees.Parse: LeftArc, RightArc, NoArc, Reduce, Shift
 using DependencyTrees.Parse: gold_transitions, zero_cost_transitions
 using DependencyTrees.Parse: choose_next_amb, choose_next_exp
 using DependencyTrees.Parse: hascost, haszerocost
-using DependencyTrees.Parse: OnlineTrainer, train!, xys
+using DependencyTrees.Parse: xys
 using DependencyTrees.Parse: DynamicGoldSearch
 using DependencyTrees.Parse: AlwaysExplore, NeverExplore, ExplorationPolicy
 using DependencyTrees.Parse: explore, next_state

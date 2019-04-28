@@ -1,5 +1,4 @@
 using DependencyTrees.Parse: shift, leftarc, rightarc
-using DependencyTrees.Parse: OnlineTrainer
 
 # tests from nivre 08 "algorithms for deterministic incremental
 # dependency parsing"
@@ -80,9 +79,6 @@ using DependencyTrees.Parse: OnlineTrainer
         end
         graph2 = DependencyTree(config.A)
         @test graph == graph2
-
-        # trainer = OnlineTrainer(StaticOracle(ArcEager{TypedDependency}), oracle, identity, error_cb)
-        # train!(trainer, graph)
     end
 
     @testset "Figure 8" begin
@@ -141,8 +137,6 @@ using DependencyTrees.Parse: OnlineTrainer
         o = StaticOracle(ListBasedNonProjective())
         pairs = DependencyTrees.xys(o, graph)
         @test last.(pairs) == gold_transitions
-        trainer = OnlineTrainer(o, oracle, identity, error_cb)
-        train!(trainer, graph)
 
         c = DependencyTrees.initconfig(ListBasedNonProjective(), graph)
         @test DependencyTrees.deptype(c) == TypedDependency

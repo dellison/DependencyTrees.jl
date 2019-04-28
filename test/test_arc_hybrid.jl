@@ -20,10 +20,6 @@
         model(x) = nothing
         errorcb(x, ŷ, y) = nothing
 
-        trainer = OnlineTrainer(oracle, model, identity, errorcb)
-
-        DT.train!(trainer, tb)
-
         function test_oracle(gold)
             gold_xys = collect(xys(oracle, gold))
             cfg, t = last(gold_xys)
@@ -77,10 +73,6 @@
             @test typeof(x) <: DT.Parse.ArcHybridConfig && typeof(y) <: TS
             @test ŷ == Shift()
             @test typeof(y) <: Union{Shift, LeftArc, RightArc}
-        end
-        trainer = OnlineTrainer(oracle, model, identity, errorcb)
-        for tree in tb
-            DT.train!(trainer, tree)
         end
     end
 

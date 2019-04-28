@@ -7,8 +7,7 @@ export
 
     # Transition parsing
     ArcEager, ArcStandard, ArcHybrid, ArcSwift, ListBasedNonProjective,
-    StaticOracle, DynamicOracle, static_oracle, static_oracle_shift,
-    OnlineTrainer
+    StaticOracle, DynamicOracle, static_oracle, static_oracle_shift
 
 using LightGraphs
 

@@ -6,8 +6,6 @@
     
     model(cfg) = nothing
     
-    trainer = OnlineTrainer(oracle, model, identity, error_cb)
-
     sent = [
         ("Economic", "NMOD", 2),  # 1
         ("news", "SUBJ", 3),      # 2
@@ -21,14 +19,11 @@
     ]
 
     graph = DependencyTree(TypedDependency, sent, add_id=true)
-    train!(trainer, graph)
 
     model = static_oracle(ArcEager(), graph)
     function error_cb(x, ŷ, y)
         @assert false
     end
-    trainer = OnlineTrainer(oracle, model, identity, error_cb)
-    train!(trainer, graph)
 
     cfg = initconfig(oracle.transition_system, graph)
     while !isfinal(cfg)
@@ -58,17 +53,11 @@
         cfg = pred(cfg)
     end
 
-    trainer = OnlineTrainer(oracle, x -> nothing, identity, (args...) -> nothing)
     tbfile = joinpath(@__DIR__, "data", "wsj_0001.dp")
     treebank = Treebank{TypedDependency}(tbfile, add_id=true)
     trees = collect(treebank)
     for tree in trees
-        train!(trainer, tree)
     end
-
-    trainer = OnlineTrainer(oracle, x -> nothing, identity, (args...) -> nothing)
-    treebank = Treebank{TypedDependency}(tbfile, add_id=true)
-    # DependencyTrees.train!(trainer, treebank)
 
     @test choose_next_amb(1, 1:5) == 1
     @test choose_next_exp(0, 1:5, () -> true) == 0

@@ -63,22 +63,6 @@
         nptreebank = Treebank{CoNLLU}(np, remove_nonprojective=false)
         @test length(collect(ptreebank)) == 2
         @test length(collect(nptreebank)) == 3
-
-        @testset "Training" begin
-            tb = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "hybridtests.conll"))
-
-            for TS in (ArcEager, ArcStandard, ArcHybrid, ArcSwift, ListBasedNonProjective)
-                oracle = StaticOracle(TS())
-                model(x) = nothing
-                update = function (x, pred, gold)
-                    # @show x
-                end
-                trainer = OnlineTrainer(oracle, model, identity, update)
-
-                train!(trainer, tb, epochs=1)
-            end
-
-        end
     end
 
     @testset "Oracles & Projectivity" begin
