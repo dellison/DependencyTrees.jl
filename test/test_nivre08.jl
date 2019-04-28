@@ -1,5 +1,3 @@
-using DependencyTrees.Parse: shift, leftarc, rightarc
-
 # tests from nivre 08 "algorithms for deterministic incremental
 # dependency parsing"
 

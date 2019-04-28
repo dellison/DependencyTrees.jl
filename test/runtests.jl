@@ -1,7 +1,16 @@
 using DependencyTrees, Test
 
 using DependencyTrees: TreebankReader
+using DependencyTrees: projective_only, deptype
+using DependencyTrees: deprel, form, id, head, root, isroot
+using DependencyTrees: MultiWordTokenError, EmptyTokenError
+using DependencyTrees: si, s, s0, s1, s2, s3, stack
+using DependencyTrees: bi, b, b0, b1, b2, b3, buffer
+using DependencyTrees: leftmostdep, rightmostdep
+using DependencyTrees: leftdeps, rightdeps
+using DependencyTrees: root, noval, token, tokens, xys
 
+using DependencyTrees.Parse: typed, untyped
 using DependencyTrees.Parse: initconfig, transition_space
 using DependencyTrees.Parse: leftarc, rightarc, noarc, shift, isfinal
 using DependencyTrees.Parse: LeftArc, RightArc, NoArc, Reduce, Shift

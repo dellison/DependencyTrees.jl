@@ -1,6 +1,6 @@
 @testset "Arc-Swift" begin
 
-    @test DT.projective_only(ArcSwift())
+    @test projective_only(ArcSwift())
 
     TD = TypedDependency
 

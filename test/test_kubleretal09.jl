@@ -1,10 +1,3 @@
-using DependencyTrees, Test
-
-using DependencyTrees.Parse: shift, leftarc, rightarc, reduce
-using DependencyTrees.Parse: LeftArc, RightArc, Shift, Reduce
-using DependencyTrees.Parse: isfinal
-using DependencyTrees: xys
-
 # tests from sandra kubler, ryan mcdonald, joakim nivre 09 "dependency
 # parsing" (https://doi.org/10.2200/S00169ED1V01Y200901HLT002)
 
@@ -22,7 +15,7 @@ using DependencyTrees: xys
         (".", "PU", 3),
     ]
 
-    @test DependencyTrees.projective_only(ArcEager())
+    @test projective_only(ArcEager())
 
     graph = DependencyTree(TypedDependency, fig_1_1, add_id=true)
     @test length(graph) == length(fig_1_1)
@@ -59,7 +52,7 @@ using DependencyTrees: xys
         @test graph == graph2
 
         oracle = StaticOracle(ArcEager())
-        pairs = DependencyTrees.xys(oracle, graph)
+        pairs = xys(oracle, graph)
         @test collect(last.(pairs)) == gold_transitions
         @test collect(xys(oracle, [graph])) == collect(pairs)
     end

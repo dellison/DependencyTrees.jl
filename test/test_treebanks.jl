@@ -1,5 +1,4 @@
 @testset "Treebanks" begin
-    using DependencyTrees: TreebankReader
 
     datadir = joinpath(@__DIR__, "data")
 
@@ -20,7 +19,6 @@
     end
 
     @testset "CoNLLU Multiword Tokens" begin
-        using DependencyTrees: CoNLLU
         tree = collect(TreebankReader{CoNLLU}(joinpath(datadir, "multiwordtoken.conllu")))[1]
         @test length(tree) == 24
         @test length(tree.mwts) == 1
@@ -29,7 +27,6 @@
 
 
     @testset "CoNLLU Empty Tokens" begin
-        using DependencyTrees: CoNLLU
         tree = collect(TreebankReader{CoNLLU}(joinpath(datadir, "emptytokens.conllu")))[1]
         @test length(tree) == 6
         @test length(tree.mwts) == 0
@@ -46,7 +43,7 @@
         treebank = Treebank{CoNLLU}(files)
         trees = collect(treebank)
         @test length(treebank) == length(trees) == 4
-        @test DependencyTrees.deptype(treebank) == CoNLLU
+        @test deptype(treebank) == CoNLLU
 
         treebank2 = Treebank{CoNLLU}(datadir, pattern=r".conllu$")
         trees2 = collect(treebank2)

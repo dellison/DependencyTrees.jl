@@ -1,7 +1,4 @@
-using DependencyTrees: deprel, form, id, head, root, isroot
-using DependencyTrees.Parse: typed, untyped
-
-struct Deplol <: DependencyTrees.Dependency end
+struct Deplol <: DT.Dependency end
 
 @testset "Tokens" begin
 

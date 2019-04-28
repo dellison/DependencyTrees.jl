@@ -1,11 +1,5 @@
 @testset begin "Features"
 
-    using DependencyTrees: si, bi, s, s0, s1, s2, s3, stack,
-                           b, b0, b1, b2, b3, buffer,
-                           leftmostdep, rightmostdep,
-                           leftdeps, rightdeps,
-                           root, noval, token, tokens, xys
-
     tb = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "hybridtests.conll"))
     t1 = first(tb)
 

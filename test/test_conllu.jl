@@ -2,7 +2,7 @@
 
     corpus_file = joinpath(@__DIR__, "data", "english.conllu")
 
-    trees = DependencyTrees.TreebankReader{CoNLLU}(corpus_file) |> collect
+    trees = TreebankReader{CoNLLU}(corpus_file) |> collect
     @test length(trees) == 2
     @test length.(trees) == [7, 19]
 
@@ -26,8 +26,8 @@
     end
 
     # make sure the errors get thrown correctly
-    @test_throws DT.MultiWordTokenError CoNLLU("18-19	cannot	_	_	_	_	_	_	_	SpaceAfter=No")
-    @test_throws DT.EmptyTokenError CoNLLU("0.1	nothing	_	_	_	_	_	_	_	_")
+    @test_throws MultiWordTokenError CoNLLU("18-19	cannot	_	_	_	_	_	_	_	SpaceAfter=No")
+    @test_throws EmptyTokenError CoNLLU("0.1	nothing	_	_	_	_	_	_	_	_")
 
     c = CoNLLU("1	Distribution	distribution	NOUN	S	Number=Sing	7	nsubj	_	_")
     @test c.feats == ["Number=Sing"]
