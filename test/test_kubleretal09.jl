@@ -28,17 +28,9 @@ using DependencyTrees: xys
     @test length(graph) == length(fig_1_1)
 
     @testset "Figure 3.7" begin
-        sent = first.(fig_1_1)
-
-        graph = DependencyTree(TypedDependency, fig_1_1, add_id=true)
-
-        oracle = DependencyTrees.static_oracle(ArcEager(), graph)
-
-        init = DependencyTrees.initconfig(ArcEager(), TypedDependency, sent)
+        o = DT.static_oracle(ArcEager(), graph)
+        init = DependencyTrees.initconfig(ArcEager(), TypedDependency, first.(fig_1_1))
         @test init.σ == [0] && init.β == 1:9
-
-        config = init
-
         gold_transitions = [Shift()
                             LeftArc("ATT")
                             Shift()
@@ -56,13 +48,14 @@ using DependencyTrees: xys
                             Reduce()
                             RightArc("PU")]
 
+        cfg = init
         for t in gold_transitions
-            @test !isfinal(config)
-            @test oracle(config) == t
-            config = t(config)
+            @test !isfinal(cfg)
+            @test o(cfg) == t
+            cfg = t(cfg)
         end
-        @test isfinal(config)
-        graph2 = DependencyTree(config.A)
+        @test isfinal(cfg)
+        graph2 = DependencyTree(cfg.A)
         @test graph == graph2
 
         oracle = StaticOracle(ArcEager())

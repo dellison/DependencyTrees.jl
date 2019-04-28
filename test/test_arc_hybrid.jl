@@ -1,28 +1,28 @@
-using DependencyTrees.Parse: LeftArc, RightArc, Shift, xys
-
 @testset "Arc-Hybrid" begin
+
+    AH = ArcHybrid()
 
     tb = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "hybridtests.conll"))
     trees = collect(tb)
     @test length(trees) == 4
     @test length.(trees) == [6, 6, 9, 18]
 
-    @test DependencyTrees.projective_only(ArcHybrid())
+    @test DT.projective_only(ArcHybrid())
 
     t1 = first(trees)
     using DependencyTrees: initconfig
-    c1,c2 = initconfig(ArcHybrid(), CoNLLU, [t.form for t in t1]), initconfig(ArcHybrid(), t1)
+    c1,c2 = initconfig(AH, CoNLLU, [t.form for t in t1]), initconfig(AH, t1)
     @test [t.form for t in c1.A] == [t.form for t in c2.A]
 
 
     @testset "Static Oracle" begin
-        oracle = StaticOracle(ArcHybrid())
+        oracle = StaticOracle(AH)
         model(x) = nothing
         errorcb(x, ŷ, y) = nothing
 
         trainer = OnlineTrainer(oracle, model, identity, errorcb)
 
-        DependencyTrees.train!(trainer, tb)
+        DT.train!(trainer, tb)
 
         function test_oracle(gold)
             gold_xys = collect(xys(oracle, gold))
@@ -74,13 +74,13 @@ using DependencyTrees.Parse: LeftArc, RightArc, Shift, xys
         oracle = DynamicOracle(ArcHybrid())
         model(x) = Shift()
         function errorcb(x, ŷ, y)
-            @test typeof(x) <: DependencyTrees.Parse.ArcHybridConfig && typeof(y) <: TS
+            @test typeof(x) <: DT.Parse.ArcHybridConfig && typeof(y) <: TS
             @test ŷ == Shift()
             @test typeof(y) <: Union{Shift, LeftArc, RightArc}
         end
         trainer = OnlineTrainer(oracle, model, identity, errorcb)
         for tree in tb
-            DependencyTrees.train!(trainer, tree)
+            DT.train!(trainer, tree)
         end
     end
 

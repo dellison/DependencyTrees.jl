@@ -1,16 +1,15 @@
-using DependencyTrees.Parse: leftarc, rightarc, shift, isfinal
-using DependencyTrees.Parse: LeftArc, RightArc, Reduce, Shift
-using DependencyTrees.Parse: OnlineTrainer, train!
 
 # tests from chapter 13 of the draft of "Speech and Language
 # Processing" 3rd edition by Jurafsky & Martin
 
 @testset "J&M 3ed Ch 13" begin
 
+    sent_f13_7 = ["book", "me", "the", "morning", "flight"]
+
     @testset "ArcStandard" begin
 
         # figure 13.7 in jurafsky & martin SLP 3rd ed., aug 2018 draft
-        sent = ["book", "me", "the", "morning", "flight"]
+        sent = copy(sent_f13_7)
 
         word2id = Dict(word => id for (id, word) in enumerate(sent))
         word2id["root"] = 0

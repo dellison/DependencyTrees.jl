@@ -20,7 +20,6 @@ export
     si, s, s0, s1, s2, s3, stack,
     bi, b, b0, b1, b2, b3, buffer
 
-
 include("graphbased/parse.jl")
 include("transition/parse.jl")
 

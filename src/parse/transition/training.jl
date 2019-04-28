@@ -9,7 +9,7 @@ function train!(trainer::OnlineTrainer{<:StaticOracle}, graph::DependencyTree)
     f = trainer.featurize
     update = trainer.update_function
     model = trainer.model
-    for (config, gold_t) in StaticGoldPairs(trainer.oracle, graph)
+    for (config, gold_t) in xys(trainer.oracle, graph)
         features = f(config)
         prediction = model(features)
         if prediction != gold_t

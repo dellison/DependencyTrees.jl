@@ -1,8 +1,6 @@
-using DependencyTrees: xys
-
 @testset "Arc-Swift" begin
 
-    @test DependencyTrees.projective_only(ArcSwift())
+    @test DT.projective_only(ArcSwift())
 
     TD = TypedDependency
 
@@ -87,7 +85,7 @@ using DependencyTrees: xys
 
     end
 
-    using DependencyTrees: initconfig
-    c1,c2 = initconfig(ArcSwift(), TD, [t.form for t in gold1]), initconfig(ArcSwift(), gold1)
+    c1 = initconfig(ArcSwift(), TD, [t.form for t in gold1])
+    c2 = initconfig(ArcSwift(), gold1)
     @test [t.form for t in c1.A] == [t.form for t in c2.A]
 end

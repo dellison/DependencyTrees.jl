@@ -41,26 +41,11 @@ struct LeftArc{A<:Tuple,K<:NamedTuple} <: TransitionOperator
     end
 end
 
-# LeftArc(args...; kwargs...) = LeftArc(args, kwargs.data)
-# LeftArc(::Tuple{Tuple{}}) = LeftArc()
-
 (op::LeftArc)(cfg::AbstractParserConfiguration) = leftarc(cfg, op.args...; op.kwargs...)
 
 name(::LeftArc) = "LeftArc"
 args(op::LeftArc) = op.args
 kwargs(op::LeftArc) = op.kwargs
-
-# function Base.show(io::IO, op::LeftArc)
-#     as = join(args(op), ", ")
-#     # kwas = join(["$a=$v" for (a, v) in kwargs(op)], ", ")
-#     kwas = kwargs(op)
-#     if length(kwas) > 0
-#         print(io, "LeftArc($as; $kwas)")
-#     else
-#         print(io, "LeftArc($as)")
-#     end
-# end
-
 
 struct RightArc{A<:Tuple,K<:NamedTuple} <: TransitionOperator
     args::A
@@ -75,9 +60,6 @@ struct RightArc{A<:Tuple,K<:NamedTuple} <: TransitionOperator
     end
 
 end
-    
-# RightArc(args...; kwargs...) = RightArc(args, kwargs.data)
-# RightArc(::Tuple{Tuple{}}) = RightArc()
 
 (op::RightArc)(cfg::AbstractParserConfiguration) = rightarc(cfg, op.args...; op.kwargs...)
 

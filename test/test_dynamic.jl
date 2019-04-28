@@ -1,5 +1,3 @@
-using DependencyTrees: TreebankReader
-
 @testset "Dynamic Oracle" begin
 
     error_cb(args...) = nothing
@@ -23,24 +21,24 @@ using DependencyTrees: TreebankReader
     ]
 
     graph = DependencyTree(TypedDependency, sent, add_id=true)
-    DependencyTrees.train!(trainer, graph)
+    train!(trainer, graph)
 
     model = static_oracle(ArcEager(), graph)
     function error_cb(x, ŷ, y)
         @assert false
     end
     trainer = OnlineTrainer(oracle, model, identity, error_cb)
-    DependencyTrees.train!(trainer, graph)
+    train!(trainer, graph)
 
-    cfg = DependencyTrees.initconfig(oracle.transition_system, graph)
+    cfg = initconfig(oracle.transition_system, graph)
     while !isfinal(cfg)
         pred = model(cfg)
-        gold = DependencyTrees.Parse.gold_transitions(oracle, cfg, graph)
-        zeroc = DependencyTrees.Parse.zero_cost_transitions(cfg, graph)
+        gold = gold_transitions(oracle, cfg, graph)
+        zeroc = zero_cost_transitions(cfg, graph)
         @test gold == zeroc
         @test pred in gold
-        @test any(t -> DependencyTrees.Parse.hascost(t, cfg, graph), [Shift(), Reduce(), LeftArc("lol"), RightArc("lol")])
-        @test all(t -> DependencyTrees.Parse.haszerocost(t, cfg, graph), gold)
+        @test any(t -> hascost(t, cfg, graph), [Shift(), Reduce(), LeftArc("lol"), RightArc("lol")])
+        @test all(t -> haszerocost(t, cfg, graph), gold)
         cfg = pred(cfg)
     end
 
@@ -48,15 +46,15 @@ using DependencyTrees: TreebankReader
     oracle_ut = DynamicOracle(ArcEager(), transition=untyped)
     DependencyTrees.xys(oracle_ut, graph)
     model = static_oracle(ArcEager(), graph, untyped)
-    cfg = DependencyTrees.initconfig(oracle_ut.transition_system, graph)
+    cfg = initconfig(oracle_ut.transition_system, graph)
     while !isfinal(cfg)
         pred = model(cfg)
-        gold = DependencyTrees.Parse.gold_transitions(oracle_ut, cfg, graph)
-        zeroc = DependencyTrees.Parse.zero_cost_transitions(cfg, graph, untyped)
+        gold = gold_transitions(oracle_ut, cfg, graph)
+        zeroc = zero_cost_transitions(cfg, graph, untyped)
         @test gold == zeroc
         @test pred in gold
-        @test any(t -> DependencyTrees.Parse.hascost(t, cfg, graph), [Shift(), Reduce(), LeftArc(), RightArc()])
-        @test all(t -> DependencyTrees.Parse.haszerocost(t, cfg, graph), gold)
+        @test any(t -> hascost(t, cfg, graph), [Shift(), Reduce(), LeftArc(), RightArc()])
+        @test all(t -> haszerocost(t, cfg, graph), gold)
         cfg = pred(cfg)
     end
 
@@ -65,19 +63,19 @@ using DependencyTrees: TreebankReader
     treebank = Treebank{TypedDependency}(tbfile, add_id=true)
     trees = collect(treebank)
     for tree in trees
-        DependencyTrees.train!(trainer, tree)
+        train!(trainer, tree)
     end
 
     trainer = OnlineTrainer(oracle, x -> nothing, identity, (args...) -> nothing)
     treebank = Treebank{TypedDependency}(tbfile, add_id=true)
     # DependencyTrees.train!(trainer, treebank)
 
-    @test DependencyTrees.Parse.choose_next_amb(1, 1:5) == 1
-    @test DependencyTrees.Parse.choose_next_exp(0, 1:5, () -> true) == 0
-    @test DependencyTrees.Parse.choose_next_exp(0, 1:5, () -> false) != 0
-    @test DependencyTrees.Parse.zero_cost_transitions(cfg, graph) == [Reduce()]
+    @test choose_next_amb(1, 1:5) == 1
+    @test choose_next_exp(0, 1:5, () -> true) == 0
+    @test choose_next_exp(0, 1:5, () -> false) != 0
+    @test zero_cost_transitions(cfg, graph) == [Reduce()]
 
-    for (cfg, gold) in DependencyTrees.xys(oracle, graph)
+    for (cfg, gold) in xys(oracle, graph)
         @test length(gold) >= 1
     end
 
@@ -93,49 +91,47 @@ using DependencyTrees: TreebankReader
         tb = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "hybridtests.conll"))
 
         for tree in treebank
-            for (cfg, G) in DependencyTrees.xys(oracle, tree)
-                @test cfg isa DependencyTrees.Parse.ArcHybridConfig
+            for (cfg, G) in xys(oracle, tree)
+                @test cfg isa DT.Parse.ArcHybridConfig
                 for t in G
                     T = typeof(t)
-                    @test T <: DependencyTrees.Parse.LeftArc || T <: DependencyTrees.Parse.RightArc || T <: DependencyTrees.Parse.Shift
+                    @test T <: LeftArc || T <: RightArc || T <: Shift
                 end
             end
 
-            for state in DependencyTrees.Parse.DynamicGoldSearch(oracle, tree)
+            for state in DynamicGoldSearch(oracle, tree)
                 @test state.G ⊆ state.A
-                t, next = DependencyTrees.Parse.explore(state)
-                @test t(state.cfg) == next == DependencyTrees.Parse.next_state(state, t)
+                t, next = explore(state)
+                @test t(state.cfg) == next == next_state(state, t)
                 @test t in state.A
-                @test DependencyTrees.Parse.explore(state, t) == (t, next)
+                @test explore(state, t) == (t, next)
             end
         end
     end
 end
 
 @testset "Transition Output Spaces" begin
-    using DependencyTrees.Parse: transition_space, LeftArc, RightArc, NoArc, Reduce, Shift
-    
     @test transition_space(ArcEager()) == [LeftArc(), RightArc(), Reduce(), Shift()]
-    @test transition_space(ArcEager(), ["a","b"]) == [LeftArc("a"), LeftArc("b"),
+    @test transition_space(ArcEager(), ["a","b"]) == [LeftArc("a"),  LeftArc("b"),
                                                       RightArc("a"), RightArc("b"),
                                                       Reduce(), Shift()]
 
     @test transition_space(ArcHybrid()) == [LeftArc(), RightArc(), Shift()]
-    @test transition_space(ArcHybrid(), ["a","b"]) == [LeftArc("a"), LeftArc("b"),
+    @test transition_space(ArcHybrid(), ["a","b"]) == [LeftArc("a"),  LeftArc("b"),
                                                        RightArc("a"), RightArc("b"),
                                                        Shift()]
 
     @test transition_space(ArcStandard()) == [LeftArc(), RightArc(), Shift()]
-    @test transition_space(ArcStandard(), ["a","b"]) == [LeftArc("a"), LeftArc("b"),
+    @test transition_space(ArcStandard(), ["a","b"]) == [LeftArc("a"),  LeftArc("b"),
                                                          RightArc("a"), RightArc("b"),
                                                          Shift()]
 
-    @test transition_space(ArcSwift(); max_k=2) == [LeftArc(1), LeftArc(2),
+    @test transition_space(ArcSwift(); max_k=2) == [LeftArc(1),  LeftArc(2),
                                                     RightArc(1), RightArc(2),
                                                     Shift()]
     ts1 = Set(transition_space(ArcSwift(), ["a","b"]; max_k=2))
-    ts2 = Set([LeftArc(1, "a"), LeftArc(2, "a"),
-               LeftArc(1, "b"), LeftArc(2, "b"),
+    ts2 = Set([LeftArc(1, "a"),  LeftArc(2, "a"),
+               LeftArc(1, "b"),  LeftArc(2, "b"),
                RightArc(1, "a"), RightArc(2, "a"),
                RightArc(1, "b"), RightArc(2, "b"),
                Shift()])
@@ -148,7 +144,6 @@ end
 end
 
 @testset "Exploration Policies" begin
-    using DependencyTrees.Parse: AlwaysExplore, NeverExplore, ExplorationPolicy
     always1, never1 = AlwaysExplore(), NeverExplore()
     always2, never2 = ExplorationPolicy(0,1), ExplorationPolicy(0,0)
     for i = 1:10

@@ -26,9 +26,8 @@
     end
 
     # make sure the errors get thrown correctly
-    using DependencyTrees: MultiWordTokenError, EmptyTokenError
-    @test_throws MultiWordTokenError CoNLLU("18-19	cannot	_	_	_	_	_	_	_	SpaceAfter=No")
-    @test_throws EmptyTokenError CoNLLU("0.1	nothing	_	_	_	_	_	_	_	_")
+    @test_throws DT.MultiWordTokenError CoNLLU("18-19	cannot	_	_	_	_	_	_	_	SpaceAfter=No")
+    @test_throws DT.EmptyTokenError CoNLLU("0.1	nothing	_	_	_	_	_	_	_	_")
 
     c = CoNLLU("1	Distribution	distribution	NOUN	S	Number=Sing	7	nsubj	_	_")
     @test c.feats == ["Number=Sing"]
