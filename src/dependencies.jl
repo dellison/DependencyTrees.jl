@@ -136,7 +136,6 @@ toconllu(d::UntypedDependency) =
 
 unk(::Type{UntypedDependency}, id, word) = UntypedDependency(id, word, -1)
 
-import Base.==
 ==(d1::UntypedDependency, d2::UntypedDependency) =
     d1.id == d2.id && d1.form == d2.form && d1.head == d2.head
 
@@ -189,7 +188,6 @@ toconllu(d::TypedDependency) =
 
 unk(::Type{TypedDependency}, id, word) = TypedDependency(id, word, undef, -1)
 
-import Base.==
 ==(d1::TypedDependency, d2::TypedDependency) =
     all([d1.id == d2.id, d1.form == d2.form,
          d1.deprel == d2.deprel, d1.head == d2.head])

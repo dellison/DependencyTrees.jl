@@ -41,7 +41,7 @@ struct LeftArc{A<:Tuple,K<:NamedTuple} <: TransitionOperator
     end
 end
 
-(op::LeftArc)(cfg::AbstractParserConfiguration) = leftarc(cfg, op.args...; op.kwargs...)
+(op::LeftArc)(cfg) = leftarc(cfg, op.args...; op.kwargs...)
 
 name(::LeftArc) = "LeftArc"
 args(op::LeftArc) = op.args
@@ -51,17 +51,15 @@ struct RightArc{A<:Tuple,K<:NamedTuple} <: TransitionOperator
     args::A
     kwargs::K
 
-    # RightArc(args...; kwargs...) = new(args, kwargs.data)
     function RightArc(args...; kwargs...)
         A = typeof(args)
         ks = kwargs.data
         K = typeof(ks)
         new{A,K}(args, ks)
     end
-
 end
 
-(op::RightArc)(cfg::AbstractParserConfiguration) = rightarc(cfg, op.args...; op.kwargs...)
+(op::RightArc)(cfg) = rightarc(cfg, op.args...; op.kwargs...)
 
 name(::RightArc) = "RightArc"
 args(op::RightArc) = op.args

@@ -1,10 +1,10 @@
 """
-    ArcHybrid
+    ArcHybrid()
 
 Arc-Hybrid system for transition dependency parsing.
 
-Described in [Kuhlmann et al, 2011](https://www.aclweb.org/anthology/P/P11/P11-1068.pdf),
-[Goldberg & Nivre, 2013](https://aclweb.org/anthology/Q/Q13/Q13-1033.pdf).
+Described in [Kuhlmann et al, 2011](https://www.aclweb.org/anthology/P11-1068.pdf),
+[Goldberg & Nivre, 2013](https://aclweb.org/anthology/Q13-1033.pdf).
 """
 struct ArcHybrid <: AbstractTransitionSystem end
 
@@ -101,26 +101,26 @@ isfinal(cfg::ArcHybridConfig) = all(a -> head(a) != -1, cfg.A)
 
 
 """
-    static_oracle(::ArcHybrid, graph)
+    static_oracle(::ArcHybrid, tree)
 
-Return a static oracle function which maps parser states to gold transition
-operations with reference to `graph`.
+Static oracle for arc-hybrid dependency parsing. Closes over gold trees,
+mapping parser configurations to optimal transitions.
 """
-function static_oracle(::ArcHybrid, graph::DependencyTree, tr = typed)
-    arc(i) = tr(graph[i])
+function static_oracle(::ArcHybrid, tree::DependencyTree, tr = typed)
+    arc(i) = tr(tree[i])
 
     function (cfg::ArcHybridConfig)
         if length(cfg.σ) > 0
             σ, s = cfg.σ[1:end-1], cfg.σ[end]
             if length(cfg.β) > 0
                 b, β = cfg.β[1], cfg.β[2:end]
-                if has_arc(graph, b, s)
+                if has_arc(tree, b, s)
                     return LeftArc(arc(s)...)
                 end
             end
             if length(σ) > 0
                 s2 = σ[end]
-                if has_arc(graph, s2, s) && !any(k -> has_arc(graph, s, k), cfg.β)
+                if has_arc(tree, s2, s) && !any(k -> has_arc(tree, s, k), cfg.β)
                     return RightArc(arc(s)...)
                 end
             end
@@ -157,16 +157,16 @@ function cost(t::Shift, cfg::ArcHybridConfig, gold)
     count(h -> has_arc(gold, h, b), H) + count(d -> has_arc(gold, b, d), D)
 end
 
-function possible_transitions(cfg::ArcHybridConfig, graph::DependencyTree, tr = typed)
+function possible_transitions(cfg::ArcHybridConfig, tree::DependencyTree, tr = typed)
     ops = TransitionOperator[]
     S, B = length(cfg.σ), length(cfg.β)
     if S >= 1
         s = cfg.σ[end]
         if !iszero(s) && S > 1
-            push!(ops, RightArc(tr(graph[s])...))
+            push!(ops, RightArc(tr(tree[s])...))
         end
         if B >= 1
-            push!(ops, LeftArc(tr(graph[s])...))
+            push!(ops, LeftArc(tr(tree[s])...))
         end
     end
     B >= 1 && push!(ops, Shift())
@@ -174,6 +174,8 @@ function possible_transitions(cfg::ArcHybridConfig, graph::DependencyTree, tr = 
 end
 
 
-import Base.==
 ==(cfg1::ArcHybridConfig, cfg2::ArcHybridConfig) =
     cfg1.σ == cfg2.σ && cfg1.β == cfg2.β && cfg1.A == cfg2.A
+
+Base.show(io::IO, c::ArcHybridConfig) =
+    print(io, "ArcHybridConfig($(c.σ),$(c.β))\n$(join([join([id(t),form(t),head(t)],'\t') for t in tokens(c)],'\n'))")

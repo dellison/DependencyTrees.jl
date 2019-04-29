@@ -20,9 +20,7 @@ struct Deplol <: DT.Dependency end
             @test head(dep) == token[2]
             @test untyped(dep) == typed(dep) == ()
         end
-
-        noval = DependencyTrees.noval(UntypedDependency)
-        @test !DependencyTrees.hashead(noval)
+        @test !hashead(noval(UntypedDependency))
     end
 
     @testset "Typed Dependencies" begin
@@ -45,9 +43,7 @@ struct Deplol <: DT.Dependency end
             @test untyped(dep) == ()
             @test typed(dep) == (token[2],)
         end
-
-        noval = DependencyTrees.noval(TypedDependency)
-        @test !DependencyTrees.hashead(noval)
+        @test !hashead(noval(TypedDependency))
     end
 
     @testset "Errors" begin
@@ -57,18 +53,17 @@ struct Deplol <: DT.Dependency end
                 fn(d)
                 @test false
             catch err
-                # @show err
                 @test occursin("not implemented", err.msg)
             end
         end
-        check_error(DependencyTrees.dep, d)
-        check_error(DependencyTrees.deprel, d)
-        check_error(DependencyTrees.form, d)
-        check_error(DependencyTrees.hashead, d)
-        check_error(DependencyTrees.head, d)
-        check_error(DependencyTrees.isroot, d)
-        check_error(DependencyTrees.noval, d)
-        check_error(DependencyTrees.root, Deplol)
-        check_error(DependencyTrees.unk, Deplol)
+        check_error(DT.dep, d)
+        check_error(DT.deprel, d)
+        check_error(DT.form, d)
+        check_error(DT.hashead, d)
+        check_error(DT.head, d)
+        check_error(DT.isroot, d)
+        check_error(DT.noval, d)
+        check_error(DT.root, Deplol)
+        check_error(DT.unk, Deplol)
     end
 end

@@ -100,7 +100,8 @@ function toconllu(d::CoNLLU)
     join([id, form, lemma, upos, xpos, feats, head, deprel, deps, misc], "\t")*"\n"
 end
 
-import Base.==
+Base.show(io::IO, d::CoNLLU) = print(io, toconllu(d))
+
 ==(d1::CoNLLU, d2::CoNLLU) =
     all([d1.id == d2.id, d1.form == d2.form, d1.lemma == d2.lemma,
           d1.upos == d2.upos, d1.xpos == d2.xpos, d1.feats == d2.feats,

@@ -1,10 +1,10 @@
 """
-    ArcEager
+    ArcEager()
 
-Transition system for Arc-Eager dependency parsing.
+Arc-Eager transition system for dependency parsing.
 
 See [Nivre 2003](http://stp.lingfil.uu.se/~nivre/docs/iwpt03.pdf),
-[Nivre 2008](https://www.aclweb.org/anthology/J/J08/J08-4003.pdf).
+[Nivre 2008](https://www.aclweb.org/anthology/J08-4003.pdf).
 """
 struct ArcEager <: AbstractTransitionSystem end
 
@@ -79,19 +79,18 @@ end
 isfinal(cfg::ArcEagerConfig) = all(a -> head(a) >= 0, cfg.A)
 hashead(cfg::ArcEagerConfig, k) = head(cfg.A[k]) != -1
 
-
 """
-    static_oracle(::ArcEagerConfig, graph)
+    static_oracle(::ArcEagerConfig, tree)
 
-Return a static oracle function which maps parser states to gold transition
-operations with reference to `graph`.
+Static oracle for arc-eager dependency parsing. Closes over gold trees,
+mapping parser configurations to optimal transitions.
 
-Described in [Goldberg & Nivre 2012](https://www.aclweb.org/anthology/C/C12/C12-1059.pdf).
-Also called Arc-Eager-Reduce in [Qi & Manning 2007](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
+See [Goldberg & Nivre 2012](https://www.aclweb.org/anthology/C12-1059.pdf).
+(Also called Arc-Eager-Reduce in [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf)).
 """
-function static_oracle(::ArcEager, graph::DependencyTree, tr = typed)
-    args(i) = tr(graph[i])
-    gold_arc(a, b) = has_arc(graph, a, b)
+function static_oracle(::ArcEager, tree::DependencyTree, tr = typed)
+    args(i) = tr(tree[i])
+    gold_arc(a, b) = has_arc(tree, a, b)
 
     function (cfg::ArcEagerConfig)
         if length(cfg.σ) >= 1 && length(cfg.β) >= 1
@@ -100,7 +99,7 @@ function static_oracle(::ArcEager, graph::DependencyTree, tr = typed)
                 return LeftArc(args(s)...)
             elseif gold_arc(s, b)
                 return RightArc(args(b)...)
-            elseif all(k -> k > 0 && hashead(cfg, k), [s ; dependents(graph, s)])
+            elseif all(k -> k > 0 && hashead(cfg, k), [s ; dependents(tree, s)])
                 return Reduce()
             end
         end
@@ -111,11 +110,12 @@ end
 """
     static_oracle_shift(::ArcEager, graph)
 
-Return a static oracle function which maps parser states to gold
-transition operations with reference to `graph`.  Similar to the
-standard static oracle, but always Shift when ambiguity is present.
+Static oracle for arc-standard dependency parsing. Closes over gold
+trees, mapping parser configurations to optimal transitions.  Similar
+to the "regular" static oracle, but always Shift when ambiguity is
+present.
 
-Described in [Qi & Manning 2007](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
+See [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
 function static_oracle_shift(::ArcEager, graph::DependencyTree, tr = typed)
     args(i) = tr(graph[i])
@@ -205,7 +205,9 @@ function cost(t::Shift, cfg::ArcEagerConfig, gold)
 end
 
 
-import Base.==, Base.getindex
 ==(cfg1::ArcEagerConfig, cfg2::ArcEagerConfig) =
     cfg1.σ == cfg2.σ && cfg1.β == cfg2.β && cfg1.A == cfg2.A
 Base.getindex(cfg::ArcEagerConfig, i) = arc(cfg, i)
+
+Base.show(io::IO, c::ArcEagerConfig) =
+    print(io, "ArcEagerConfig($(c.σ),$(c.β))\n$(join([join([id(t),form(t),head(t)],'\t') for t in tokens(c)],'\n'))")

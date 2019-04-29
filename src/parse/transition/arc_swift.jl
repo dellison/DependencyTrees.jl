@@ -1,5 +1,5 @@
 """
-    ArcSwift
+    ArcSwift()
 
 Parser configuration for arc-swift dependency parsing.
 
@@ -109,6 +109,8 @@ function static_oracle(::ArcSwift, graph::DependencyTree, tr = typed)
 end
 
 
-import Base.==
 ==(cfg1::ArcSwiftConfig, cfg2::ArcSwiftConfig) =
     cfg1.σ == cfg2.σ && cfg1.β == cfg2.β && cfg1.A == cfg2.A
+
+Base.show(io::IO, c::ArcSwiftConfig) =
+    print(io, "ArcSwiftConfig($(c.σ),$(c.β))\n$(join([join([id(t),form(t),head(t)],'\t') for t in tokens(c)],'\n'))")

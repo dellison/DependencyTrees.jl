@@ -1,9 +1,8 @@
 """
-    DynamicOracle(T, oracle_function = haszerocost; transition = typed)
+    DynamicOracle(system, oracle = haszerocost; transition = untyped)
 
-Dynamic oracle for mapping parser configurations (of type T)
-to sets of gold transitions with reference to a dependency graph.
-See [Goldberg & Nivre, 2012](https://aclweb.org/anthology/C/C12/C12-1059.pdf)
+Dynamic oracle for nondeterministic dependency parsing.
+See [Goldberg & Nivre, 2012](https://aclweb.org/anthology/C/C12/C12-1059.pdf).
 """
 struct DynamicOracle{T} <: Oracle{T}
     transition_system::T
@@ -36,9 +35,21 @@ haszerocost(t::TransitionOperator, cfg, gold::DependencyTree) =
 hascost(t::TransitionOperator, cfg, gold::DependencyTree) =
     cost(t, cfg, gold) >= 0
 
-zero_cost_transitions(cfg, gold::DependencyTree, transition = typed) =
-    filter(t -> haszerocost(t, cfg, gold), possible_transitions(cfg, gold, transition))
+"""
+    zero_cost_transitions(cfg, tree)
 
+todo
+"""
+function zero_cost_transitions(c, gold::DependencyTree, transition=typed)
+    ts = possible_transitions(c, gold, transition)
+    filter(t -> haszerocost(t, c, gold), ts)
+end
+
+"""
+    DynamicGoldState{C}
+
+todo
+"""
 struct DynamicGoldState{C}
     cfg::C
     A::Vector{TransitionOperator}
@@ -50,22 +61,34 @@ function DynamicGoldState(oracle::DynamicOracle, cfg, gold)
     DynamicGoldState(cfg, A, G)
 end
 
+"""
+    next_state(dynamic_state, t)
+"""
 function next_state(state::DynamicGoldState, t)
-    @assert t in state.A
+    @assert t in state.A "$t is not a legal transition for $(state.cfg)"
     t(state.cfg)
 end
 
-function explore(state::DynamicGoldState)
-    t = rand(state.A)
-    (t, t(state.cfg))
-end
+"""
+    explore(state[, t])
 
-function explore(state::DynamicGoldState, t)
-    @assert t in state.A
-    (t, t(state.cfg))
-end
+todo
+"""
+explore(state::DynamicGoldState) = rand(state.A)
 
-# 
+"""
+    gold_transition(dynamic_state)
+
+"""
+gold_transition(state::DynamicGoldState) = rand(state.G)
+
+isoptimal(state::DynamicGoldState, t) = t in state.G
+
+"""
+    DynamicGoldSearch
+
+todo
+"""
 struct DynamicGoldSearch{S,T,P}
     oracle::DynamicOracle{S}
     tree::DependencyTree{T}
@@ -85,14 +108,14 @@ function DynamicGoldSearch(oracle::DynamicOracle, tree::DependencyTree;
     end
 end
 
-import Base.iterate
-Base.iterate(search::DynamicGoldSearch) =
-    _iterate(search, initconfig(search.oracle.transition_system, search.tree))
-Base.iterate(search::DynamicGoldSearch, cfg) =
-    isfinal(cfg) ? nothing : _iterate(search, cfg)
-function _iterate(search::DynamicGoldSearch, cfg)
-    A, G = AG(search.oracle, cfg, search.tree)
-    t = search.policy() ? search.predict(cfg) : search.choose(search.predict(cfg), G)
+Base.iterate(s::DynamicGoldSearch) =
+    _iterate(s, initconfig(s.oracle.transition_system, s.tree))
+Base.iterate(s::DynamicGoldSearch, cfg) =
+    isfinal(cfg) ? nothing : _iterate(s, cfg)
+
+function _iterate(s::DynamicGoldSearch, cfg)
+    A, G = AG(s.oracle, cfg, s.tree)
+    t = s.policy() ? s.predict(cfg) : s.choose(s.predict(cfg), G)
     return (DynamicGoldState(cfg, A, G), t(cfg))
 end
 

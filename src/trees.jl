@@ -1,3 +1,13 @@
+"""
+    DependencyTree(T::Type{<:Dependency}, tokens)
+
+Create a DependencyTree for dependencies of type t with
+nodes `tokens`.
+
+DependencyTree(UntypedDependency, [(\"the\", 2),(\"cat\",3),(\"slept\",0)])
+
+DependencyTree(TypedDependency, [(\"the\", \"DT\", 2),(\"cat\",\"NN\",3),(\"slept\",\"VBD\",0)])
+"""
 struct DependencyTree{T<:Dependency} <: AbstractGraph{Int}
     graph::SimpleDiGraph
     tokens::Vector{T}
@@ -12,24 +22,10 @@ struct DependencyTree{T<:Dependency} <: AbstractGraph{Int}
     end
 end
 
-"""
-    DependencyTree(T::Type{<:Dependency}, tokens)
-
-Create a DependencyTree for dependencies of type t with
-nodes `tokens`.
-
-DependencyTree(UntypedDependency, [(\"the\", 2),(\"cat\",3),(\"slept\",0)])
-
-DependencyTree(TypedDependency, [(\"the\", \"DT\", 2),(\"cat\",\"NN\",3),(\"slept\",\"VBD\",0)])
-"""
 function DependencyTree(T::Type{<:Dependency}, tokens; add_id=false, kwargs...)
     A, mwts, es = T[], MultiWordToken[], EmptyToken[]
-    for (i, token) in enumerate(tokens)
-        if add_id
-            dependency = T(i, token...)
-        else
-            dependency = T(token...)
-        end
+    for (id, token) in enumerate(tokens)
+        add_id ? dependency = T(id, token...) : dependency = T(token...)
         push!(A, dependency)
     end
     DependencyTree(A; mwts=mwts, emptytokens=es, kwargs...)

@@ -1,7 +1,9 @@
 """
-    ArcStandard
+    ArcStandard()
 
 Transition system for for Arc-Standard dependency parsing.
+
+See [Nivre 2004](https://www.aclweb.org/anthology/W04-0308.pdf).
 """
 struct ArcStandard <: AbstractTransitionSystem end
 
@@ -61,7 +63,7 @@ function rightarc(cfg::ArcStandardConfig, args...; kwargs...)
 end
 
 function shift(state::ArcStandardConfig)
-    # remove the word from the front of the input buffer and push it
+    # remove the word from the front of the buffer and push it
     # onto the stack
     b, β = state.β[1], state.β[2:end]
     ArcStandardConfig([state.σ ; b], β, state.A)
@@ -70,24 +72,23 @@ end
 isfinal(state::ArcStandardConfig) =
     length(state.σ) == 1 && state.σ[1] == 0 && length(state.β) == 0
 
-
 """
-    static_oracle(::ArcStandard, graph)
+    static_oracle(::ArcStandard, gold_tree)
 
-Return a training oracle function which returns gold transition
-operations from a parser configuration with reference to `graph`.
+Static oracle for arc-standard dependency parsing. Closes over gold trees,
+mapping parser configurations to optimal transitions.
 """
-function static_oracle(::ArcStandard, graph::DependencyTree, tr = typed)
-    args(i) = tr(graph[i])
+function static_oracle(::ArcStandard, gold_tree::DependencyTree, tr = typed)
+    args(i) = tr(gold_tree[i])
 
-    function (cfg::ArcStandardConfig)
-        if length(cfg.σ) >= 2
-            s2, s1 = cfg.σ[end-1], cfg.σ[end]
-            if has_arc(graph, s1, s2)
-                return LeftArc(args(s2)...)
-            elseif has_arc(graph, s2, s1)
-                if !any(k -> (k in cfg.σ || k in cfg.β), dependents(graph, s1))
-                    return RightArc(args(s1)...)
+    function (c::ArcStandardConfig)
+        if length(c.σ) >= 2
+            s1, s0 = c.σ[end-1], c.σ[end]
+            if has_arc(gold_tree, s0, s1)
+                return LeftArc(args(s1)...)
+            elseif has_arc(gold_tree, s1, s0)
+                if !any(k -> (k in c.σ || k in c.β), dependents(gold_tree, s0))
+                    return RightArc(args(s0)...)
                 end
             end
         end
@@ -95,7 +96,12 @@ function static_oracle(::ArcStandard, graph::DependencyTree, tr = typed)
     end
 end
 
-
-import Base.==
 ==(cfg1::ArcStandardConfig, cfg2::ArcStandardConfig) =
     cfg1.σ == cfg2.σ && cfg1.β == cfg2.β && cfg1.A == cfg2.A
+
+function Base.show(io::IO, c::ArcStandardConfig)
+    h = "ArcStandardConfig($(c.σ),$(c.β))"
+    fmt(t) = join([id(t),form(t),head(t)],"\t")
+    a = join([fmt(t) for t in tokens(c)],'\n')
+    print(io, "$h\n$a")
+end

@@ -11,6 +11,9 @@ export
 
 using LightGraphs
 
+import Base.==
+import Base.getindex
+
 include("errors.jl")
 include("dependencies.jl")
 include("conllu.jl")

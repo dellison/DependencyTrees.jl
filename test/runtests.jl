@@ -1,8 +1,10 @@
 using DependencyTrees, Test
 
+const DT = DependencyTrees
+
 using DependencyTrees: TreebankReader
 using DependencyTrees: projective_only, deptype
-using DependencyTrees: deprel, form, id, head, root, isroot
+using DependencyTrees: deprel, form, id, hashead, head, root, isroot
 using DependencyTrees: MultiWordTokenError, EmptyTokenError
 using DependencyTrees: si, s, s0, s1, s2, s3, stack
 using DependencyTrees: bi, b, b0, b1, b2, b3, buffer
@@ -22,7 +24,11 @@ using DependencyTrees.Parse: DynamicGoldSearch
 using DependencyTrees.Parse: AlwaysExplore, NeverExplore, ExplorationPolicy
 using DependencyTrees.Parse: explore, next_state
 
-const DT = DependencyTrees
+function showstr(op)
+    buf = IOBuffer()
+    show(buf, op)
+    return String(take!(buf))
+end
 
 @testset "DependencyTrees" begin 
     include("test_tokens.jl")

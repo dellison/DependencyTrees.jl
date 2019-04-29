@@ -1,5 +1,5 @@
 """
-    ListBasedNonProjective
+    ListBasedNonProjective()
 
 Transition system for list-based non-projective dependency parsing.
 
@@ -114,6 +114,8 @@ function static_oracle(::ListBasedNonProjective, graph::DependencyTree, tr = typ
 end
 
 
-import Base.==
 ==(cfg1::ListBasedNonProjectiveConfig, cfg2::ListBasedNonProjectiveConfig) =
     cfg1.λ1 == cfg2.λ1 && cfg1.λ2 == cfg2.λ2 && cfg1.β == cfg2.β && cfg1.A == cfg2.A
+
+Base.show(io::IO, c::ListBasedNonProjectiveConfig) =
+    print(io, "ListBasedNonProjectiveConfig($(c.σ),$(c.β))\n$(join([join([id(t),form(t),head(t)],'\t') for t in tokens(c)],'\n'))")

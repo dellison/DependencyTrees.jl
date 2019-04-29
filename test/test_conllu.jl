@@ -9,13 +9,6 @@
     for C in [ArcStandard(), ArcEager(), ListBasedNonProjective()], tree in trees
         tokens = form.(tree)
         oracle = StaticOracle(C)
-
-        # parsed =  DependencyTrees.parse(C{CoNLLU}, tokens, oracle)
-        
-        # @test length(tree) == length(parsed)
-        # for (i, gold_node) in enumerate(tree)
-        #     @test deprel(parsed, i) == deprel(gold_node)
-        # end
     end
 
     for C in [ArcEager(), ArcHybrid()]
@@ -34,7 +27,6 @@
 
     @test_throws Exception CoNLLU("1	2	3")
 
-    #
     sent = """
 1	They	they	PRON	PRP	Case=Nom|Number=Plur	2	nsubj	2:nsubj|4:nsubj	_
 2	buy	buy	VERB	VBP	Number=Plur|Person=3|Tense=Pres	0	root	0:root	_

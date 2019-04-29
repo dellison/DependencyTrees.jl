@@ -32,8 +32,11 @@ Base.iterate(s::StaticGoldState, state=1) = (s[state], state+1)
 
 AG(s::StaticGoldState) = ([s.t], [s.t])
 
-# TODO: rename?
+# TODO rename?
 """
+    StaticGoldSearch(oracle, tree)
+
+todo
 """
 struct StaticGoldSearch{S<:AbstractTransitionSystem}
     oracle::StaticOracle{S}

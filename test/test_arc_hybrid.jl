@@ -75,11 +75,6 @@
         end
     end
 
-    function showstr(op)
-        buf = IOBuffer()
-        show(buf, op)
-        return String(take!(buf))
-    end
     @test showstr(Shift()) == "Shift()"
     @test showstr(Reduce()) == "Reduce()"
     @test showstr(LeftArc()) == "LeftArc()"
