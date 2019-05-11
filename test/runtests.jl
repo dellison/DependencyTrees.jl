@@ -12,17 +12,17 @@ using DependencyTrees: leftmostdep, rightmostdep
 using DependencyTrees: leftdeps, rightdeps
 using DependencyTrees: root, noval, token, tokens, xys
 
-using DependencyTrees.Parse: typed, untyped
-using DependencyTrees.Parse: initconfig, transition_space
-using DependencyTrees.Parse: leftarc, rightarc, noarc, shift, isfinal
-using DependencyTrees.Parse: LeftArc, RightArc, NoArc, Reduce, Shift
-using DependencyTrees.Parse: gold_transitions, zero_cost_transitions
-using DependencyTrees.Parse: choose_next_amb, choose_next_exp
-using DependencyTrees.Parse: hascost, haszerocost
-using DependencyTrees.Parse: xys
-using DependencyTrees.Parse: DynamicGoldSearch
-using DependencyTrees.Parse: AlwaysExplore, NeverExplore, ExplorationPolicy
-using DependencyTrees.Parse: explore, next_state
+using DependencyTrees: typed, untyped
+using DependencyTrees: initconfig, transition_space
+using DependencyTrees: leftarc, rightarc, noarc, shift, isfinal
+using DependencyTrees: LeftArc, RightArc, NoArc, Reduce, Shift
+using DependencyTrees: gold_transitions, zero_cost_transitions
+using DependencyTrees: choose_next_amb, choose_next_exp
+using DependencyTrees: hascost, haszerocost
+using DependencyTrees: xys
+using DependencyTrees: DynamicGoldSearch
+using DependencyTrees: AlwaysExplore, NeverExplore, ExplorationPolicy
+using DependencyTrees: explore, next_state
 
 function showstr(op)
     buf = IOBuffer()

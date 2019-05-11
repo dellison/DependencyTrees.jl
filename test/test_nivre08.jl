@@ -82,7 +82,7 @@
     @testset "Figure 8" begin
 
         using DependencyTrees: MultipleRootsError, ListBasedNonProjective
-        using DependencyTrees.Parse: NoArc, isfinal
+        using DependencyTrees: NoArc, isfinal
 
         @test_throws MultipleRootsError DependencyTree(TypedDependency, figure_1_sent, add_id=true)
         graph = DependencyTree(TypedDependency, figure_1_sent; add_id=true, check_single_head=false)

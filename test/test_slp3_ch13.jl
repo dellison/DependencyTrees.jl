@@ -36,7 +36,7 @@
 
             o = oracle(state)
             @test o == Shift()
-            @test DependencyTrees.Parse.args(o) == ()
+            @test DependencyTrees.args(o) == ()
             @test o(state) == shift(state)
             state = shift(state)
 
@@ -55,7 +55,7 @@
 
             o = oracle(state)
             @test o == RightArc()
-            @test DependencyTrees.Parse.args(o) == ()
+            @test DependencyTrees.args(o) == ()
             @test o(state) == rightarc(state)
             state = rightarc(state)
 
@@ -95,7 +95,7 @@
 
             o = oracle(state)
             @test o == LeftArc()
-            @test DependencyTrees.Parse.args(o) == ()
+            @test DT.args(o) == ()
             @test o(state) == leftarc(state)
             state = leftarc(state)
 
@@ -293,7 +293,7 @@
 
         @testset "Untyped" begin
 
-            using DependencyTrees.Parse: ArcEager, leftarc, rightarc, shift, reduce, isfinal
+            using DependencyTrees: ArcEager, leftarc, rightarc, shift, reduce, isfinal
 
             gold_graph = DependencyTree([UntypedDependency(i, t...)
                                           for (i, t) in enumerate([("book", 0),
@@ -380,7 +380,7 @@
 
         @testset "Typed" begin
 
-            using DependencyTrees.Parse: ArcEager, leftarc, rightarc, shift, reduce, isfinal
+            using DependencyTrees: ArcEager, leftarc, rightarc, shift, reduce, isfinal
 
             # head --> dep
             hasdeprel(state, head, deprel, dep) =
@@ -394,7 +394,7 @@
                                                                    ("houston", "nmod", 3)])])
             
             # step 0
-            state = DependencyTrees.Parse.initconfig(ArcEager(), TypedDependency, sent)
+            state = initconfig(ArcEager(), TypedDependency, sent)
             @test words(state.σ) == ["root"]
             @test words(state.β) == ["book", "the", "flight", "through", "houston"]
 

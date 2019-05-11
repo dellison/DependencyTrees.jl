@@ -81,7 +81,7 @@
 
         for tree in treebank
             for (cfg, G) in xys(oracle, tree)
-                @test cfg isa DT.Parse.ArcHybridConfig
+                @test cfg isa DT.ArcHybridConfig
                 for t in G
                     T = typeof(t)
                     @test T <: LeftArc || T <: RightArc || T <: Shift
@@ -90,10 +90,9 @@
 
             for state in DynamicGoldSearch(oracle, tree)
                 @test state.G ⊆ state.A
-                t, next = explore(state)
-                @test t(state.cfg) == next == next_state(state, t)
+                t = explore(state)
+                @test t(state.cfg) == next_state(state, t)
                 @test t in state.A
-                @test explore(state, t) == (t, next)
             end
         end
     end

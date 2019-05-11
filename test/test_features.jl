@@ -23,7 +23,7 @@
         @test rightmostdep(cfg, root(CoNLLU)) == noval(CoNLLU)
 
         for i=1:3
-            cfg = DependencyTrees.Parse.Shift()(cfg)
+            cfg = DependencyTrees.Shift()(cfg)
             @test token(cfg, i).id == i
         end
         @test [id(t) for t in tokens(cfg)] == 1:6

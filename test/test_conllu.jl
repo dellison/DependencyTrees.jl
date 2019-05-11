@@ -14,7 +14,7 @@
     for C in [ArcEager(), ArcHybrid()]
         oracle = StaticOracle(C, transition = untyped)
         for (cfg, t) in DependencyTrees.xys(oracle, trees)
-            @test DependencyTrees.Parse.args(t) == ()
+            @test DT.args(t) == ()
         end
     end
 
