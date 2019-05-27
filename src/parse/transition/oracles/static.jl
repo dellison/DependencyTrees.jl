@@ -13,6 +13,11 @@ end
 StaticOracle(system, oracle = static_oracle; transition = typed) =
     StaticOracle(system, oracle, transition)
 
+(oracle::StaticOracle)(tree::DependencyTree; kwargs...) =
+    StaticGoldSearch(oracle, tree; kwargs...)
+(oracle::StaticOracle)(trees; kwargs...) =
+    map(tree -> oracle(tree; kwargs...), trees)
+
 struct StaticGoldState{C,T<:TransitionOperator}
     cfg::C
     t::T

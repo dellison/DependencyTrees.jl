@@ -13,8 +13,16 @@ end
 DynamicOracle(T, oracle = haszerocost; transition = typed) =
     DynamicOracle(T, oracle, transition)
 
+(oracle::DynamicOracle)(tree::DependencyTree; kwargs...) =
+    DynamicGoldSearch(oracle, tree; kwargs...)
+(oracle::DynamicOracle)(trees; kwargs...) =
+    map(tree -> oracle(tree; kwargs...), trees)
+
 gold_transitions(oracle::DynamicOracle, cfg, gold::DependencyTree) =
     filter(t -> oracle.oracle(t, cfg, gold), possible_transitions(cfg, gold, oracle.transition))
+
+initconfig(oracle::DynamicOracle, gold) =
+    initconfig(oracle.transition_system, gold)
 
 function AG(oracle::DynamicOracle, cfg, tree)
     A = possible_transitions(cfg, tree, oracle.transition)
@@ -110,11 +118,15 @@ end
 
 Base.iterate(s::DynamicGoldSearch) =
     _iterate(s, initconfig(s.oracle.transition_system, s.tree))
+
 Base.iterate(s::DynamicGoldSearch, cfg) =
     isfinal(cfg) ? nothing : _iterate(s, cfg)
 
 function _iterate(s::DynamicGoldSearch, cfg)
     A, G = AG(s.oracle, cfg, s.tree)
+    if isempty(A) || isempty(G)
+        error("oracle error on gold tree: $(s.tree) configuration: $cfg\nA: $A\nG: $G")
+    end
     t = s.policy() ? s.predict(cfg) : s.choose(s.predict(cfg), G)
     return (DynamicGoldState(cfg, A, G), t(cfg))
 end
