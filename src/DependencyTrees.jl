@@ -19,7 +19,12 @@ include("errors.jl")
 include("dependencies.jl")
 include("conllu.jl")
 include("trees.jl")
+
 include("treebanks/treebanks.jl")
-include("parse/Parse.jl")
+
+include("graph_parsing/parse.jl")
+include("transition_parsing/parse.jl")
+
+include("evaluation/accuracy.jl")
 
 end # module

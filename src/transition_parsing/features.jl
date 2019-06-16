@@ -52,7 +52,7 @@ end
 
 leftdeps(cfg::AbstractParserConfiguration, dep::Dependency) = leftdeps(cfg, id(dep))
 leftdeps(cfg::AbstractParserConfiguration, i::Int) =
-    filter(t -> id(t) > i && head(t) == i, tokens(cfg))
+    filter(t -> id(t) < i && head(t) == i, tokens(cfg))
 
 leftmostdep(cfg::AbstractParserConfiguration, dep::Dependency, n::Int=1) =
     leftmostdep(cfg, id(dep), n)

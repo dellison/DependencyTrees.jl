@@ -117,7 +117,7 @@ present.
 
 See [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
-function static_oracle_shift(::ArcEager, graph::DependencyTree, tr = typed)
+function static_oracle_shift(::ArcEager, graph::DependencyTree, tr=untyped)
     args(i) = tr(graph[i])
     gold_arc(a, b)= has_arc(graph, a, b)
 
@@ -168,12 +168,38 @@ function possible_transitions(cfg::ArcEagerConfig, graph::DependencyTree, tr = t
     return ops
 end
 
+function possible_transitions(cfg::ArcEagerConfig, tr = typed)
+    ops = TransitionOperator[]
+    stacksize, bufsize = length(cfg.σ), length(cfg.β)
+    if stacksize >= 1
+        σ, s = σs(cfg)
+        if bufsize >= 1
+            if !iszero(s)
+                h = head(cfg.A[s])
+                if !any(k -> id(k) == h, cfg.A)
+                    push!(ops, LeftArc(tr(graph[s])...))
+                end
+            end
+            push!(ops, RightArc(tr(graph[cfg.β[1]])...))
+        end
+        if !iszero(s)
+            h = head(cfg.A[s])
+            if any(k -> id(k) == h, cfg.A)
+                push!(ops, Reduce())
+            end
+        end
+    end
+    if bufsize > 1
+        push!(ops, Shift())
+    end
+    return ops
+end
 
 function cost(t::LeftArc, cfg::ArcEagerConfig, gold)
     # left arc cost: num of arcs (k,l',s), (s,l',k) s.t. k ϵ β
     σ, s = σs(cfg)
     b, β = bβ(cfg)
-    if has_dependency(gold, b, s)
+    if has_arc(gold, b, s)
         0
     else
         count(k -> has_arc(gold, k, s) || has_arc(gold, s, k), β)

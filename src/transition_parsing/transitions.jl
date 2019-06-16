@@ -1,4 +1,18 @@
 # transition arguments
+struct TypedTransition end
+struct UntypedTransition end
+
+(::TypedTransition)(dep) = (deprel(dep),)
+(::UntypedTransition)(dep) = ()
+
+"""
+"""
+const Typed = TypedTransition()
+
+"""
+"""
+const Untyped = TypedTransition()
+
 untyped(dep) = ()
 typed(dep) = (deprel(dep),)
 
