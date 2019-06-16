@@ -89,8 +89,8 @@ end
 Return a training oracle function which returns gold transition
 operations from a parser configuration with reference to `graph`.
 """
-function static_oracle(::ListBasedNonProjective, graph::DependencyTree, tr = typed)
-    arc(i) = tr(graph[i])
+function static_oracle(::ListBasedNonProjective, graph::DependencyTree, transition=untyped)
+    arc(i) = transition(graph[i])
 
     function (cfg::ListBasedNonProjectiveConfig)
         if length(cfg.λ1) >= 1 && length(cfg.β) >= 1

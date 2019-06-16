@@ -106,8 +106,8 @@ isfinal(cfg::ArcHybridConfig) = all(a -> head(a) != -1, cfg.A)
 Static oracle for arc-hybrid dependency parsing. Closes over gold trees,
 mapping parser configurations to optimal transitions.
 """
-function static_oracle(::ArcHybrid, tree::DependencyTree, tr = typed)
-    arc(i) = tr(tree[i])
+function static_oracle(::ArcHybrid, tree::DependencyTree, transition=untyped)
+    arc(i) = transition(tree[i])
 
     function (cfg::ArcHybridConfig)
         if length(cfg.σ) > 0
@@ -157,16 +157,16 @@ function cost(t::Shift, cfg::ArcHybridConfig, gold)
     count(h -> has_arc(gold, h, b), H) + count(d -> has_arc(gold, b, d), D)
 end
 
-function possible_transitions(cfg::ArcHybridConfig, tree::DependencyTree, tr = typed)
+function possible_transitions(cfg::ArcHybridConfig, tree::DependencyTree, transition=untyped)
     ops = TransitionOperator[]
     S, B = length(cfg.σ), length(cfg.β)
     if S >= 1
         s = cfg.σ[end]
         if !iszero(s) && S > 1
-            push!(ops, RightArc(tr(tree[s])...))
+            push!(ops, RightArc(transition(tree[s])...))
         end
         if B >= 1
-            push!(ops, LeftArc(tr(tree[s])...))
+            push!(ops, LeftArc(transition(tree[s])...))
         end
     end
     B >= 1 && push!(ops, Shift())

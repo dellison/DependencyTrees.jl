@@ -87,8 +87,8 @@ operations from a parser configuration with reference to `graph`.
 
 Described in [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
-function static_oracle(::ArcSwift, graph::DependencyTree, tr = typed)
-    args(i) = tr(graph[i])
+function static_oracle(::ArcSwift, graph::DependencyTree, transition=untyped)
+    args(i) = transition(graph[i])
 
     function (cfg::ArcSwiftConfig)
         S = length(cfg.σ)

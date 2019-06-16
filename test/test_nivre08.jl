@@ -53,7 +53,7 @@
         config = rightarc(config, "P")
         @test isfinal(config)
 
-        oracle = DependencyTrees.static_oracle(ArcEager(), graph)
+        oracle = DependencyTrees.static_oracle(ArcEager(), graph, typed)
         config = DependencyTrees.initconfig(ArcEager(), TypedDependency, first.(figure_2_sent))
         gold_transitions = [Shift(),
                             LeftArc("NMOD"),
@@ -88,7 +88,7 @@
         graph = DependencyTree(TypedDependency, figure_1_sent; add_id=true, check_single_head=false)
         words = form.(graph)
 
-        oracle = DependencyTrees.static_oracle(ListBasedNonProjective(), graph)
+        oracle = DependencyTrees.static_oracle(ListBasedNonProjective(), graph, typed)
 
         @test ! DependencyTrees.projective_only(ListBasedNonProjective())
 

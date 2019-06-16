@@ -7,7 +7,13 @@ export
 
     # Transition parsing
     ArcEager, ArcStandard, ArcHybrid, ArcSwift, ListBasedNonProjective,
-    StaticOracle, DynamicOracle, static_oracle, static_oracle_shift
+    StaticOracle, DynamicOracle, static_oracle, static_oracle_shift,
+
+    typed, untyped,
+    initconfig, isfinal, possible_transitions,
+
+    labeled_accuracy, unlabeled_accuracy
+
 
 using Random
 using LightGraphs

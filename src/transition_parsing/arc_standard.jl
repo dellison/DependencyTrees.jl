@@ -78,8 +78,8 @@ isfinal(state::ArcStandardConfig) =
 Static oracle for arc-standard dependency parsing. Closes over gold trees,
 mapping parser configurations to optimal transitions.
 """
-function static_oracle(::ArcStandard, gold_tree::DependencyTree, tr = typed)
-    args(i) = tr(gold_tree[i])
+function static_oracle(::ArcStandard, gold_tree::DependencyTree, transition=untyped)
+    args(i) = transition(gold_tree[i])
 
     function (c::ArcStandardConfig)
         if length(c.σ) >= 2

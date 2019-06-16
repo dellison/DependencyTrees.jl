@@ -88,8 +88,8 @@ mapping parser configurations to optimal transitions.
 See [Goldberg & Nivre 2012](https://www.aclweb.org/anthology/C12-1059.pdf).
 (Also called Arc-Eager-Reduce in [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf)).
 """
-function static_oracle(::ArcEager, tree::DependencyTree, tr = typed)
-    args(i) = tr(tree[i])
+function static_oracle(::ArcEager, tree::DependencyTree, transition=untyped)
+    args(i) = transition(tree[i])
     gold_arc(a, b) = has_arc(tree, a, b)
 
     function (cfg::ArcEagerConfig)
@@ -117,8 +117,8 @@ present.
 
 See [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
-function static_oracle_shift(::ArcEager, graph::DependencyTree, tr=untyped)
-    args(i) = tr(graph[i])
+function static_oracle_shift(::ArcEager, graph::DependencyTree, transition=untyped)
+    args(i) = transition(graph[i])
     gold_arc(a, b)= has_arc(graph, a, b)
 
     function (cfg::ArcEagerConfig)
@@ -141,7 +141,7 @@ end
 
 
 # see figure 2 in goldberg & nivre 2012 "a dynamic oracle..."
-function possible_transitions(cfg::ArcEagerConfig, graph::DependencyTree, tr = typed)
+function possible_transitions(cfg::ArcEagerConfig, graph::DependencyTree, transition=untyped)
     ops = TransitionOperator[]
     stacksize, bufsize = length(cfg.σ), length(cfg.β)
     if stacksize >= 1
@@ -150,10 +150,10 @@ function possible_transitions(cfg::ArcEagerConfig, graph::DependencyTree, tr = t
             if !iszero(s)
                 h = head(cfg.A[s])
                 if !any(k -> id(k) == h, cfg.A)
-                    push!(ops, LeftArc(tr(graph[s])...))
+                    push!(ops, LeftArc(transition(graph[s])...))
                 end
             end
-            push!(ops, RightArc(tr(graph[cfg.β[1]])...))
+            push!(ops, RightArc(transition(graph[cfg.β[1]])...))
         end
         if !iszero(s)
             h = head(cfg.A[s])
@@ -168,7 +168,7 @@ function possible_transitions(cfg::ArcEagerConfig, graph::DependencyTree, tr = t
     return ops
 end
 
-function possible_transitions(cfg::ArcEagerConfig, tr = typed)
+function possible_transitions(cfg::ArcEagerConfig, transition=untyped)
     ops = TransitionOperator[]
     stacksize, bufsize = length(cfg.σ), length(cfg.β)
     if stacksize >= 1
@@ -177,10 +177,10 @@ function possible_transitions(cfg::ArcEagerConfig, tr = typed)
             if !iszero(s)
                 h = head(cfg.A[s])
                 if !any(k -> id(k) == h, cfg.A)
-                    push!(ops, LeftArc(tr(graph[s])...))
+                    push!(ops, LeftArc(transition(graph[s])...))
                 end
             end
-            push!(ops, RightArc(tr(graph[cfg.β[1]])...))
+            push!(ops, RightArc(transition(graph[cfg.β[1]])...))
         end
         if !iszero(s)
             h = head(cfg.A[s])

@@ -154,7 +154,7 @@
         @testset "Typed" begin
 
             gold_graph = DependencyTree(TypedDependency, [("book","pred",0),("me","indobj",1),("the","dt",5),("morning","adv",5),("flight","dobj",1)], add_id=true)
-            oracle = static_oracle(ArcStandard(), gold_graph)
+            oracle = static_oracle(ArcStandard(), gold_graph, typed)
 
             # head --> dep
             hasdeprel(state, head, deprel, dep) =

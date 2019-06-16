@@ -20,7 +20,7 @@
 
     graph = DependencyTree(TypedDependency, sent, add_id=true)
 
-    model = static_oracle(ArcEager(), graph)
+    model = static_oracle(ArcEager(), graph, typed)
     function error_cb(x, ŷ, y)
         @assert false
     end
