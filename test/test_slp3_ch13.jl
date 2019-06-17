@@ -20,7 +20,8 @@
         @testset "Untyped" begin
 
             # head --> dep
-            hasdep(state, head, dep) = state.A[word2id[dep]].head == word2id[head]
+            hasdep(state, head, dep) =
+                token(state, word2id[dep]).head == word2id[head]
 
             gold_graph = DependencyTree(UntypedDependency, [("book",0),
                                                             ("me",1),
@@ -31,8 +32,8 @@
 
             # step 0
             state = DependencyTrees.initconfig(ArcStandard(), UntypedDependency, sent)
-            @test words(state.σ) == ["root"]
-            @test words(state.β) == ["book", "me", "the", "morning", "flight"]
+            @test words(stack(state)) == ["root"]
+            @test words(buffer(state)) == ["book", "me", "the", "morning", "flight"]
 
             o = oracle(state)
             @test o == Shift()
@@ -41,8 +42,8 @@
             state = shift(state)
 
             # step 1
-            @test words(state.σ) == ["root", "book"]
-            @test words(state.β) == ["me", "the", "morning", "flight"]
+            @test words(stack(state)) == ["root", "book"]
+            @test words(buffer(state)) == ["me", "the", "morning", "flight"]
 
             o = oracle(state)
             @test o == Shift()
@@ -50,8 +51,8 @@
             state = shift(state)
 
             # step 2
-            @test words(state.σ) == ["root", "book", "me"]
-            @test words(state.β) == ["the", "morning", "flight"]
+            @test words(stack(state)) == ["root", "book", "me"]
+            @test words(buffer(state)) == ["the", "morning", "flight"]
 
             o = oracle(state)
             @test o == RightArc()
@@ -59,12 +60,13 @@
             @test o(state) == rightarc(state)
             state = rightarc(state)
 
-            @test state.A[word2id["me"]].head == word2id["book"]
+            # @test state.A[word2id["me"]].head == word2id["book"]
+            @test token(state, word2id["me"]).head == word2id["book"]
             @test hasdep(state, "book", "me") # (book --> me)
 
             # step 3
-            @test words(state.σ) == ["root", "book"]
-            @test words(state.β) == ["the", "morning", "flight"]
+            @test words(stack(state)) == ["root", "book"]
+            @test words(buffer(state)) == ["the", "morning", "flight"]
 
             o = oracle(state)
             @test o == Shift()
@@ -72,8 +74,8 @@
             state = shift(state)
 
             # step 4
-            @test words(state.σ) == ["root", "book", "the"]
-            @test words(state.β) == ["morning", "flight"]
+            @test words(stack(state)) == ["root", "book", "the"]
+            @test words(buffer(state)) == ["morning", "flight"]
 
             o = oracle(state)
             @test o == Shift()
@@ -81,8 +83,8 @@
             state = shift(state)
 
             # step 5
-            @test words(state.σ) == ["root", "book", "the", "morning"]
-            @test words(state.β) == ["flight"]
+            @test words(stack(state)) == ["root", "book", "the", "morning"]
+            @test words(buffer(state)) == ["flight"]
 
             o = oracle(state)
             @test o == Shift()
@@ -90,8 +92,8 @@
             state = shift(state)
 
             # step 6
-            @test words(state.σ) == ["root", "book", "the", "morning", "flight"]
-            @test words(state.β) == []
+            @test words(stack(state)) == ["root", "book", "the", "morning", "flight"]
+            @test words(buffer(state)) == []
 
             o = oracle(state)
             @test o == LeftArc()
@@ -102,8 +104,8 @@
             @test hasdep(state, "flight", "morning") # (morning <-- flight)
 
             # step 7
-            @test words(state.σ) == ["root", "book", "the", "flight"]
-            @test words(state.β) == []
+            @test words(stack(state)) == ["root", "book", "the", "flight"]
+            @test words(buffer(state)) == []
 
             o = oracle(state)
             @test o == LeftArc()
@@ -113,8 +115,8 @@
             @test hasdep(state, "flight", "the") # (the <-- flight)
 
             # step 8
-            @test words(state.σ) == ["root", "book", "flight"]
-            @test words(state.β) == []
+            @test words(stack(state)) == ["root", "book", "flight"]
+            @test words(buffer(state)) == []
 
             o = oracle(state)
             @test o == RightArc()
@@ -124,8 +126,8 @@
             @test hasdep(state, "book", "flight") # (book --> flight)
 
             # step 9
-            @test words(state.σ) == ["root", "book"]
-            @test words(state.β) == []
+            @test words(stack(state)) == ["root", "book"]
+            @test words(buffer(state)) == []
 
             o = oracle(state)
             @test o == RightArc()
@@ -135,8 +137,8 @@
             @test hasdep(state, "root", "book") # (root --> book)
 
             # step 10
-            @test words(state.σ) == ["root"]
-            @test words(state.β) == []
+            @test words(stack(state)) == ["root"]
+            @test words(buffer(state)) == []
             @test isfinal(state)
 
             oracle = StaticOracle(ArcStandard())
@@ -158,12 +160,13 @@
 
             # head --> dep
             hasdeprel(state, head, deprel, dep) =
-                state.A[word2id[dep]].head == word2id[head] && state.A[word2id[dep]].deprel == deprel
+                # state.A[word2id[dep]].head == word2id[head] && state.A[word2id[dep]].deprel == deprel
+                token(state, word2id[dep]).head == word2id[head] && token(state, word2id[dep]).deprel == deprel
 
             # step 0
             state = DependencyTrees.initconfig(ArcStandard(), TypedDependency, sent)
-            @test words(state.σ) == ["root"]
-            @test words(state.β) == ["book", "me", "the", "morning", "flight"]
+            @test words(stack(state)) == ["root"]
+            @test words(buffer(state)) == ["book", "me", "the", "morning", "flight"]
 
             o = oracle(state)
             @test o == Shift()
@@ -171,8 +174,8 @@
             state = shift(state)
 
             # step 1
-            @test words(state.σ) == ["root", "book"]
-            @test words(state.β) == ["me", "the", "morning", "flight"]
+            @test words(stack(state)) == ["root", "book"]
+            @test words(buffer(state)) == ["me", "the", "morning", "flight"]
 
             o = oracle(state)
             @test o == Shift()
@@ -180,20 +183,20 @@
             state = shift(state)
 
             # step 2
-            @test words(state.σ) == ["root", "book", "me"]
-            @test words(state.β) == ["the", "morning", "flight"]
+            @test words(stack(state)) == ["root", "book", "me"]
+            @test words(buffer(state)) == ["the", "morning", "flight"]
 
             o = oracle(state)
             @test o == RightArc("indobj")
             @test o(state) == rightarc(state, "indobj")
             state = rightarc(state, "indobj")
 
-            @test state.A[word2id["me"]].head == word2id["book"]
+            @test token(state, word2id["me"]).head == word2id["book"]
             @test hasdeprel(state, "book", "indobj", "me") # (book -[indobj]-> me)
 
             # step 3
-            @test words(state.σ) == ["root", "book"]
-            @test words(state.β) == ["the", "morning", "flight"]
+            @test words(stack(state)) == ["root", "book"]
+            @test words(buffer(state)) == ["the", "morning", "flight"]
 
             o = oracle(state)
             @test o == Shift()
@@ -201,8 +204,8 @@
             state = shift(state)
 
             # step 4
-            @test words(state.σ) == ["root", "book", "the"]
-            @test words(state.β) == ["morning", "flight"]
+            @test words(stack(state)) == ["root", "book", "the"]
+            @test words(buffer(state)) == ["morning", "flight"]
 
             o = oracle(state)
             @test o == Shift()
@@ -210,8 +213,8 @@
             state = shift(state)
 
             # step 5
-            @test words(state.σ) == ["root", "book", "the", "morning"]
-            @test words(state.β) == ["flight"]
+            @test words(stack(state)) == ["root", "book", "the", "morning"]
+            @test words(buffer(state)) == ["flight"]
 
             o = oracle(state)
             @test o == Shift()
@@ -219,8 +222,8 @@
             state = shift(state)
 
             # step 6
-            @test words(state.σ) == ["root", "book", "the", "morning", "flight"]
-            @test words(state.β) == []
+            @test words(stack(state)) == ["root", "book", "the", "morning", "flight"]
+            @test words(buffer(state)) == []
 
             o = oracle(state)
             @test o == LeftArc("adv")
@@ -230,8 +233,8 @@
             @test hasdeprel(state, "flight", "adv", "morning") # (morning <-[when?]- flight)
 
             # step 7
-            @test words(state.σ) == ["root", "book", "the", "flight"]
-            @test words(state.β) == []
+            @test words(stack(state)) == ["root", "book", "the", "flight"]
+            @test words(buffer(state)) == []
 
             o = oracle(state)
             @test o == LeftArc("dt")
@@ -241,8 +244,8 @@
             @test hasdeprel(state, "flight", "dt", "the") # (the <-[the]- flight)
 
             # step 8
-            @test words(state.σ) == ["root", "book", "flight"]
-            @test words(state.β) == []
+            @test words(stack(state)) == ["root", "book", "flight"]
+            @test words(buffer(state)) == []
 
             o = oracle(state)
             @test o == RightArc("dobj")
@@ -252,8 +255,8 @@
             @test hasdeprel(state, "book", "dobj", "flight") # (book -[dobj]-> flight)
 
             # step 9
-            @test words(state.σ) == ["root", "book"]
-            @test words(state.β) == []
+            @test words(stack(state)) == ["root", "book"]
+            @test words(buffer(state)) == []
 
             o = oracle(state)
             @test o == RightArc("pred")
@@ -263,8 +266,8 @@
             @test hasdeprel(state, "root", "pred", "book") # (root -[pred]-> book)
 
             # step 10
-            @test words(state.σ) == ["root"]
-            @test words(state.β) == []
+            @test words(stack(state)) == ["root"]
+            @test words(buffer(state)) == []
             @test isfinal(state)
 
             model = static_oracle(ArcStandard(), gold_graph)
@@ -307,64 +310,64 @@
 
             # step 0
             state = DependencyTrees.initconfig(ArcEager(), UntypedDependency, sent)
-            @test words(state.σ) == ["root"]
-            @test words(state.β) == ["book", "the", "flight", "through", "houston"]
+            @test words(stack(state)) == ["root"]
+            @test words(buffer(state)) == ["book", "the", "flight", "through", "houston"]
             state = rightarc(state)
             @test hasdep(state, "root", "book") # (root --> book)
 
             # step 1
-            @test words(state.σ) == ["root", "book"]
-            @test words(state.β) == ["the", "flight", "through", "houston"]
+            @test words(stack(state)) == ["root", "book"]
+            @test words(buffer(state)) == ["the", "flight", "through", "houston"]
             state = shift(state)
 
             # step 2
-            @test words(state.σ) == ["root", "book", "the"]
-            @test words(state.β) == ["flight", "through", "houston"]
+            @test words(stack(state)) == ["root", "book", "the"]
+            @test words(buffer(state)) == ["flight", "through", "houston"]
             state = leftarc(state)
             @test hasdep(state, "flight", "the") # (the <-- flight)
 
             # step 3
-            @test words(state.σ) == ["root", "book"]
-            @test words(state.β) == ["flight", "through", "houston"]
+            @test words(stack(state)) == ["root", "book"]
+            @test words(buffer(state)) == ["flight", "through", "houston"]
             state = rightarc(state)
             @test hasdep(state, "book", "flight") # (book --> flight)
 
             # step 4
-            @test words(state.σ) == ["root", "book", "flight"]
-            @test words(state.β) == ["through", "houston"]
+            @test words(stack(state)) == ["root", "book", "flight"]
+            @test words(buffer(state)) == ["through", "houston"]
             state = shift(state)
 
             # step 5
-            @test words(state.σ) == ["root", "book", "flight", "through"]
-            @test words(state.β) == ["houston"]
+            @test words(stack(state)) == ["root", "book", "flight", "through"]
+            @test words(buffer(state)) == ["houston"]
             state = leftarc(state)
             @test hasdep(state, "houston", "through") # (through <-- houston)
 
             # step 6
-            @test words(state.σ) == ["root", "book", "flight"]
-            @test words(state.β) == ["houston"]
+            @test words(stack(state)) == ["root", "book", "flight"]
+            @test words(buffer(state)) == ["houston"]
             state = rightarc(state)
             @test hasdep(state, "flight", "houston") # (flight --> houston)
 
             # step 7
-            @test words(state.σ) == ["root", "book", "flight", "houston"]
-            @test words(state.β) == []
+            @test words(stack(state)) == ["root", "book", "flight", "houston"]
+            @test words(buffer(state)) == []
             state = reduce(state)
 
             # step 8
-            @test words(state.σ) == ["root", "book", "flight"]
-            @test words(state.β) == []
+            @test words(stack(state)) == ["root", "book", "flight"]
+            @test words(buffer(state)) == []
             state = reduce(state)
 
             # step 9
-            @test words(state.σ) == ["root", "book"]
-            @test words(state.β) == []
+            @test words(stack(state)) == ["root", "book"]
+            @test words(buffer(state)) == []
             state = reduce(state)
             @test hasdep(state, "root", "book") # (root --> book)
 
             # step 10
-            @test words(state.σ) == ["root"]
-            @test words(state.β) == []
+            @test words(stack(state)) == ["root"]
+            @test words(buffer(state)) == []
             @test isfinal(state)
 
             o = DependencyTrees.static_oracle(ArcEager(), gold_graph)
@@ -395,78 +398,78 @@
             
             # step 0
             state = initconfig(ArcEager(), TypedDependency, sent)
-            @test words(state.σ) == ["root"]
-            @test words(state.β) == ["book", "the", "flight", "through", "houston"]
+            @test words(stack(state)) == ["root"]
+            @test words(buffer(state)) == ["book", "the", "flight", "through", "houston"]
 
             state = rightarc(state, "pred")
 
             @test hasdeprel(state, "root", "pred", "book") # (root --> book)
 
             # step 1
-            @test words(state.σ) == ["root", "book"]
-            @test words(state.β) == ["the", "flight", "through", "houston"]
+            @test words(stack(state)) == ["root", "book"]
+            @test words(buffer(state)) == ["the", "flight", "through", "houston"]
 
             state = shift(state)
 
             # step 2
-            @test words(state.σ) == ["root", "book", "the"]
-            @test words(state.β) == ["flight", "through", "houston"]
+            @test words(stack(state)) == ["root", "book", "the"]
+            @test words(buffer(state)) == ["flight", "through", "houston"]
 
             state = leftarc(state, "det")
 
             @test hasdeprel(state, "flight", "det", "the") # (the <-- flight)
 
             # step 3
-            @test words(state.σ) == ["root", "book"]
-            @test words(state.β) == ["flight", "through", "houston"]
+            @test words(stack(state)) == ["root", "book"]
+            @test words(buffer(state)) == ["flight", "through", "houston"]
 
             state = rightarc(state, "dobj")
 
             @test hasdeprel(state, "book", "dobj", "flight") # (book --> flight)
 
             # step 4
-            @test words(state.σ) == ["root", "book", "flight"]
-            @test words(state.β) == ["through", "houston"]
+            @test words(stack(state)) == ["root", "book", "flight"]
+            @test words(buffer(state)) == ["through", "houston"]
 
             state = shift(state)
 
             # step 5
-            @test words(state.σ) == ["root", "book", "flight", "through"]
-            @test words(state.β) == ["houston"]
+            @test words(stack(state)) == ["root", "book", "flight", "through"]
+            @test words(buffer(state)) == ["houston"]
 
             state = leftarc(state, "pobj")
 
             @test hasdeprel(state, "houston", "pobj", "through") # (through <-- houston)
 
             # step 6
-            @test words(state.σ) == ["root", "book", "flight"]
-            @test words(state.β) == ["houston"]
+            @test words(stack(state)) == ["root", "book", "flight"]
+            @test words(buffer(state)) == ["houston"]
 
             state = rightarc(state, "mod")
 
             @test hasdeprel(state, "flight", "mod", "houston") # (flight --> houston)
 
             # step 7
-            @test words(state.σ) == ["root", "book", "flight", "houston"]
-            @test words(state.β) == []
+            @test words(stack(state)) == ["root", "book", "flight", "houston"]
+            @test words(buffer(state)) == []
 
             state = reduce(state)
 
             # step 8
-            @test words(state.σ) == ["root", "book", "flight"]
-            @test words(state.β) == []
+            @test words(stack(state)) == ["root", "book", "flight"]
+            @test words(buffer(state)) == []
 
             state = reduce(state)
 
             # step 9
-            @test words(state.σ) == ["root", "book"]
-            @test words(state.β) == []
+            @test words(stack(state)) == ["root", "book"]
+            @test words(buffer(state)) == []
 
             state = reduce(state)
 
             # step 10
-            @test words(state.σ) == ["root"]
-            @test words(state.β) == []
+            @test words(stack(state)) == ["root"]
+            @test words(buffer(state)) == []
             @test isfinal(state)
        end
     end

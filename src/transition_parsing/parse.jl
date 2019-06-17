@@ -40,6 +40,7 @@ function tokens end
 deptype(::Type{<:AbstractParserConfiguration{T}}) where T = T
 deptype(g::AbstractParserConfiguration) = deptype(typeof(g))
 
+include("common.jl")
 include("transitions.jl")
 include("arc_standard.jl")
 include("arc_eager.jl")

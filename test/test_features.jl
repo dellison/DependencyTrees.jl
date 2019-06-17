@@ -46,8 +46,8 @@
         cfg = t(cfg)
         @test isfinal(cfg)
         @test leftmostdep(cfg, 0) == noval(CoNLLU)
-        @test rightmostdep(cfg, 0) == cfg.A[2]
-        @test leftmostdep(cfg, cfg.A[2]).form == "I"
+        @test rightmostdep(cfg, 0) == token(cfg, 2)
+        @test leftmostdep(cfg, token(cfg, 2)).form == "I"
     end
 
     oracle = StaticOracle(ListBasedNonProjective())

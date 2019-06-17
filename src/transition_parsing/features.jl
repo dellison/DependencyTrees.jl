@@ -5,23 +5,21 @@ const ArcX = Union{ArcEagerConfig,ArcHybridConfig,ArcStandardConfig,ArcSwiftConf
 
 # si(cfg, 0) -> top of stack
 function si(cfg::ArcX, i)
-    S = length(cfg.σ)
+    stk = stack(cfg)
+    S = length(stk)
     sid = S - i
     if 1 <= sid <= S
-        aid = cfg.σ[sid]
-        aid == 0 ? root(eltype(cfg.A)) : cfg.A[aid]
+        aid = stk[sid]
+        aid == 0 ? root(eltype(tokens(cfg))) : token(cfg, aid)
     else
-        noval(eltype(cfg.A))
+        noval(eltype(tokens(cfg)))
     end
 end
 
 function bi(cfg::ArcX, i)
-    B = length(cfg.β)
-    if 1 <= i <= B
-        cfg.A[cfg.β[i]]
-    else
-        noval(eltype(cfg.A))
-    end
+    buf = buffer(cfg)
+    B = length(buf)
+    1 <= i <= B ? token(cfg, i) : noval(eltype(tokens(cfg)))
 end
 
 s(cfg::ArcX)     = si(cfg, 0)
