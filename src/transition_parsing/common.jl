@@ -114,7 +114,7 @@ end
 # Shift in ArcEager
 # Shift in ArcHybrid
 # Shift in ArcStandard
-function shift(cfg)
+function shift(cfg::StackBufferConfiguration)
     # Remove the word from the front of the input buffer and push it
     # onto the stack.
     b, β = shiftbuffer(cfg)

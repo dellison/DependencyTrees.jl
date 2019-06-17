@@ -18,86 +18,58 @@ transition_space(::ArcHybrid, labels=[]) =
     [LeftArc.(labels)..., RightArc.(labels)..., Shift()]
 
 struct ArcHybridConfig{T} <: AbstractParserConfiguration{T}
-    σ::Vector{Int}
-    β::Vector{Int}
-    A::Vector{T}
+    c::StackBufferConfiguration{T}
 end
 
-function ArcHybridConfig{T}(words) where T
-    σ = [0]
-    β = collect(1:length(words))
-    A = [unk(T, id, w) for (id,w) in enumerate(words)]
-    ArcHybridConfig{T}(σ, β, A)
-end
+ArcHybridConfig{T}(words::AbstractVector) where T =
+    ArcHybridConfig{T}(StackBufferConfiguration{T}(words))
 
-function ArcHybridConfig{T}(gold::DependencyTree) where T
-    σ = [0]
-    β = collect(1:length(gold))
-    A = [dep(token, head=-1) for token in gold]
-    ArcHybridConfig{T}(σ, β, A)
-end
+ArcHybridConfig{T}(gold::DependencyTree) where T =
+    ArcHybridConfig{T}(StackBufferConfiguration{T}(gold))
+
 ArcHybridConfig(gold::DependencyTree) = ArcHybridConfig{eltype(gold)}(gold)
 
-token(cfg::ArcHybridConfig, i) = iszero(i) ? root(deptype(cfg)) :
-                                 i == -1   ? noval(deptype(cfg)) :
-                                 cfg.A[i]
-tokens(cfg::ArcHybridConfig) = cfg.A
-tokens(cfg::ArcHybridConfig, is) = [token(cfg, i) for i in is if 0 <= i <= length(cfg.A)]
+stack(cfg::ArcHybridConfig)  = cfg.c.stack
+buffer(cfg::ArcHybridConfig) = cfg.c.buffer
 
-# get σ|s0 as (σ, s0)
-function σs0(cfg::ArcHybridConfig)
-    s0 = cfg.σ[end]
-    σ = length(cfg.σ) > 1 ? cfg.σ[1:end-1] : Int[]
-    return (σ, s0)
-end
-# σ|s1|s0 as (σ, s1, s0)
-function σs1s0(cfg::ArcHybridConfig)
-    s0 = cfg.σ[end]
-    temp = length(cfg.σ) > 1 ? cfg.σ[1:end-1] : Int[]
-    s1 = temp[end]
-    σ = length(temp) > 1 ? temp[1:end-1] : Int[]
-    return (σ, s1, s0)
-end
+stacklength(cfg::ArcHybridConfig) = length(cfg.c.stack)
+bufferlength(cfg::ArcHybridConfig) = length(cfg.c.buffer)
 
-# b|β as (b, β)
-function bβ(cfg::ArcHybridConfig)
-    b = cfg.β[1]
-    β = length(cfg.β) > 1 ? cfg.β[2:end] : Int[]
-    return (b, β)
-end
+popstack(cfg::ArcHybridConfig, args...)    = popstack(cfg.c, args...)
+shiftbuffer(cfg::ArcHybridConfig, args...) = shiftbuffer(cfg.c, args...)
+
+token(cfg::ArcHybridConfig, args...)  = token(cfg.c, args...)
+tokens(cfg::ArcHybridConfig, args...) = tokens(cfg.c, args...)
 
 # transition operations: leftarc, rightarc, shift
 
-function leftarc(cfg::ArcHybridConfig, args...; kwargs...)
-    # Assert a head-dependent relation between the word at the front
-    # of the input buffer and the word at the top of the stack; pop
-    # the stack.
-    s0, b, A = cfg.σ[end], cfg.β[1], copy(cfg.A)
-    if s0 > 0
-        A[s0] = dep(A[s0], args...; head=b, kwargs...)
-    end
-    ArcHybridConfig(cfg.σ[1:end-1], cfg.β, A)
-end
+leftarc(cfg::ArcHybridConfig, args...; kwargs...) =
+    ArcHybridConfig(leftarc_popstack(cfg.c, args...; kwargs...))
 
-function rightarc(cfg::ArcHybridConfig, args...; kwargs...)
-    # assert a head-dependent relation btwn the 2nd word on the stack
-    # and the word on top; remove the word at the top of the stack
-    σ, s1, s0 = σs1s0(cfg)
-    A = copy(cfg.A)
-    if s0 > 0
-        A[s0] = dep(A[s0], args...; head=s1, kwargs...)
-    end
-    ArcHybridConfig([σ ; s1], cfg.β, A)
-end
+rightarc(cfg::ArcHybridConfig, args...; kwargs...) =
+    ArcHybridConfig(rightarc_popstack(cfg.c, args...; kwargs...))
 
-function shift(cfg::ArcHybridConfig)
-    # remove the word from the front of the input buffer and push it
-    # onto the stack
-    b, β = cfg.β[1], cfg.β[2:end]
-    ArcHybridConfig([cfg.σ ; b], β, cfg.A)
-end
+shift(cfg::ArcHybridConfig) = ArcHybridConfig(shift(cfg.c))
 
-isfinal(cfg::ArcHybridConfig) = all(a -> head(a) != -1, cfg.A)
+# function rightarc(cfg::ArcHybridConfig, args...; kwargs...)
+#     # assert a head-dependent relation btwn the 2nd word on the stack
+#     # and the word on top; remove the word at the top of the stack
+#     σ, s1, s0 = σs1s0(cfg)
+#     A = copy(cfg.A)
+#     if s0 > 0
+#         A[s0] = dep(A[s0], args...; head=s1, kwargs...)
+#     end
+#     ArcHybridConfig([σ ; s1], cfg.β, A)
+# end
+
+# function shift(cfg::ArcHybridConfig)
+#     # remove the word from the front of the input buffer and push it
+#     # onto the stack
+#     b, β = cfg.β[1], cfg.β[2:end]
+#     ArcHybridConfig([cfg.σ ; b], β, cfg.A)
+# end
+
+isfinal(cfg::ArcHybridConfig) = all(a -> head(a) != -1, tokens(cfg))
 
 
 """
@@ -110,22 +82,22 @@ function static_oracle(::ArcHybrid, tree::DependencyTree, transition=untyped)
     arc(i) = transition(tree[i])
 
     function (cfg::ArcHybridConfig)
-        if length(cfg.σ) > 0
-            σ, s = cfg.σ[1:end-1], cfg.σ[end]
-            if length(cfg.β) > 0
-                b, β = cfg.β[1], cfg.β[2:end]
+        if stacklength(cfg) > 0
+            σ, s = popstack(cfg)
+            if bufferlength(cfg) > 0
+                b, β = shiftbuffer(cfg)
                 if has_arc(tree, b, s)
                     return LeftArc(arc(s)...)
                 end
             end
             if length(σ) > 0
                 s2 = σ[end]
-                if has_arc(tree, s2, s) && !any(k -> has_arc(tree, s, k), cfg.β)
+                if has_arc(tree, s2, s) && !any(k -> has_arc(tree, s, k), buffer(cfg))
                     return RightArc(arc(s)...)
                 end
             end
         end
-        if length(cfg.β) > 0
+        if bufferlength(cfg) > 0
             return Shift()
         end
     end
@@ -134,34 +106,36 @@ end
 
 function cost(t::LeftArc, cfg::ArcHybridConfig, gold)
     # number of arcs (s0, d) and (h, s0) for h ϵ H and d ϵ D
-    (σ, s0), (b, β) = σs0(cfg), bβ(cfg)
+    (σ, s0), (b, β) = popstack(cfg), shiftbuffer(cfg)
     H = length(σ) > 1 ? [σ[end] ; β] : β
-    D = cfg.β
+    D = buffer(cfg)
     count(d -> has_arc(gold, s0, d), D) + count(h -> has_arc(gold, h, s0), H)
 end
 
 function cost(t::RightArc, cfg::ArcHybridConfig, gold)
     # number of arcs (s0,d) and (h,s0) for h, d ϵ B
-    s0, c = cfg.σ[end], 0
-    for (i, k) in enumerate(cfg.β)
-        c += has_arc(gold, s0, k)
-        c += has_arc(gold, k, s0)
+    s0, n = last(stack(cfg)), 0
+    for k in buffer(cfg)
+        n += has_arc(gold, s0, k)
+        n += has_arc(gold, k, s0)
     end
-    c
+    return n
 end
 
 function cost(t::Shift, cfg::ArcHybridConfig, gold)
     # num of arcs (b, d), (h, b) s.t. h ϵ H, d ϵ D
-    b = cfg.β[1]
-    H, D = length(cfg.σ) > 1 ? cfg.σ[1:end-1] : Int[], cfg.σ
-    count(h -> has_arc(gold, h, b), H) + count(d -> has_arc(gold, b, d), D)
+    b = first(buffer(cfg))
+    s, s0 = popstack(cfg)
+    D = stack(cfg)
+    H = length(D) > 1 ? s : Int[]
+    return count(h -> has_arc(gold, h, b), H) + count(d -> has_arc(gold, b, d), D)
 end
 
 function possible_transitions(cfg::ArcHybridConfig, tree::DependencyTree, transition=untyped)
     ops = TransitionOperator[]
-    S, B = length(cfg.σ), length(cfg.β)
+    S, B = length(stack(cfg)), length(buffer(cfg))
     if S >= 1
-        s = cfg.σ[end]
+        s = last(stack(cfg))
         if !iszero(s) && S > 1
             push!(ops, RightArc(transition(tree[s])...))
         end
@@ -170,12 +144,11 @@ function possible_transitions(cfg::ArcHybridConfig, tree::DependencyTree, transi
         end
     end
     B >= 1 && push!(ops, Shift())
-    ops
+    return ops
 end
 
 
-==(cfg1::ArcHybridConfig, cfg2::ArcHybridConfig) =
-    cfg1.σ == cfg2.σ && cfg1.β == cfg2.β && cfg1.A == cfg2.A
+==(cfg1::ArcHybridConfig, cfg2::ArcHybridConfig) = cfg1.c == cfg2.c
 
 Base.show(io::IO, c::ArcHybridConfig) =
-    print(io, "ArcHybridConfig($(c.σ),$(c.β))\n$(join([join([id(t),form(t),head(t)],'\t') for t in tokens(c)],'\n'))")
+    print(io, "ArcHybridConfig($(stack(c)),$(buffer(c))\n$(join([join([id(t),form(t),head(t)],'\t') for t in tokens(c)],'\n'))")
