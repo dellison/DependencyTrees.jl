@@ -21,25 +21,8 @@ struct ArcHybridConfig{T} <: AbstractParserConfiguration{T}
     c::StackBufferConfiguration{T}
 end
 
-ArcHybridConfig{T}(words::AbstractVector) where T =
-    ArcHybridConfig{T}(StackBufferConfiguration{T}(words))
+@stackbufconfig ArcHybridConfig
 
-ArcHybridConfig{T}(gold::DependencyTree) where T =
-    ArcHybridConfig{T}(StackBufferConfiguration{T}(gold))
-
-ArcHybridConfig(gold::DependencyTree) = ArcHybridConfig{eltype(gold)}(gold)
-
-stack(cfg::ArcHybridConfig)  = cfg.c.stack
-buffer(cfg::ArcHybridConfig) = cfg.c.buffer
-
-stacklength(cfg::ArcHybridConfig) = length(cfg.c.stack)
-bufferlength(cfg::ArcHybridConfig) = length(cfg.c.buffer)
-
-popstack(cfg::ArcHybridConfig, args...)    = popstack(cfg.c, args...)
-shiftbuffer(cfg::ArcHybridConfig, args...) = shiftbuffer(cfg.c, args...)
-
-token(cfg::ArcHybridConfig, args...)  = token(cfg.c, args...)
-tokens(cfg::ArcHybridConfig, args...) = tokens(cfg.c, args...)
 
 # transition operations: leftarc, rightarc, shift
 
@@ -51,23 +34,6 @@ rightarc(cfg::ArcHybridConfig, args...; kwargs...) =
 
 shift(cfg::ArcHybridConfig) = ArcHybridConfig(shift(cfg.c))
 
-# function rightarc(cfg::ArcHybridConfig, args...; kwargs...)
-#     # assert a head-dependent relation btwn the 2nd word on the stack
-#     # and the word on top; remove the word at the top of the stack
-#     σ, s1, s0 = σs1s0(cfg)
-#     A = copy(cfg.A)
-#     if s0 > 0
-#         A[s0] = dep(A[s0], args...; head=s1, kwargs...)
-#     end
-#     ArcHybridConfig([σ ; s1], cfg.β, A)
-# end
-
-# function shift(cfg::ArcHybridConfig)
-#     # remove the word from the front of the input buffer and push it
-#     # onto the stack
-#     b, β = cfg.β[1], cfg.β[2:end]
-#     ArcHybridConfig([cfg.σ ; b], β, cfg.A)
-# end
 
 isfinal(cfg::ArcHybridConfig) = all(a -> head(a) != -1, tokens(cfg))
 

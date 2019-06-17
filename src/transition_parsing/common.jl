@@ -55,6 +55,30 @@ function shiftbuffer(cfg, n=1)
     return (bh..., be)
 end
 
+macro stackbufconfig(T, f=:c)
+    @eval begin
+        $T{T}(words::AbstractVector) where T =
+            $T{T}(StackBufferConfiguration{T}(words))
+
+        $T{T}(gold::DependencyTree) where T =
+            $T{T}(StackBufferConfiguration{T}(gold))
+
+        $T(gold::DependencyTree) = $T{eltype(gold)}(gold)
+
+        stack(cfg::$T)  = cfg.$f.stack
+        buffer(cfg::$T) = cfg.$f.buffer
+
+        stacklength(cfg::$T) = length(cfg.$f.stack)
+        bufferlength(cfg::$T) = length(cfg.$f.buffer)
+
+        popstack(cfg::$T, args...)    = popstack(cfg.$f, args...)
+        shiftbuffer(cfg::$T, args...) = shiftbuffer(cfg.$f, args...)
+
+        token(cfg::$T, args...)  = token(cfg.$f, args...)
+        tokens(cfg::$T, args...) = tokens(cfg.$f, args...)
+    end
+end
+
 # LeftArc in ArcStandard
 function leftarc_popstack2(cfg, args...; kwargs...)
     # assert a head-dependent relation between the word at the top of

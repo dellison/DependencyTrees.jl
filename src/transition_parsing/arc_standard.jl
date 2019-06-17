@@ -20,25 +20,8 @@ struct ArcStandardConfig{T} <: AbstractParserConfiguration{T}
     c::StackBufferConfiguration{T}
 end
 
-ArcStandardConfig{T}(words::AbstractVector) where T =
-    ArcStandardConfig{T}(StackBufferConfiguration{T}(words))
+@stackbufconfig ArcStandardConfig
 
-ArcStandardConfig{T}(gold::DependencyTree) where T =
-    ArcStandardConfig{T}(StackBufferConfiguration{T}(gold))
-
-ArcStandardConfig(gold::DependencyTree) = ArcStandardConfig{eltype(gold)}(gold)
-
-stack(cfg::ArcStandardConfig)  = cfg.c.stack
-buffer(cfg::ArcStandardConfig) = cfg.c.buffer
-
-stacklength(cfg::ArcStandardConfig) = length(cfg.c.stack)
-bufferlength(cfg::ArcStandardConfig) = length(cfg.c.buffer)
-
-popstack(cfg::ArcStandardConfig, args...)    = popstack(cfg.c, args...)
-shiftbuffer(cfg::ArcStandardConfig, args...) = shiftbuffer(cfg.c, args...)
-
-token(cfg::ArcStandardConfig, args...)  = token(cfg.c, args...)
-tokens(cfg::ArcStandardConfig, args...) = tokens(cfg.c, args...)
 
 leftarc(cfg::ArcStandardConfig, args...; kwargs...) =
     ArcStandardConfig(leftarc_popstack2(cfg.c, args...; kwargs...))

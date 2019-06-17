@@ -21,25 +21,8 @@ struct ArcEagerConfig{T} <: AbstractParserConfiguration{T}
     c::StackBufferConfiguration{T}
 end
 
-ArcEagerConfig{T}(words::AbstractVector) where T =
-    ArcEagerConfig{T}(StackBufferConfiguration{T}(words))
+@stackbufconfig ArcEagerConfig
 
-ArcEagerConfig{T}(gold::DependencyTree) where T =
-    ArcEagerConfig{T}(StackBufferConfiguration{T}(gold))
-
-ArcEagerConfig(gold::DependencyTree) = ArcEagerConfig{eltype(gold)}(gold)
-
-stack(cfg::ArcEagerConfig)  = cfg.c.stack
-buffer(cfg::ArcEagerConfig) = cfg.c.buffer
-
-stacklength(cfg::ArcEagerConfig) = length(cfg.c.stack)
-bufferlength(cfg::ArcEagerConfig) = length(cfg.c.buffer)
-
-popstack(cfg::ArcEagerConfig, args...)    = popstack(cfg.c, args...)
-shiftbuffer(cfg::ArcEagerConfig, args...) = shiftbuffer(cfg.c, args...)
-
-token(cfg::ArcEagerConfig, args...)  = token(cfg.c, args...)
-tokens(cfg::ArcEagerConfig, args...) = tokens(cfg.c, args...)
 
 leftarc(cfg::ArcEagerConfig, args...; kwargs...) =
     ArcEagerConfig(leftarc_popstack(cfg.c, args...; kwargs...))
