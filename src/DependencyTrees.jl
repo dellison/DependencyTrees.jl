@@ -20,6 +20,7 @@ using LightGraphs
 
 import Base.==
 import Base.getindex
+import Base.reduce
 
 include("errors.jl")
 include("dependencies.jl")

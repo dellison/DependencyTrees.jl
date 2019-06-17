@@ -23,7 +23,7 @@
     @testset "Figure 3.7" begin
         o = DT.static_oracle(ArcEager(), graph, typed)
         init = DependencyTrees.initconfig(ArcEager(), TypedDependency, first.(fig_1_1))
-        @test init.σ == [0] && init.β == 1:9
+        @test stack(init) == [0] && buffer(init) == 1:9
         gold_transitions = [Shift()
                             LeftArc("ATT")
                             Shift()
@@ -48,7 +48,7 @@
             cfg = t(cfg)
         end
         @test isfinal(cfg)
-        graph2 = DependencyTree(cfg.A)
+        graph2 = DependencyTree(tokens(cfg))
         @test graph == graph2
 
         oracle = StaticOracle(ArcEager())

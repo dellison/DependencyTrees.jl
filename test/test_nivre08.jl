@@ -33,8 +33,8 @@
 
         words = first.(figure_2_sent)
         config = DependencyTrees.initconfig(ArcEager(), TypedDependency, first.(figure_2_sent))
-        @test config.σ == [0]
-        @test config.β == 1:9
+        @test stack(config) == [0]
+        @test buffer(config) == 1:9
         config = shift(config)
         config = leftarc(config, "NMOD")
         config = shift(config)
@@ -75,7 +75,7 @@
             @test oracle(config) == t
             config = t(config)
         end
-        graph2 = DependencyTree(config.A)
+        graph2 = DependencyTree(tokens(config))
         @test graph == graph2
     end
 

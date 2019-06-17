@@ -306,7 +306,8 @@
                                                                    ("houston", 3)])])
 
             # head --> dep
-            hasdep(state, head, dep) = state.A[word2id[dep]].head == word2id[head]
+            hasdep(state, head, dep) =
+                token(state, word2id[dep]).head == word2id[head]
 
             # step 0
             state = DependencyTrees.initconfig(ArcEager(), UntypedDependency, sent)
@@ -387,7 +388,7 @@
 
             # head --> dep
             hasdeprel(state, head, deprel, dep) =
-                state.A[word2id[dep]].head == word2id[head] && state.A[word2id[dep]].deprel == deprel
+                token(state, word2id[dep]).head == word2id[head] && token(state, word2id[dep]).deprel == deprel
 
             gold_graph = DependencyTree([TypedDependency(i, t...)
                                           for (i, t) in enumerate([("book", "root", 0),

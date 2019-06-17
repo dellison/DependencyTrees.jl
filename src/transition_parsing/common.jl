@@ -100,7 +100,7 @@ function rightarc_shift(cfg, args...; kwargs...)
     # Assert a head-dependent relation between the word on the top of
     # the σ and the word at front of the input buffer; shift the
     # word at the front of the input buffer to the stack.
-    (σ, s), (b, β), A = σs(cfg), bβ(cfg), copy(cfg.A)
+    (σ, s), (b, β), A = popstack(cfg), shiftbuffer(cfg), copy(cfg.A)
     A[b] = dep(A[b], args...; head=s, kwargs...)
     StackBufferConfiguration([cfg.stack ; b], β, A)
 end
