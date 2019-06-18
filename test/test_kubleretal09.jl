@@ -51,7 +51,7 @@
         graph2 = DependencyTree(tokens(cfg))
         @test graph == graph2
 
-        oracle = StaticOracle(ArcEager())
+        oracle = StaticOracle(ArcEager(), transition=typed)
         pairs = xys(oracle, graph)
         @test collect(last.(pairs)) == gold_transitions
         @test collect(xys(oracle, [graph])) == collect(pairs)

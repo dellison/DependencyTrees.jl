@@ -2,7 +2,7 @@
 
     error_cb(args...) = nothing
     
-    oracle = DynamicOracle(ArcEager())
+    oracle = DynamicOracle(ArcEager(), transition=typed)
     
     model(cfg) = nothing
     
@@ -29,7 +29,7 @@
     while !isfinal(cfg)
         pred = model(cfg)
         gold = gold_transitions(oracle, cfg, graph)
-        zeroc = zero_cost_transitions(cfg, graph)
+        zeroc = zero_cost_transitions(cfg, graph, typed)
         @test gold == zeroc
         @test pred in gold
         @test any(t -> hascost(t, cfg, graph), [Shift(), Reduce(), LeftArc("lol"), RightArc("lol")])

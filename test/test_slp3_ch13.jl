@@ -271,7 +271,7 @@
             @test isfinal(state)
 
             model = static_oracle(ArcStandard(), gold_graph)
-            oracle = StaticOracle(ArcStandard())
+            oracle = StaticOracle(ArcStandard(), transition=typed)
             error_cb(args...) = @assert false
             pairs = DependencyTrees.xys(oracle, gold_graph)
             @test last.(pairs) == [Shift(), Shift(), RightArc("indobj"),

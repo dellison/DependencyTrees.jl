@@ -10,7 +10,7 @@ struct DynamicOracle{T} <: Oracle{T}
     transition::Function
 end
 
-DynamicOracle(T, oracle = haszerocost; transition = typed) =
+DynamicOracle(T, oracle = haszerocost; transition = untyped) =
     DynamicOracle(T, oracle, transition)
 
 (oracle::DynamicOracle)(tree::DependencyTree; kwargs...) =
@@ -48,7 +48,7 @@ hascost(t::TransitionOperator, cfg, gold::DependencyTree) =
 
 todo
 """
-function zero_cost_transitions(c, gold::DependencyTree, transition=typed)
+function zero_cost_transitions(c, gold::DependencyTree, transition=untyped)
     ts = possible_transitions(c, gold, transition)
     filter(t -> haszerocost(t, c, gold), ts)
 end

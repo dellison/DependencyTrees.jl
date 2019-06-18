@@ -1,5 +1,5 @@
 """
-    StaticOracle(T, oracle_function = static_oracle; transition = typed)
+    StaticOracle(T, oracle_function = static_oracle; transition = untyped)
 
 Static (deterministic) oracle for mapping parser configurations to
 gold transitions with reference to a gold dependency graph.
@@ -10,7 +10,7 @@ struct StaticOracle{T} <: Oracle{T}
     transition::Function
 end
 
-StaticOracle(system, oracle = static_oracle; transition = typed) =
+StaticOracle(system, oracle = static_oracle; transition = untyped) =
     StaticOracle(system, oracle, transition)
 
 (oracle::StaticOracle)(tree::DependencyTree; kwargs...) =
