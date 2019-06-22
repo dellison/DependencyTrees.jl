@@ -115,5 +115,5 @@ end
 
 ==(cfg1::ArcHybridConfig, cfg2::ArcHybridConfig) = cfg1.c == cfg2.c
 
-Base.show(io::IO, c::ArcHybridConfig) =
-    print(io, "ArcHybridConfig($(stack(c)),$(buffer(c))\n$(join([join([id(t),form(t),head(t)],'\t') for t in tokens(c)],'\n'))")
+# Base.show(io::IO, c::ArcHybridConfig) =
+#     print(io, "ArcHybridConfig($(stack(c)),$(buffer(c))\n$(join([join([id(t),form(t),head(t)],'\t') for t in tokens(c)],'\n'))")

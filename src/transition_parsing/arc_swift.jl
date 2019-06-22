@@ -27,7 +27,7 @@ end
 function ArcSwiftConfig{T}(words) where T
     σ = [0]
     β = collect(1:length(words))
-    A = [unk(T, id, w) for (id,w) in enumerate(words)]
+    A = [unk(T, id, w) for (id, w) in enumerate(words)]
     ArcSwiftConfig{T}(σ, β, A)
 end
 
@@ -38,6 +38,9 @@ function ArcSwiftConfig{T}(gold::DependencyTree) where T
     ArcSwiftConfig{T}(σ, β, A)
 end
 ArcSwiftConfig(gold::DependencyTree) = ArcSwiftConfig{eltype(gold)}(gold)
+
+stack(cfg::ArcSwiftConfig)  = cfg.σ
+buffer(cfg::ArcSwiftConfig) = cfg.β
 
 token(cfg::ArcSwiftConfig, i) = iszero(i) ? root(deptype(cfg)) :
                                 i == -1   ? noval(deptype(cfg)) :

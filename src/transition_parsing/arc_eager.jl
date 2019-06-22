@@ -196,6 +196,3 @@ end
 ==(cfg1::ArcEagerConfig, cfg2::ArcEagerConfig) = cfg1.c == cfg2.c
 
 Base.getindex(cfg::ArcEagerConfig, i) = arc(cfg, i)
-
-Base.show(io::IO, c::ArcEagerConfig) =
-    print(io, "ArcEagerConfig($(stack(c)),$(buffer(c)))\n$(join([join([id(t),form(t),head(t)],'\t') for t in tokens(c)],'\n'))")

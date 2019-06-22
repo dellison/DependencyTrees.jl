@@ -27,26 +27,12 @@ s0(cfg::ArcX)    = si(cfg, 0)
 s1(cfg::ArcX)    = si(cfg, 1)
 s2(cfg::ArcX)    = si(cfg, 2)
 s3(cfg::ArcX)    = si(cfg, 3)
-stack(cfg::ArcX) = cfg.σ
 
 b(cfg::ArcX)      = bi(cfg, 1)
 b0(cfg::ArcX)     = bi(cfg, 1)
 b1(cfg::ArcX)     = bi(cfg, 2)
 b2(cfg::ArcX)     = bi(cfg, 3)
 b3(cfg::ArcX)     = bi(cfg, 4)
-buffer(cfg::ArcX) = cfg.β
-
-# function σs(cfg::ArcEagerConfig)
-#     s = cfg.σ[end]
-#     σ = length(cfg.σ) > 1 ? cfg.σ[1:end-1] : Int[]
-#     return (σ, s)
-# end
-
-# function bβ(cfg::Union{ArcEagerConfig,ArcHybridConfig})
-#     b = cfg.β[1]
-#     β = length(cfg.β) > 1 ? cfg.β[2:end] : Int[]
-#     return (b, β)
-# end
 
 leftdeps(cfg::AbstractParserConfiguration, dep::Dependency) = leftdeps(cfg, id(dep))
 leftdeps(cfg::AbstractParserConfiguration, i::Int) =

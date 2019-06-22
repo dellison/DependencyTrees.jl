@@ -78,6 +78,13 @@ macro stackbufconfig(T, f=:c)
         tokens(cfg::$T, args...) = tokens(cfg.$f, args...)
 
         DependencyTree(cfg::$T, args...) = DependencyTree(cfg.$f.A, check=false)
+
+        function Base.show(io::IO, cfg::$T)
+            println(io, "$(typeof(cfg))($(stack(cfg)),$(buffer(cfg)))")
+            for t in tokens(cfg)
+                println(join((id(t), form(t), head(t)), "\t"))
+            end
+        end
     end
 end
 
@@ -147,6 +154,12 @@ function shift(cfg::StackBufferConfiguration)
     StackBufferConfiguration([cfg.stack ; b], β, cfg.A)
 end
 
-
 ==(cfg1::StackBufferConfiguration, cfg2::StackBufferConfiguration) =
     cfg1.stack == cfg2.stack && cfg1.buffer == cfg2.buffer && cfg1.A == cfg2.A
+
+
+# function s_i(cfg::StackBufferConfiguration, i)
+# end
+# function b_i(cfg::StackBufferConfiguration, i)
+# end
+             

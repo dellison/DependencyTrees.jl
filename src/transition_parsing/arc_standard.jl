@@ -60,10 +60,3 @@ function static_oracle(::ArcStandard, gold_tree::DependencyTree, transition=unty
 end
 
 ==(cfg1::ArcStandardConfig, cfg2::ArcStandardConfig) = cfg1.c == cfg2.c
-
-function Base.show(io::IO, c::ArcStandardConfig)
-    h = "ArcStandardConfig($(c.σ),$(c.β))"
-    fmt(t) = join([id(t),form(t),head(t)],"\t")
-    a = join([fmt(t) for t in tokens(c)],'\n')
-    print(io, "$h\n$a")
-end
