@@ -7,8 +7,8 @@ Described in [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pd
 """
 struct ArcSwift <: AbstractTransitionSystem end
 
-initconfig(s::ArcSwift, graph::DependencyTree) = ArcSwiftConfig(graph)
-initconfig(s::ArcSwift, deptype, words) = ArcSwiftConfig{deptype}(words)
+initconfig(::ArcSwift, graph::DependencyTree) = ArcSwiftConfig(graph)
+initconfig(::ArcSwift, deptype, words) = ArcSwiftConfig{deptype}(words)
 
 transition_space(::ArcSwift, labels=[]; max_k=5) =
     isempty(labels) ? [LeftArc.(1:max_k)..., RightArc.(1:max_k)..., Shift()] :

@@ -34,7 +34,6 @@ rightarc(cfg::ArcHybridConfig, args...; kwargs...) =
 
 shift(cfg::ArcHybridConfig) = ArcHybridConfig(shift(cfg.c))
 
-
 isfinal(cfg::ArcHybridConfig) = all(a -> head(a) != -1, tokens(cfg))
 
 

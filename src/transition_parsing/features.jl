@@ -19,7 +19,7 @@ end
 function bi(cfg::ArcX, i)
     buf = buffer(cfg)
     B = length(buf)
-    1 <= i <= B ? token(cfg, i) : noval(eltype(tokens(cfg)))
+    1 <= i <= B ? token(cfg, buf[i]) : noval(eltype(tokens(cfg)))
 end
 
 s(cfg::ArcX)     = si(cfg, 0)

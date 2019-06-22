@@ -76,6 +76,8 @@ macro stackbufconfig(T, f=:c)
 
         token(cfg::$T, args...)  = token(cfg.$f, args...)
         tokens(cfg::$T, args...) = tokens(cfg.$f, args...)
+
+        DependencyTree(cfg::$T, args...) = DependencyTree(cfg.$f.A, check=false)
     end
 end
 
