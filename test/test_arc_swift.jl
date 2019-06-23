@@ -26,7 +26,7 @@
     gold2 = DependencyTree(TD, s2, add_id=true)
 
     @testset "Arc Eager Reduce" begin
-        oracle = StaticOracle(ArcEagerReduce(), transition=typed)
+        oracle = StaticOracle(ArcEager(), transition=typed)
         (gold_cfgs1, gold_ts1) = zip(xys(oracle, gold1)...)
         @test gold_ts1 == (Shift(), LeftArc("nsubj"), RightArc("root"),
                            RightArc("dobj"), Reduce(), Shift(), LeftArc("case"),
@@ -39,7 +39,7 @@
     end
 
     @testset "Arc Eager Shift" begin
-        oracle = StaticOracle(ArcEagerShift(), static_oracle, transition=typed)
+        oracle = StaticOracle(ArcEager(), static_oracle_shift, transition=typed)
         (gold_cfgs1, gold_ts1) = zip(xys(oracle, gold1)...)
 
         gold_ts1 = [Shift(), LeftArc("nsubj"), RightArc("root"),
