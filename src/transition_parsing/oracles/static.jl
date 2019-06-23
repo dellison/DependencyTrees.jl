@@ -4,10 +4,10 @@
 Static (deterministic) oracle for mapping parser configurations to
 gold transitions with reference to a gold dependency graph.
 """
-struct StaticOracle{T} <: Oracle{T}
+struct StaticOracle{T,O,P} <: AbstractOracle{T,P}
     transition_system::T
-    oracle::Function
-    transition::Function
+    oracle::O
+    transition::P
 end
 
 StaticOracle(system, oracle = static_oracle; transition = untyped) =
@@ -43,8 +43,8 @@ AG(s::StaticGoldState) = ([s.t], [s.t])
 
 todo
 """
-struct StaticGoldSearch{S<:AbstractTransitionSystem}
-    oracle::StaticOracle{S}
+struct StaticGoldSearch{S,P}
+    oracle::StaticOracle{S,P}
     tree::DependencyTree
     o::Function
 end

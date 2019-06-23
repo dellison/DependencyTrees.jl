@@ -7,11 +7,11 @@ struct UntypedTransition end
 
 """
 """
-const Typed = TypedTransition()
+const Typed = TypedTransition
 
 """
 """
-const Untyped = TypedTransition()
+const Untyped = TypedTransition
 
 untyped(dep) = ()
 typed(dep) = (deprel(dep),)
