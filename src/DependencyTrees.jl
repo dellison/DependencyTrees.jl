@@ -5,9 +5,10 @@ export
     Treebank,
     TypedDependency, UntypedDependency, CoNLLU,
 
-    # Transition parsing
-    ArcEager, ArcStandard, ArcHybrid, ArcSwift, ListBasedNonProjective,
-    StaticOracle, DynamicOracle, static_oracle, static_oracle_shift,
+    ArcEager, ArcEagerReduce, ArcEagerShift,
+    ArcStandard, ArcHybrid, ArcSwift, ListBasedNonProjective,
+
+    StaticOracle, DynamicOracle, static_oracle,
 
     typed, untyped,
     initconfig, isfinal, possible_transitions,

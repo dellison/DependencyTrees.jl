@@ -8,14 +8,30 @@ See [Nivre 2003](http://stp.lingfil.uu.se/~nivre/docs/iwpt03.pdf),
 """
 struct ArcEager <: AbstractTransitionSystem end
 
-initconfig(::ArcEager, graph::DependencyTree) = ArcEagerConfig(graph)
-initconfig(::ArcEager, deptype, words) = ArcEagerConfig{deptype}(words)
+const ArcEagerReduce = ArcEager
 
-transition_space(::ArcEager, labels=[]) =
+"""
+    ArcEagerShift()
+
+Arc-Eager transition system for dependency parsing.
+
+TODO
+See [Nivre 2003](http://stp.lingfil.uu.se/~nivre/docs/iwpt03.pdf),
+[Nivre 2008](https://www.aclweb.org/anthology/J08-4003.pdf).
+"""
+struct ArcEagerShift <: AbstractTransitionSystem end
+
+initconfig(::Union{ArcEager,ArcEagerShift}, graph::DependencyTree) =
+    ArcEagerConfig(graph)
+initconfig(::Union{ArcEager,ArcEagerShift}, deptype, words) =
+    ArcEagerConfig{deptype}(words)
+
+transition_space(::Union{ArcEager,ArcEagerShift}, labels=[]) =
     isempty(labels) ? [LeftArc(), RightArc(), Reduce(), Shift()] :
     [LeftArc.(labels)..., RightArc.(labels)..., Reduce(), Shift()]
 
 projective_only(::ArcEager) = true
+projective_only(::ArcEagerShift) = true
 
 struct ArcEagerConfig{T} <: AbstractParserConfiguration{T}
     c::StackBufferConfiguration{T}
@@ -24,21 +40,41 @@ end
 @stackbufconfig ArcEagerConfig
 
 
+"""
+    leftarc(cfg, ...)
+
+
+"""
 leftarc(cfg::ArcEagerConfig, args...; kwargs...) =
     ArcEagerConfig(leftarc_popstack(cfg.c, args...; kwargs...))
 
+"""
+    rightarc(cfg, ...)
+
+
+"""
 rightarc(cfg::ArcEagerConfig, args...; kwargs...) =
     ArcEagerConfig(rightarc_shift(cfg.c, args...; kwargs...))
 
+"""
+    reduce(cfg, ...)
+
+
+"""
 reduce(cfg::ArcEagerConfig) = ArcEagerConfig(reduce(cfg.c))
 
+"""
+    shift(cfg, ...)
+
+
+"""
 shift(cfg::ArcEagerConfig) = ArcEagerConfig(shift(cfg.c))
 
 isfinal(cfg::ArcEagerConfig) = all(a -> head(a) >= 0, cfg.c.A)
 hashead(cfg::ArcEagerConfig, k) = head(token(cfg, k)) != -1
 
 """
-    static_oracle(::ArcEagerConfig, tree)
+    static_oracle(::ArcEager, tree)
 
 Static oracle for arc-eager dependency parsing. Closes over gold trees,
 mapping parser configurations to optimal transitions.
@@ -50,7 +86,7 @@ function static_oracle(::ArcEager, tree::DependencyTree, transition=untyped)
     args(i) = transition(tree[i])
     gold_arc(a, b) = has_arc(tree, a, b)
 
-    function (cfg::ArcEagerConfig)
+    return function (cfg::ArcEagerConfig)
         if length(stack(cfg)) >= 1 && length(buffer(cfg)) >= 1
             s, b = last(stack(cfg)), first(buffer(cfg))
             if gold_arc(b, s)
@@ -66,16 +102,16 @@ function static_oracle(::ArcEager, tree::DependencyTree, transition=untyped)
 end
 
 """
-    static_oracle_shift(::ArcEager, graph)
+    static_oracle(::ArcEagerShift, tree, transition=untyped)
 
-Static oracle for arc-standard dependency parsing. Closes over gold
+Static oracle for arc-eager dependency parsing. Closes over gold
 trees, mapping parser configurations to optimal transitions.  Similar
 to the "regular" static oracle, but always Shift when ambiguity is
 present.
 
 See [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
-function static_oracle_shift(::ArcEager, graph::DependencyTree, transition=untyped)
+function static_oracle(::ArcEagerShift, graph::DependencyTree, transition=untyped)
     args(i) = transition(graph[i])
     gold_arc(a, b)= has_arc(graph, a, b)
 
