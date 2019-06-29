@@ -27,7 +27,7 @@ end
 
 
 leftarc(cfg::ArcEagerConfig, args...; kwargs...) =
-    ArcEagerConfig(leftarc_popstack(cfg.c, args...; kwargs...))
+    ArcEagerConfig(leftarc_reduce(cfg.c, args...; kwargs...))
 
 rightarc(cfg::ArcEagerConfig, args...; kwargs...) =
     ArcEagerConfig(rightarc_shift(cfg.c, args...; kwargs...))

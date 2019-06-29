@@ -1,12 +1,12 @@
 # transition arguments
 
-abstract type ArcParams end
+abstract type Arc end
 
 """
     TypedTransition
 
 """
-struct Typed <: ArcParams end
+struct Typed <: Arc end
 
 (::Typed)(dep) = (deprel(dep),)
 (::Type{Typed})(dep) = (deprel(dep),)
@@ -15,7 +15,7 @@ struct Typed <: ArcParams end
     UntypedTransition
 
 """
-struct Untyped end
+struct Untyped <: Arc end
 
 (::Untyped)(dep) = ()
 (::Type{Untyped})(dep) = ()

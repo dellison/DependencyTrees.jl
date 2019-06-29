@@ -1,4 +1,7 @@
 """
+    StackBufferConfiguration
+
+Parser configuration with a stack and a buffer.
 """
 struct StackBufferConfiguration{T <: Dependency}
     stack::Vector{Int}
@@ -55,6 +58,11 @@ function shiftbuffer(cfg, n=1)
     return (bh..., be)
 end
 
+"""
+    @stackbufconfig(T)
+
+Define common methods for a stack-and-buffer-based configuration type.
+"""
 macro stackbufconfig(T, f=:c)
     @eval begin
         $T{T}(words::AbstractVector) where T =
@@ -89,7 +97,7 @@ macro stackbufconfig(T, f=:c)
 end
 
 # LeftArc in ArcStandard
-function leftarc_popstack2(cfg, args...; kwargs...)
+function leftarc_reduce2(cfg, args...; kwargs...)
     # assert a head-dependent relation between the word at the top of
     # the stack and the word directly beneath it; remove the lower
     # word from the stack
@@ -103,7 +111,7 @@ end
 
 # LeftArc in ArcEager
 # LeftArc in ArcHybrid
-function leftarc_popstack(cfg, args...; kwargs...)
+function leftarc_reduce(cfg, args...; kwargs...)
     # Assert a head-dependent relation between the word at the front
     # of the input buffer and the word at the top of the stack; pop
     # the stack.
@@ -116,7 +124,7 @@ end
 
 # RightArc in ArcHybrid
 # RightArc in ArcStandard
-function rightarc_popstack(cfg, args...; kwargs...)
+function rightarc_reduce(cfg, args...; kwargs...)
     # assert a head-dependent relation btwn the 2nd word on the stack
     # and the word on top; remove the word at the top of the stack
     # σ, s1, s0 = σs1s0(cfg)

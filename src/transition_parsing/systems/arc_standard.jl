@@ -24,10 +24,10 @@ end
 
 
 leftarc(cfg::ArcStandardConfig, args...; kwargs...) =
-    ArcStandardConfig(leftarc_popstack2(cfg.c, args...; kwargs...))
+    ArcStandardConfig(leftarc_reduce2(cfg.c, args...; kwargs...))
 
 rightarc(cfg::ArcStandardConfig, args...; kwargs...) = 
-    ArcStandardConfig(rightarc_popstack(cfg.c, args...; kwargs...))
+    ArcStandardConfig(rightarc_reduce(cfg.c, args...; kwargs...))
 
 shift(cfg::ArcStandardConfig) = ArcStandardConfig(shift(cfg.c))
 

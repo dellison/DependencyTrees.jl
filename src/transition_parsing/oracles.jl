@@ -35,7 +35,7 @@ struct GoldState{C}
     G::Vector{TransitionOperator}
 end
 
-include("exploration.jl")
+include("oracles/exploration.jl")
 
 """
     TreeOracle
@@ -79,5 +79,5 @@ function Base.iterate(o::TreeOracle, cfg)
     end
 end
 
-include("static.jl")
-include("dynamic.jl")
+include("oracles/static.jl")
+include("oracles/dynamic.jl")

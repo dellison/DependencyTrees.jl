@@ -32,7 +32,7 @@ end
 
 """
 leftarc(cfg::ArcHybridConfig, args...; kwargs...) =
-    ArcHybridConfig(leftarc_popstack(cfg.c, args...; kwargs...))
+    ArcHybridConfig(leftarc_reduce(cfg.c, args...; kwargs...))
 
 """
     rightarc(cfg, ...)
@@ -40,7 +40,7 @@ leftarc(cfg::ArcHybridConfig, args...; kwargs...) =
 
 """
 rightarc(cfg::ArcHybridConfig, args...; kwargs...) =
-    ArcHybridConfig(rightarc_popstack(cfg.c, args...; kwargs...))
+    ArcHybridConfig(rightarc_reduce(cfg.c, args...; kwargs...))
 
 """
     shift(cfg, ...)
