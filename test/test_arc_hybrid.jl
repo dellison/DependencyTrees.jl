@@ -2,7 +2,8 @@
 
     AH = ArcHybrid()
 
-    tb = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "hybridtests.conll"))
+    tb = test_treebank("hybridtests.conll")
+
     trees = collect(tb)
     @test length(trees) == 4
     @test length.(trees) == [6, 6, 9, 18]

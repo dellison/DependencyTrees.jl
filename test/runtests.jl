@@ -30,6 +30,14 @@ function showstr(op)
     return String(take!(buf))
 end
 
+function test_treebank(filename)
+    Treebank{CoNLLU}(joinpath(@__DIR__, "data", filename))
+end
+
+function test_sentence(filename)
+    first(test_treebank(filename))
+end
+
 @testset "DependencyTrees" begin 
     include("test_tokens.jl")
     include("test_graphs.jl")

@@ -2,59 +2,32 @@
 # parsing" (https://doi.org/10.2200/S00169ED1V01Y200901HLT002)
 
 @testset "Kübler et al 09" begin
-
-    fig_1_1 = [
-        ("Economic", "ATT", 2),
-        ("news", "SBJ", 3),
-        ("had", "PRED", 0),
-        ("little", "ATT", 5),
-        ("effect", "OBJ", 3),
-        ("on", "ATT", 5),
-        ("financial", "ATT", 8),
-        ("markets", "PC", 6),
-        (".", "PU", 3),
-    ]
-
     @test projective_only(ArcEager())
 
-    graph = DependencyTree(TypedDependency, fig_1_1, add_id=true)
-    @test length(graph) == length(fig_1_1)
-
     @testset "Figure 3.7" begin
-        # o = DT.static_oracle(ArcEager(), graph, typed)
-        o(cfg) = static_oracle(cfg, graph, typed)
-        init = DependencyTrees.initconfig(ArcEager(), TypedDependency, first.(fig_1_1))
-        @test stack(init) == [0] && buffer(init) == 1:9
-        gold_transitions = [Shift()
-                            LeftArc("ATT")
-                            Shift()
-                            LeftArc("SBJ")
-                            RightArc("PRED")
-                            Shift()
-                            LeftArc("ATT")
-                            RightArc("OBJ")
-                            RightArc("ATT")
-                            Shift()
-                            LeftArc("ATT")
-                            RightArc("PC")
-                            Reduce()
-                            Reduce()
-                            Reduce()
-                            RightArc("PU")]
+        tree = test_sentence("economicnews.conll")
+        oracle = StaticOracle(ArcEager(), transition=typed)
 
-        cfg = init
+        gold_transitions = [Shift(), LeftArc("ATT"), Shift(), LeftArc("SBJ"),
+                            RightArc("PRED"), Shift(), LeftArc("ATT"),
+                            RightArc("OBJ"), RightArc("ATT"), Shift(),
+                            LeftArc("ATT"), RightArc("PC"), Reduce(),
+                            Reduce(), Reduce(), RightArc("PU")]
+
+        cfg = initconfig(ArcEager(), tree)
+        
         for t in gold_transitions
             @test !isfinal(cfg)
-            @test o(cfg) == t
+            @test oracle.oracle_function(cfg, tree, typed) == t
             cfg = t(cfg)
         end
         @test isfinal(cfg)
-        graph2 = DependencyTree(tokens(cfg))
-        @test graph == graph2
+        result = DependencyTree(tokens(cfg))
+        @test tree == result
 
         oracle = StaticOracle(ArcEager(), transition=typed)
-        pairs = xys(oracle, graph)
+        pairs = xys(oracle, tree)
         @test collect(last.(pairs)) == gold_transitions
-        @test collect(xys(oracle, [graph])) == collect(pairs)
+        @test collect(xys(oracle, [tree])) == collect(pairs)
     end
 end

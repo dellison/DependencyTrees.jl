@@ -2,28 +2,8 @@
 
     @test projective_only(ArcSwift())
 
-    TD = TypedDependency
-
-    s1 = [
-        ("I", "nsubj", 2),
-        ("ate", "root", 0),
-        ("fish", "dobj", 2),
-        ("with", "case", 5),
-        ("chopsticks", "inst", 2),
-        (".", ".", 2)
-    ]
-
-    s2 = [
-        ("I", "nsubj", 2),
-        ("ate", "root", 0),
-        ("fish", "dobj", 2),
-        ("with", "nmod", 3),
-        ("ketchup", "case", 4),
-        (".", ".", 2)
-    ]
-
-    gold1 = DependencyTree(TD, s1, add_id=true)
-    gold2 = DependencyTree(TD, s2, add_id=true)
+    gold1 = test_sentence("chopsticks.conll")
+    gold2 = test_sentence("ketchup.conll")
 
     @testset "Arc Eager Reduce" begin
         oracle = StaticOracle(ArcEager(), transition=typed)
@@ -85,7 +65,7 @@
 
     end
 
-    c1 = initconfig(ArcSwift(), TD, [t.form for t in gold1])
+    c1 = initconfig(ArcSwift(), CoNLLU, [t.form for t in gold1])
     c2 = initconfig(ArcSwift(), gold1)
     @test [t.form for t in c1.A] == [t.form for t in c2.A]
 end

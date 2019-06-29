@@ -1,8 +1,7 @@
 @testset "CoNLL-U" begin
 
-    corpus_file = joinpath(@__DIR__, "data", "english.conllu")
+    trees = collect(test_treebank("english.conllu"))
 
-    trees = TreebankReader{CoNLLU}(corpus_file) |> collect
     @test length(trees) == 2
     @test length.(trees) == [7, 19]
 
