@@ -20,7 +20,7 @@
 
     graph = DependencyTree(TypedDependency, sent, add_id=true)
 
-    model = static_oracle(ArcEager(), graph, typed)
+    model(cfg) = static_oracle(cfg, graph, typed)
     function error_cb(x, ŷ, y)
         @assert false
     end
@@ -40,7 +40,7 @@
     # make sure this works the same for untyped oracles too
     oracle_ut = DynamicOracle(ArcEager(), transition=untyped)
     DependencyTrees.xys(oracle_ut, graph)
-    model = static_oracle(ArcEager(), graph, untyped)
+    model(cfg) = static_oracle(cfg, graph, untyped)
     cfg = initconfig(oracle_ut.transition_system, graph)
     while !isfinal(cfg)
         pred = model(cfg)
@@ -59,9 +59,6 @@
     for tree in trees
     end
 
-    @test choose_next_amb(1, 1:5) == 1
-    @test choose_next_exp(0, 1:5, () -> true) == 0
-    @test choose_next_exp(0, 1:5, () -> false) != 0
     @test zero_cost_transitions(cfg, graph) == [Reduce()]
 
     for (cfg, gold) in xys(oracle, graph)
@@ -72,11 +69,13 @@
         oracle = DynamicOracle(ArcHybrid())
         tb = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "nonprojective1.conll"))
         @test length(collect(tb)) == 1
-        @test length(DependencyTrees.xys(oracle, tb)) == 0
+        @test length(collect(DependencyTrees.xys(oracle, tb))) == 0
     end
 
     @testset "Dynamic Iteration" begin
         oracle = DynamicOracle(ArcHybrid(), transition=untyped)
+        policy = NeverExplore()
+
         tb = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "hybridtests.conll"))
 
         for tree in treebank
@@ -88,10 +87,9 @@
                 end
             end
 
-            for state in DynamicGoldSearch(oracle, tree)
+            for state in oracle(tree)
                 @test state.G ⊆ state.A
-                t = explore(state)
-                @test t(state.cfg) == next_state(state, t)
+                t = policy(state)
                 @test t in state.A
             end
         end
@@ -133,9 +131,9 @@ end
 
 @testset "Exploration Policies" begin
     always1, never1 = AlwaysExplore(), NeverExplore()
-    always2, never2 = ExplorationPolicy(0,1), ExplorationPolicy(0,0)
+    always2, never2 = ExplorationPolicy(1), ExplorationPolicy(0)
     for i = 1:10
-        @test always1(i) == always2(i) == true
-        @test never1(i)  == never2(i)  == false
+        @test always1() == always2() == true
+        @test never1()  == never2()  == false
     end
 end

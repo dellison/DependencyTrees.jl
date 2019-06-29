@@ -5,11 +5,14 @@ export
     Treebank,
     TypedDependency, UntypedDependency, CoNLLU,
 
-    # Transition parsing
-    ArcEager, ArcStandard, ArcHybrid, ArcSwift, ListBasedNonProjective,
-    StaticOracle, DynamicOracle, static_oracle, static_oracle_shift,
+    Typed, Untyped, typed, untyped,
+    
+    ArcEager, ArcEagerReduce, ArcEagerShift,
+    ArcStandard, ArcHybrid, ArcSwift, ListBasedNonProjective,
 
-    typed, untyped,
+    StaticOracle, static_oracle, static_oracle_prefer_shift,
+    DynamicOracle, 
+
     initconfig, isfinal, possible_transitions,
 
     labeled_accuracy, unlabeled_accuracy
@@ -21,6 +24,7 @@ using LightGraphs
 import Base.==
 import Base.getindex
 import Base.reduce
+import Base: iterate, IteratorSize, length
 
 include("errors.jl")
 include("dependencies.jl")

@@ -39,7 +39,7 @@
     end
 
     @testset "Arc Eager Shift" begin
-        oracle = StaticOracle(ArcEager(), static_oracle_shift, transition=typed)
+        oracle = StaticOracle(ArcEager(), static_oracle_prefer_shift, transition=typed)
         (gold_cfgs1, gold_ts1) = zip(xys(oracle, gold1)...)
 
         gold_ts1 = [Shift(), LeftArc("nsubj"), RightArc("root"),

@@ -21,7 +21,8 @@
     @test length(graph) == length(fig_1_1)
 
     @testset "Figure 3.7" begin
-        o = DT.static_oracle(ArcEager(), graph, typed)
+        # o = DT.static_oracle(ArcEager(), graph, typed)
+        o(cfg) = static_oracle(cfg, graph, typed)
         init = DependencyTrees.initconfig(ArcEager(), TypedDependency, first.(fig_1_1))
         @test stack(init) == [0] && buffer(init) == 1:9
         gold_transitions = [Shift()

@@ -52,7 +52,7 @@
 
         for TS in (ArcEager, ArcHybrid, ArcStandard, ArcSwift)
             oracle = StaticOracle(TS())
-            @test xys(oracle, trees) == xys(oracle, trees2)
+            @test collect(xys(oracle, trees)) == collect(xys(oracle, trees2))
         end
 
         np = joinpath(datadir, "nonprojective.conll")
@@ -66,8 +66,10 @@
         tb = Treebank{CoNLLU}(joinpath(datadir, "nonprojective1.conll"))
         np_oracle = StaticOracle(ListBasedNonProjective())
         p_oracle  = StaticOracle(ArcEager())
-        @test length(xys(np_oracle, tb)) > 1
-        @test length(xys(p_oracle, tb)) == 0
+        np_data = collect(xys(np_oracle, tb))
+        p_data = collect(xys(p_oracle, tb))
+        @test length(np_data) > 1
+        @test length(p_data) == 0
         @test length(xys(p_oracle, first(tb))) == 0
 
         count = 0

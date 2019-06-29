@@ -23,6 +23,9 @@ function projective_only end
 
 abstract type AbstractParserConfiguration{T<:Dependency} end
 
+deptype(::Type{<:AbstractParserConfiguration{T}}) where T = T
+deptype(g::AbstractParserConfiguration) = deptype(typeof(g))
+
 """
     token(cfg, i)
 
@@ -37,8 +40,6 @@ Tokens at indices `is` (1-indexed, with the root node at index 0).
 """
 function tokens end
 
-deptype(::Type{<:AbstractParserConfiguration{T}}) where T = T
-deptype(g::AbstractParserConfiguration) = deptype(typeof(g))
 
 include("common.jl")
 include("transitions.jl")

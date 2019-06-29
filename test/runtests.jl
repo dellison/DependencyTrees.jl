@@ -17,12 +17,12 @@ using DependencyTrees: initconfig, transition_space
 using DependencyTrees: leftarc, rightarc, noarc, shift, isfinal
 using DependencyTrees: LeftArc, RightArc, NoArc, Reduce, Shift
 using DependencyTrees: gold_transitions, zero_cost_transitions
-using DependencyTrees: choose_next_amb, choose_next_exp
+# using DependencyTrees: choose_next_amb, choose_next_exp
 using DependencyTrees: hascost, haszerocost
 using DependencyTrees: xys
-using DependencyTrees: DynamicGoldSearch
+# using DependencyTrees: DynamicGoldSearch
 using DependencyTrees: AlwaysExplore, NeverExplore, ExplorationPolicy
-using DependencyTrees: explore, next_state
+# using DependencyTrees: explore, next_state
 
 function showstr(op)
     buf = IOBuffer()

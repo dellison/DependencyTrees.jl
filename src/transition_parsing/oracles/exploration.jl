@@ -1,3 +1,6 @@
+using Random
+using Random: GLOBAL_RNG
+
 """
     AbstractExplorationPolicy
 
@@ -5,42 +8,66 @@ todo
 """
 abstract type AbstractExplorationPolicy end
 
-"""
-    ExplorationAlways()
+# function next_state(policy::AbstractExplorationPolicy, state)
+#     try
+#         t = policy(state)
+#         cfg = t(state.cfg)
+#     catch
+#     finally
+#     end
+# end
+    
 
-Exploration policy, always returns true.
 """
-struct ExplorationAlways <: AbstractExplorationPolicy end
-(::ExplorationAlways)(args...) = true
-policy(::ExplorationAlways, args...) = () -> true
-const AlwaysExplore = ExplorationAlways
+    AlwaysExplore()
+
+Policy for always exploring sub-optimal transitions.
+"""
+struct AlwaysExplore{R} <: AbstractExplorationPolicy
+    rng::R
+end
+AlwaysExplore() = AlwaysExplore(GLOBAL_RNG)
+
+(::AlwaysExplore)() = true
+(p::AlwaysExplore)(A, G) = rand(p.rng, A)
+(p::AlwaysExplore)(state::GoldState) = rand(p.rng, state.A)
+(::AlwaysExplore)(t::TransitionOperator, g::TransitionOperator) = t
 
 """
     ExplorationNever()
 
-Exploration policy, never returns true.
+Policy for never exploring sub-optimal transitions.
 """
-struct ExplorationNever <: AbstractExplorationPolicy end
-(::ExplorationNever)(args...) = false
-policy(::ExplorationNever, args...) = () -> false
-const NeverExplore = ExplorationNever
+struct NeverExplore{R} <: AbstractExplorationPolicy
+    rng::R
+end
+NeverExplore() = NeverExplore(GLOBAL_RNG)
+
+(::NeverExplore)() = false
+(p::NeverExplore)(A, G) = rand(p.rng, G)
+(p::NeverExplore)(state::GoldState) = rand(p.rng, state.G)
+(::NeverExplore)(t::TransitionOperator, g::TransitionOperator) = g
 
 """
     ExplorationPolicy(k, p)
 
-Simple exploration policy from Goldberg & Nivre, 2012. Returns true at rate p,
-starting at iteration k.
+Simple exploration policy from Goldberg & Nivre, 2012. Returns true at rate p.
 """
-struct ExplorationPolicy <: AbstractExplorationPolicy
-    k::Int
-    p::Float32
+struct ExplorationPolicy{R<:AbstractRNG} <: AbstractExplorationPolicy
+    p::Float64
+    rng::R
 
-    function ExplorationPolicy(k, p)
+    function ExplorationPolicy(p, rng=GLOBAL_RNG)
         @assert 0 <= p <= 1
-        new(k, p)
+        new{typeof(rng)}(p, rng)
     end
 end
 
-(policy::ExplorationPolicy)(i) =
-    i > policy.k && rand(Random.uniform(Float32)) >= 1 - policy.p
-policy(p::ExplorationPolicy, i) = () -> p(i)
+(p::ExplorationPolicy)() =
+    rand(p.rng) >= 1 - p.p
+(p::ExplorationPolicy)(A, G) =
+    rand(p.rng) >= 1 - p.p ? rand(A) : rand(G)
+(p::ExplorationPolicy)(state::GoldState) =
+    rand(p.rng) >= 1 - p.p ? rand(state.A) : rand(state.G)
+
+# policy(p::ExplorationPolicy, i) = () -> p(i)

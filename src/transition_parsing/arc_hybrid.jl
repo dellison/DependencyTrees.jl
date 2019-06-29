@@ -26,12 +26,27 @@ end
 
 # transition operations: leftarc, rightarc, shift
 
+"""
+    leftarc(cfg, ...)
+
+
+"""
 leftarc(cfg::ArcHybridConfig, args...; kwargs...) =
     ArcHybridConfig(leftarc_popstack(cfg.c, args...; kwargs...))
 
+"""
+    rightarc(cfg, ...)
+
+
+"""
 rightarc(cfg::ArcHybridConfig, args...; kwargs...) =
     ArcHybridConfig(rightarc_popstack(cfg.c, args...; kwargs...))
 
+"""
+    shift(cfg, ...)
+
+
+"""
 shift(cfg::ArcHybridConfig) = ArcHybridConfig(shift(cfg.c))
 
 isfinal(cfg::ArcHybridConfig) = all(a -> head(a) != -1, tokens(cfg))
@@ -43,28 +58,25 @@ isfinal(cfg::ArcHybridConfig) = all(a -> head(a) != -1, tokens(cfg))
 Static oracle for arc-hybrid dependency parsing. Closes over gold trees,
 mapping parser configurations to optimal transitions.
 """
-function static_oracle(::ArcHybrid, tree::DependencyTree, transition=untyped)
+function static_oracle(cfg::ArcHybridConfig, tree::DependencyTree, transition=untyped)
     arc(i) = transition(tree[i])
-
-    function (cfg::ArcHybridConfig)
-        if stacklength(cfg) > 0
-            σ, s = popstack(cfg)
-            if bufferlength(cfg) > 0
-                b, β = shiftbuffer(cfg)
-                if has_arc(tree, b, s)
-                    return LeftArc(arc(s)...)
-                end
-            end
-            if length(σ) > 0
-                s2 = σ[end]
-                if has_arc(tree, s2, s) && !any(k -> has_arc(tree, s, k), buffer(cfg))
-                    return RightArc(arc(s)...)
-                end
-            end
-        end
+    if stacklength(cfg) > 0
+        σ, s = popstack(cfg)
         if bufferlength(cfg) > 0
-            return Shift()
+            b, β = shiftbuffer(cfg)
+            if has_arc(tree, b, s)
+                return LeftArc(arc(s)...)
+            end
         end
+        if length(σ) > 0
+            s2 = σ[end]
+            if has_arc(tree, s2, s) && !any(k -> has_arc(tree, s, k), buffer(cfg))
+                return RightArc(arc(s)...)
+            end
+        end
+    end
+    if bufferlength(cfg) > 0
+        return Shift()
     end
 end
 
@@ -114,6 +126,3 @@ end
 
 
 ==(cfg1::ArcHybridConfig, cfg2::ArcHybridConfig) = cfg1.c == cfg2.c
-
-# Base.show(io::IO, c::ArcHybridConfig) =
-#     print(io, "ArcHybridConfig($(stack(c)),$(buffer(c))\n$(join([join([id(t),form(t),head(t)],'\t') for t in tokens(c)],'\n'))")

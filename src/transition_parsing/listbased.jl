@@ -89,33 +89,34 @@ end
 Return a training oracle function which returns gold transition
 operations from a parser configuration with reference to `graph`.
 """
-function static_oracle(::ListBasedNonProjective, graph::DependencyTree, transition=untyped)
+function static_oracle(cfg::ListBasedNonProjectiveConfig, graph::DependencyTree, transition=untyped)
     arc(i) = transition(graph[i])
-
-    function (cfg::ListBasedNonProjectiveConfig)
-        if length(cfg.λ1) >= 1 && length(cfg.β) >= 1
-            i, λ1 = cfg.λ1[end], cfg.λ1[1:end-1]
-            j, β = cfg.β[1], cfg.β[2:end]
-            if !iszero(i) && head(graph, i) == j
-                return LeftArc(arc(i)...)
-            elseif head(graph, j) == i
-                return RightArc(arc(j)...)
-            end
-            j_deps = dependents(graph, j)
-            if (!(any(x -> x < j, j_deps) && j_deps[1] < i)) && !(head(graph, j) < i)
-                return Shift()
-            end
+    if length(cfg.λ1) >= 1 && length(cfg.β) >= 1
+        i, λ1 = cfg.λ1[end], cfg.λ1[1:end-1]
+        j, β = cfg.β[1], cfg.β[2:end]
+        if !iszero(i) && head(graph, i) == j
+            return LeftArc(arc(i)...)
+        elseif head(graph, j) == i
+            return RightArc(arc(j)...)
         end
-        if length(cfg.λ1) == 0
+        j_deps = dependents(graph, j)
+        if (!(any(x -> x < j, j_deps) && j_deps[1] < i)) && !(head(graph, j) < i)
             return Shift()
         end
-        return NoArc()
     end
+    if length(cfg.λ1) == 0
+        return Shift()
+    end
+    return NoArc()
 end
 
+# TODO
+function possible_transitions(cfg::ListBasedNonProjectiveConfig, graph::DependencyTree, transition=untyped)
+    TransitionOperator[static_oracle(cfg, graph, transition)]
+end
 
 ==(cfg1::ListBasedNonProjectiveConfig, cfg2::ListBasedNonProjectiveConfig) =
     cfg1.λ1 == cfg2.λ1 && cfg1.λ2 == cfg2.λ2 && cfg1.β == cfg2.β && cfg1.A == cfg2.A
 
 Base.show(io::IO, c::ListBasedNonProjectiveConfig) =
-    print(io, "ListBasedNonProjectiveConfig($(c.σ),$(c.β))\n$(join([join([id(t),form(t),head(t)],'\t') for t in tokens(c)],'\n'))")
+    print(io, "ListBasedNonProjectiveConfig($(c.λ1),$(c.λ2)$(c.β))\n$(join([join([id(t),form(t),head(t)],'\t') for t in tokens(c)],'\n'))")

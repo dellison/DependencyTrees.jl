@@ -15,7 +15,7 @@
 
         words(ids) = [(id == 0 ? "root" : sent[id]) for id in ids]
 
-        @test DependencyTrees.projective_only(ArcStandard())
+        @test projective_only(ArcStandard())
 
         @testset "Untyped" begin
 
@@ -28,7 +28,7 @@
                                                             ("the",5),
                                                             ("morning",5),
                                                             ("flight",1)], add_id=true)
-            oracle = static_oracle(ArcStandard(), gold_graph)
+            oracle(cfg) = static_oracle(cfg, gold_graph, untyped)
 
             # step 0
             state = DependencyTrees.initconfig(ArcStandard(), UntypedDependency, sent)
@@ -145,7 +145,6 @@
             function error_cb(x, ŷ, y)
                 error("oops")
             end
-            model = static_oracle(ArcStandard(), gold_graph)
             pairs = DependencyTrees.xys(oracle, gold_graph)
             @test last.(pairs) == [Shift(), Shift(), RightArc(), Shift(), Shift(), Shift(),
                                    LeftArc(), LeftArc(), RightArc(), RightArc()]
@@ -156,7 +155,7 @@
         @testset "Typed" begin
 
             gold_graph = DependencyTree(TypedDependency, [("book","pred",0),("me","indobj",1),("the","dt",5),("morning","adv",5),("flight","dobj",1)], add_id=true)
-            oracle = static_oracle(ArcStandard(), gold_graph, typed)
+            oracle(cfg) = static_oracle(cfg, gold_graph, typed)
 
             # head --> dep
             hasdeprel(state, head, deprel, dep) =
@@ -270,7 +269,6 @@
             @test words(buffer(state)) == []
             @test isfinal(state)
 
-            model = static_oracle(ArcStandard(), gold_graph)
             oracle = StaticOracle(ArcStandard(), transition=typed)
             error_cb(args...) = @assert false
             pairs = DependencyTrees.xys(oracle, gold_graph)
@@ -371,7 +369,7 @@
             @test words(buffer(state)) == []
             @test isfinal(state)
 
-            o = DependencyTrees.static_oracle(ArcEager(), gold_graph)
+            # o = DependencyTrees.static_oracle(ArcEager(), gold_graph)
 
             pairs = DependencyTrees.xys(StaticOracle(ArcEager()), gold_graph)
             # @test last.(pairs) == [Shift(), Shift(), RightArc(), Shift(), Shift(), Shift(),
