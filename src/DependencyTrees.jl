@@ -33,7 +33,8 @@ include("trees.jl")
 
 include("treebanks/treebanks.jl")
 
-include("transition_parsing/parse.jl")
+include("transition_parsing/systems.jl")
+include("transition_parsing/oracles.jl")
 
 include("evaluation/accuracy.jl")
 
