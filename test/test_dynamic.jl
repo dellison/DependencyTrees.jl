@@ -1,4 +1,4 @@
-@testset "Dynamic Oracle" begin
+@testset "Dynamic Oracles" begin
 
     error_cb(args...) = nothing
     
@@ -6,19 +6,7 @@
     
     model(cfg) = nothing
     
-    sent = [
-        ("Economic", "NMOD", 2),  # 1
-        ("news", "SUBJ", 3),      # 2
-        ("had", "ROOT", 0),       # 3
-        ("little", "NMOD", 5),    # 4
-        ("effect", "OBJ", 3),     # 5
-        ("on", "NMOD", 5),        # 6
-        ("financial", "NMOD", 8), # 7
-        ("markets", "PMOD", 6),   # 8
-        (".", "P", 3),            # 9
-    ]
-
-    graph = DependencyTree(TypedDependency, sent, add_id=true)
+    graph = test_sentence("economicnews.conll")
 
     model(cfg) = static_oracle(cfg, graph, typed)
     function error_cb(x, ŷ, y)

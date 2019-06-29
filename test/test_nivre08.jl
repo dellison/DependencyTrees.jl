@@ -2,7 +2,6 @@
 # dependency parsing"
 
 @testset "Nivre 08" begin
-
     error_cb(args...) = error("dependency parse error")
 
     # multi-headed czech sentence from universal dependencies treebank
@@ -11,7 +10,7 @@
                      ("nich", "Atr", 1),    # them
                      ("je", "Pred", 0),     # is
                      ("jen", "AuxZ", 5),    # only
-                     ("jedna", "Sb", 3),    # one-FEM-SG
+                    ("jedna", "Sb", 3),    # one-FEM-SG
                      ("na", "AuxP", 3),     # to
                      ("kvalitu", "Adv", 6), # quality
                      (".", "AuxK", 0)]      # .
@@ -30,108 +29,51 @@
 
     @testset "Figure 6" begin
         graph = DependencyTree(TypedDependency, figure_2_sent, add_id=true)
-
-        words = first.(figure_2_sent)
-        config = DependencyTrees.initconfig(ArcEager(), TypedDependency, first.(figure_2_sent))
-        @test stack(config) == [0]
-        @test buffer(config) == 1:9
-        config = shift(config)
-        config = leftarc(config, "NMOD")
-        config = shift(config)
-        config = leftarc(config, "SUBJ")
-        config = rightarc(config, "ROOT")
-        config = shift(config)
-        config = leftarc(config, "NMOD")
-        config = rightarc(config, "OBJ")
-        config = rightarc(config, "NMOD")
-        config = shift(config)
-        config = leftarc(config, "NMOD")
-        config = rightarc(config, "PMOD")
-        config = reduce(config)
-        config = reduce(config)
-        config = reduce(config)
-        config = rightarc(config, "P")
-        @test isfinal(config)
-
-        oracle(cfg) = static_oracle(cfg, graph, typed)
-        config = DependencyTrees.initconfig(ArcEager(), TypedDependency, first.(figure_2_sent))
-        gold_transitions = [Shift(),
-                            LeftArc("NMOD"),
-                            Shift(),
-                            LeftArc("SUBJ"),
-                            RightArc("ROOT"),
-                            Shift(),
-                            LeftArc("NMOD"),
-                            RightArc("OBJ"),
-                            RightArc("NMOD"),
-                            Shift(),
-                            LeftArc("NMOD"),
-                            RightArc("PMOD"),
-                            Reduce(),
-                            Reduce(),
-                            Reduce(),
-                            RightArc("P")]
-        for t in gold_transitions
-            @test oracle(config) == t
-            config = t(config)
+        cfg = initconfig(ArcEager(), graph)
+        @test stack(cfg) == [0]
+        @test buffer(cfg) == 1:9
+        for t in [Shift(), LeftArc("NMOD"), Shift(), LeftArc("SUBJ"),
+                  RightArc("ROOT"), Shift(), LeftArc("NMOD"), RightArc("OBJ"),
+                  RightArc("NMOD"), Shift(), LeftArc("NMOD"), RightArc("PMOD"),
+                  Reduce(), Reduce(), Reduce(), RightArc("P")]
+            @test !isfinal(cfg)
+            @test t == static_oracle(cfg, graph, typed)
+            cfg = t(cfg)
         end
-        graph2 = DependencyTree(tokens(config))
-        @test graph == graph2
+        @test isfinal(cfg)
+        result = DependencyTree(tokens(cfg))
+        @test result == graph
     end
 
     @testset "Figure 8" begin
 
-        using DependencyTrees: MultipleRootsError, ListBasedNonProjective
-        using DependencyTrees: NoArc, isfinal
+        using DependencyTrees: MultipleRootsError, ListBasedNonProjective, NoArc
 
         @test_throws MultipleRootsError DependencyTree(TypedDependency, figure_1_sent, add_id=true)
         graph = DependencyTree(TypedDependency, figure_1_sent; add_id=true, check_single_head=false)
         words = form.(graph)
 
-        # oracle = DependencyTrees.static_oracle(ListBasedNonProjective(), graph, typed)
         oracle(cfg) = static_oracle(cfg, graph, typed)
 
         @test !projective_only(ListBasedNonProjective())
 
         cfg = DependencyTrees.initconfig(ListBasedNonProjective(), TypedDependency, words)
-        gold_transitions = [Shift(),
-                            RightArc("Atr"),
-                            Shift(),
-                            NoArc(),
-                            NoArc(),
-                            RightArc("Pred"),
-                            Shift(),
-                            Shift(),
-                            LeftArc("AuxZ"),
-                            RightArc("Sb"),
-                            NoArc(),
-                            LeftArc("AuxP"),
-                            Shift(),
-                            NoArc(),
-                            NoArc(),
-                            RightArc("AuxP"),
-                            Shift(),
-                            RightArc("Adv"),
-                            Shift(),
-                            NoArc(),
-                            NoArc(),
-                            NoArc(),
-                            NoArc(),
-                            NoArc(),
-                            NoArc(),
-                            NoArc(),
-                            RightArc("AuxK"),
+        gold_transitions = [Shift(), RightArc("Atr"), Shift(), NoArc(), NoArc(),
+                            RightArc("Pred"), Shift(), Shift(), LeftArc("AuxZ"),
+                            RightArc("Sb"), NoArc(), LeftArc("AuxP"), Shift(),
+                            NoArc(), NoArc(), RightArc("AuxP"), Shift(),
+                            RightArc("Adv"), Shift(), NoArc(), NoArc(), NoArc(),
+                            NoArc(), NoArc(), NoArc(), NoArc(), RightArc("AuxK"),
                             Shift()]
+
         for t in gold_transitions
             @test !isfinal(cfg)
-            t̂ = oracle(cfg)
-            @test t̂ == t
-            @test t̂(cfg) == t(cfg)
+            @test oracle(cfg) == t
             cfg = t(cfg) 
         end
         @test isfinal(cfg)
-        graph2 = DependencyTree(cfg.A, check_single_head=false)
-        @test graph2 == graph
+        result = DependencyTree(cfg.A, check_single_head=false)
+        @test result == graph
 
         o = StaticOracle(ListBasedNonProjective(), transition=typed)
         pairs = DependencyTrees.xys(o, graph)
