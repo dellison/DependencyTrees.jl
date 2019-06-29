@@ -1,6 +1,9 @@
 """
     CoNLLU
 
+CoNLLU token in a dependency tree.
+
+See https://universaldependencies.org/format.html.
 """
 struct CoNLLU <: Dependency
     "id: Word index, integer starting at 1 for each new sentence; may be a range for multiword tokens; may be a decimal number for empty nodes."
