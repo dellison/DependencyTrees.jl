@@ -47,8 +47,6 @@
     for tree in trees
     end
 
-    @test zero_cost_transitions(cfg, graph) == [Reduce()]
-
     for (cfg, gold) in xys(oracle, graph)
         @test length(gold) >= 1
     end

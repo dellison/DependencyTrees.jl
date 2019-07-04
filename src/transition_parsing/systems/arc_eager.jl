@@ -16,7 +16,7 @@ Arc-Eager transition system for dependency parsing.
 
 | Transition  | Condition                        |
 |:----------- |:-------------------------------- |
-| LeftArc(l)  | ¬[i = 0], ¬∃k∃l'[(k, l', i) ϵ A] |
+| LeftArc(l)  | ¬[s = 0], ¬∃k∃l'[(k, l', i) ϵ A] |
 | RightArc(l) | ¬∃k∃l'[(k, l', j) ϵ A]           |
 | Reduce      | ∃k∃l[(k, l, i) ϵ A]              |
 
@@ -110,86 +110,15 @@ end
 
 
 # see figure 2 in goldberg & nivre 2012 "a dynamic oracle..."
-function possible_transitions(cfg::ArcEagerConfig, graph::DependencyTree, transition=untyped)
-    ops = TransitionOperator[]
-    stacksize, bufsize = length(stack(cfg)), length(buffer(cfg))
-    if stacksize >= 1
-        σ, s = popstack(cfg)
-        if bufsize >= 1
-            if !iszero(s)
-                h = head(token(cfg, s))
-                if !any(k -> id(k) == h, cfg.c.A)
-                    push!(ops, LeftArc(transition(graph[s])...))
-                end
-            end
-            b = first(buffer(cfg))
-            push!(ops, RightArc(transition(graph[b])...))
-        end
-        if !iszero(s)
-            h = head(token(cfg, s))
-            if any(k -> id(k) == h, tokens(cfg))
-                push!(ops, Reduce())
-            end
-        end
-    end
-    if bufsize > 1
-        push!(ops, Shift())
-    end
-    return ops
+possible_transitions(cfg::ArcEagerConfig, graph::DependencyTree, transition=untyped) =
+    possible_transitions(cfg, transition)
+
+function possible_transitions(cfg::ArcEagerConfig, relation=untyped)
+    s, b = last(stack(cfg)), first(buffer(cfg))
+    l(i) = relation(token(cfg, i))
+    transitions = [LeftArc(l(s)...), RightArc(l(b)...), Reduce(), Shift()]
+    return filter(t -> is_possible(t, cfg), transitions)
 end
-
-# function possible_transitions(cfg::ArcEagerConfig, transition=untyped)
-#     ops = TransitionOperator[]
-#     stacksize, bufsize = length(stack(cfg)), length(buffer(cfg))
-#     if stacksize >= 1
-#         # σ, s = σs(cfg)
-#         σ, s = popstack(cfg)
-#         if bufsize >= 1
-#             if !iszero(s)
-#                 h = head(cfg.A[s])
-#                 if !any(k -> id(k) == h, cfg.A)
-#                     push!(ops, LeftArc(transition(graph[s])...))
-#                 end
-#             end
-#             b = first(buffer(cfg))
-#             push!(ops, RightArc(transition(graph[b])...))
-#         end
-#         if !iszero(s)
-#             h = head(cfg.A[s])
-#             if any(k -> id(k) == h, tokens(cfg))
-#                 push!(ops, Reduce())
-#             end
-#         end
-#     end
-#     if bufsize > 1
-#         push!(ops, Shift())
-#     end
-#     return ops
-# end
-
-function is_possible(t::RightArc, cfg::ArcEagerConfig)
-    return stacklength(cfg) >= 1 && bufferlength(cfg) >= 1
-end
-
-function is_possible(t::LeftArc, cfg::ArcEagerConfig)
-    if stacklength(cfg) >= 1
-        σ, s = popstack(cfg)
-        if !izero(s) && bufferlength(cfg) >= 1
-            # if !any(k -> id(k) == h, tokens(cfg))
-            return true
-            # end
-        end
-    end
-    return false
-end
-
-function is_possible(t::Reduce, cfg::ArcEagerConfig, gold)
-    σ, s = popstack(cfg)
-    return length(σ) > 1 && !iszero(s)
-end
-
-is_possible(t::Shift, cfg::ArcEagerConfig, gold...) =
-    bufferlength(cfg) > 1
 
 function cost(t::LeftArc, cfg::ArcEagerConfig, gold)
     # left arc cost: num of arcs (k,l',s), (s,l',k) s.t. k ϵ β
@@ -226,6 +155,18 @@ function cost(t::Shift, cfg::ArcEagerConfig, gold)
     count(k -> has_arc(gold, k, b) || has_arc(gold, b, k), stack(cfg))
 end
 
+function is_possible(::LeftArc, cfg::ArcEagerConfig)
+    s = last(stack(cfg))
+    return s != 0 && !hashead(token(cfg, s))
+end
+
+is_possible(::RightArc, cfg::ArcEagerConfig) =
+    !hashead(token(cfg, first(buffer(cfg))))
+
+is_possible(::Reduce, cfg::ArcEagerConfig) =
+    hashead(token(cfg, last(stack(cfg))))
+
+is_possible(::Shift, cfg::ArcEagerConfig) = true
 
 ==(cfg1::ArcEagerConfig, cfg2::ArcEagerConfig) = cfg1.c == cfg2.c
 
