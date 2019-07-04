@@ -47,7 +47,7 @@ hascost(t::TransitionOperator, cfg, gold::DependencyTree) =
 
 todo
 """
-function zero_cost_transitions(c, gold::DependencyTree, transition=untyped)
-    ts = possible_transitions(c, gold, transition)
-    filter(t -> haszerocost(t, c, gold), ts)
+function zero_cost_transitions(cfg, gold_tree, transition=untyped)
+    ts = possible_transitions(cfg, gold_tree, transition)
+    filter(t -> haszerocost(t, cfg, gold_tree), ts)
 end

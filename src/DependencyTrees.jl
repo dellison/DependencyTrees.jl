@@ -11,7 +11,8 @@ export
     ArcStandard, ArcHybrid, ArcSwift, ListBasedNonProjective,
 
     StaticOracle, static_oracle, static_oracle_prefer_shift,
-    DynamicOracle, 
+    DynamicOracle,
+    AlwaysExplore, NeverExplore, ExplorationPolicy,
 
     initconfig, isfinal, possible_transitions,
 

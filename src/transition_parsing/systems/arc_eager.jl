@@ -3,8 +3,26 @@
 
 Arc-Eager transition system for dependency parsing.
 
-See [Nivre 2003](http://stp.lingfil.uu.se/~nivre/docs/iwpt03.pdf),
-[Nivre 2008](https://www.aclweb.org/anthology/J08-4003.pdf).
+# Transitions
+
+| Transition  | Definition                                    |
+|:----------- |:--------------------------------------------- |
+| LeftArc(l)  | (σ\\|s, b\\|β, A) → (σ, b\\|β, A ∪ (b, l, s)) |
+| RightArc(l) | (σ\\|s, b\\|β, A) → (σ, b\\|β, A ∪ (b, l, s)) |
+| Reduce      | (σ\\|s, β,  A) → (σ, β,   A)                  |
+| Shift	      | (σ,  b\\|β, A) → (σ\\|b, β, A)                |
+
+# Preconditions
+
+| Transition  | Condition                        |
+|:----------- |:-------------------------------- |
+| LeftArc(l)  | ¬[i = 0], ¬∃k∃l'[(k, l', i) ϵ A] |
+| RightArc(l) | ¬∃k∃l'[(k, l', j) ϵ A]           |
+| Reduce      | ∃k∃l[(k, l, i) ϵ A]              |
+
+# References
+
+[Nivre 2003](http://stp.lingfil.uu.se/~nivre/docs/iwpt03.pdf), [Nivre 2008](https://www.aclweb.org/anthology/J08-4003.pdf).
 """
 struct ArcEager <: AbstractTransitionSystem end
 

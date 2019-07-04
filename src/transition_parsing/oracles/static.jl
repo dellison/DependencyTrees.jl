@@ -2,7 +2,7 @@
     StaticOracle(T, oracle_function = static_oracle; transition = untyped)
 
 Static (deterministic) oracle for mapping parser configurations to
-gold transitions with reference to a gold dependency graph.
+gold transitions.
 """
 struct StaticOracle{T<:AbstractTransitionSystem,P,F} <: AbstractOracle{T,P}
     transition_system::T

@@ -3,6 +3,22 @@
 
 Transition system for for Arc-Standard dependency parsing.
 
+# Transitions
+
+| Transition  | Definition                                    |
+|:----------- |:--------------------------------------------- |
+| LeftArc(l)  | (σ\\|s, b\\|β, A) → (σ, b\\|β, A ∪ (b, l, s)) |
+| RightArc(l) | (σ\\|s, b\\|β, A) → (σ, b\\|β, A ∪ (b, l, s)) |
+| Shift	      | (σ,  b\\|β, A) → (σ\\|b, β, A)                |
+
+
+# Preconditions
+
+| Transition  | Condition                        |
+|:----------- |:-------------------------------- |
+| LeftArc(l)  | ¬[i = 0], ¬∃k∃l'[(k, l', i) ϵ A] |
+| RightArc(l) | ¬∃k∃l'[(k, l', j) ϵ A]           |
+
 See [Nivre 2004](https://www.aclweb.org/anthology/W04-0308.pdf).
 """
 struct ArcStandard <: AbstractTransitionSystem end

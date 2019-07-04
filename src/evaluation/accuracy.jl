@@ -6,7 +6,7 @@ Accuracy score for dependency arcs, including the labels.
 function labeled_accuracy end
 
 """
-    unlabeled_accuracy(tree, gold)
+    unlabeled_accuracy(prediction, gold)
 
 Accuracy score for dependency arcs, not including the labels.
 """
