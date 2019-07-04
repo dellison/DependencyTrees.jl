@@ -18,20 +18,24 @@ xys(oracle, tree::DependencyTree; kwargs...) =
 
 TODO
 """
-struct UnsearchableTreeOracle end
-# TODO: should this be an exception instead?
+struct UnsearchableTreeOracle
+    err
+end
 Base.IteratorSize(pairs::UnsearchableTreeOracle) = Base.HasLength()
 Base.iterate(pairs::UnsearchableTreeOracle, state...) = nothing
 Base.length(::UnsearchableTreeOracle) = 0
 
 """
-    GoldState
+    OracleState
 
-TODO
+Temporary state for building a transition parse.
 """
-struct GoldState{C}
+struct OracleState{C}
+    "The current configuration."
     cfg::C
+    "Possible transitions."
     A::Vector{TransitionOperator}
+    "Gold transitions."
     G::Vector{TransitionOperator}
 end
 

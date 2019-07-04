@@ -22,7 +22,11 @@ function oracle_state(o::TreeOracle{<:StaticOracle, T}, cfg) where T
     oracle = o.oracle.oracle_function
     A = possible_transitions(cfg, tree, transition)
     t = oracle(cfg, tree, transition)
-    return GoldState(cfg, A, TransitionOperator[t])
+    if !isfinal(cfg) && isempty(A)
+        println("dangit")
+        @show cfg o t
+    end
+    return OracleState(cfg, A, TransitionOperator[t])
 end
 
 transition_system(oracle::StaticOracle) = oracle.transition_system

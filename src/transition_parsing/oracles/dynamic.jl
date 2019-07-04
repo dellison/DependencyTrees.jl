@@ -24,7 +24,7 @@ function oracle_state(oracle::TreeOracle{<:DynamicOracle, T}, cfg) where T
     isoptimal = t -> oracle_fn(t, cfg, oracle.tree)
     A = possible_transitions(cfg, oracle.tree, transition)
     G = filter(isoptimal, A)
-    return GoldState(cfg, A, G)
+    return OracleState(cfg, A, G)
 end
 
 function gold_transitions(oracle::DynamicOracle, cfg, gold::DependencyTree)
