@@ -33,13 +33,15 @@ AlwaysExplore() = AlwaysExplore(GLOBAL_RNG)
 (p::AlwaysExplore)(state::GoldState) = rand(p.rng, state.A)
 (::AlwaysExplore)(t::TransitionOperator, g::TransitionOperator) = t
 
+Base.show(io, ::AlwaysExplore) = print(io, "AlwaysExplore")
+
 """
     ExplorationNever()
 
 Policy for never exploring sub-optimal transitions.
 """
-struct NeverExplore{R} <: AbstractExplorationPolicy
-    rng::R
+struct NeverExplore <: AbstractExplorationPolicy
+    rng
 end
 NeverExplore() = NeverExplore(GLOBAL_RNG)
 
@@ -48,18 +50,20 @@ NeverExplore() = NeverExplore(GLOBAL_RNG)
 (p::NeverExplore)(state::GoldState) = rand(p.rng, state.G)
 (::NeverExplore)(t::TransitionOperator, g::TransitionOperator) = g
 
+Base.show(io::IO, ::NeverExplore) = print(io, "NeverExplore")
+
 """
     ExplorationPolicy(k, p)
 
 Simple exploration policy from Goldberg & Nivre, 2012. Returns true at rate p.
 """
-struct ExplorationPolicy{R<:AbstractRNG} <: AbstractExplorationPolicy
+struct ExplorationPolicy <: AbstractExplorationPolicy
     p::Float64
-    rng::R
+    rng
 
     function ExplorationPolicy(p, rng=GLOBAL_RNG)
         @assert 0 <= p <= 1
-        new{typeof(rng)}(p, rng)
+        new(p, rng)
     end
 end
 
