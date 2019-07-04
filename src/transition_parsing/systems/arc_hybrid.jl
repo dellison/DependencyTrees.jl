@@ -26,27 +26,12 @@ end
 
 # transition operations: leftarc, rightarc, shift
 
-"""
-    leftarc(cfg, ...)
-
-
-"""
 leftarc(cfg::ArcHybridConfig, args...; kwargs...) =
     ArcHybridConfig(leftarc_reduce(cfg.c, args...; kwargs...))
 
-"""
-    rightarc(cfg, ...)
-
-
-"""
 rightarc(cfg::ArcHybridConfig, args...; kwargs...) =
     ArcHybridConfig(rightarc_reduce(cfg.c, args...; kwargs...))
 
-"""
-    shift(cfg, ...)
-
-
-"""
 shift(cfg::ArcHybridConfig) = ArcHybridConfig(shift(cfg.c))
 
 isfinal(cfg::ArcHybridConfig) = all(a -> head(a) != -1, tokens(cfg))

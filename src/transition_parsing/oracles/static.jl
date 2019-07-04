@@ -4,13 +4,18 @@
 Static (deterministic) oracle for mapping parser configurations to
 gold transitions.
 """
-struct StaticOracle{T<:AbstractTransitionSystem,P,F} <: AbstractOracle{T,P}
+struct StaticOracle{T<:AbstractTransitionSystem} <: AbstractOracle{T}
     transition_system::T
-    oracle_function::F
-    transition::P
+    oracle_function
+    transition
 end
 
-StaticOracle(system, oracle_function=static_oracle; transition=Untyped()) =
+"""
+    StaticOracle(system, oracle_function=static_oracle; transition=untyped)
+
+TODO
+"""
+StaticOracle(system, oracle_function=static_oracle; transition=untyped) =
     StaticOracle(system, oracle_function, transition)
 
 (oracle::StaticOracle)(tree::DependencyTree; kwargs...) =

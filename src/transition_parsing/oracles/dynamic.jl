@@ -4,10 +4,10 @@
 Dynamic oracle for nondeterministic dependency parsing.
 See [Goldberg & Nivre, 2012](https://aclweb.org/anthology/C/C12/C12-1059.pdf).
 """
-struct DynamicOracle{T,O,P} <: AbstractOracle{T,P}
+struct DynamicOracle{T} <: AbstractOracle{T}
     transition_system::T
-    oracle_function::O
-    transition::P
+    oracle_function
+    transition
 end
 
 DynamicOracle(T, oracle=haszerocost; transition=Untyped()) =
