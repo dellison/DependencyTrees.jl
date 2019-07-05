@@ -23,6 +23,13 @@ DependencyTrees.OracleState
 StaticOracle
 ```
 
+### Static Oracle Functions
+
+```@docs
+static_oracle
+static_oracle_prefer_shift
+```
+
 ## Dynamic Oracles
 
 ```@docs

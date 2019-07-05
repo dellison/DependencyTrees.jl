@@ -90,18 +90,18 @@ operations from a parser configuration with reference to `graph`.
 
 Described in [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
-function static_oracle(cfg::ArcSwiftConfig, graph::DependencyTree, transition=untyped)
-    args(i) = transition(graph[i])
+function static_oracle(cfg::ArcSwiftConfig, tree, arc=untyped)
+    l = i -> arc(tree[i])
     S = length(cfg.σ)
     if S >= 1 && length(cfg.β) >= 1
         b = cfg.β[1]
         for k in 1:S
             i = S - k + 1
             s = cfg.σ[i]
-            if has_arc(graph, b, s)
-                return LeftArc(k, args(s)...)
-            elseif has_arc(graph, s, b)
-                return RightArc(k, args(b)...)
+            if has_arc(tree, b, s)
+                return LeftArc(k, l(s)...)
+            elseif has_arc(tree, s, b)
+                return RightArc(k, l(b)...)
             end
         end
     end
@@ -113,8 +113,8 @@ end
     cfg1.σ == cfg2.σ && cfg1.β == cfg2.β && cfg1.A == cfg2.A
 
 # TODO
-function possible_transitions(cfg::ArcSwiftConfig, graph::DependencyTree, transition=untyped)
-    TransitionOperator[static_oracle(cfg, graph, transition)]
+function possible_transitions(cfg::ArcSwiftConfig, graph::DependencyTree, arc=untyped)
+    TransitionOperator[static_oracle(cfg, graph, arc)]
 end
 
 Base.show(io::IO, c::ArcSwiftConfig) =

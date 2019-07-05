@@ -15,7 +15,7 @@
     @test [t.form for t in tokens(c1)] == [t.form for t in tokens(c2)]
 
     @testset "Static Oracle" begin
-        oracle = StaticOracle(AH, transition=typed)
+        oracle = StaticOracle(AH, arc=typed)
         model(x) = nothing
         errorcb(x, ŷ, y) = nothing
 
@@ -66,7 +66,7 @@
 
     @testset "Dynamic Oracle" begin
         TS = Union{LeftArc, RightArc, Shift}
-        oracle = DynamicOracle(ArcHybrid(), transition=typed)
+        oracle = DynamicOracle(ArcHybrid(), arc=typed)
         model(x) = Shift()
         function errorcb(x, ŷ, y)
             @test typeof(x) <: DT.Parse.ArcHybridConfig && typeof(y) <: TS

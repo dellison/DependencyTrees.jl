@@ -65,15 +65,15 @@ Default static oracle function for arc-eager dependency parsing.
 See [Goldberg & Nivre 2012](https://www.aclweb.org/anthology/C12-1059.pdf).
 (Also called Arc-Eager-Reduce in [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf)).
 """
-function static_oracle(cfg::ArcEagerConfig, gold_tree, transition)
-    args(i) = transition(token(gold_tree, i))
-    gold_arc(a, b) = has_arc(gold_tree, a, b)
-    if length(stack(cfg)) >= 1 && length(buffer(cfg)) >= 1
+function static_oracle(cfg::ArcEagerConfig, gold_tree, arc)
+    l = i -> arc(token(gold_tree, i))
+    gold_arc = (a, b) -> has_arc(gold_tree, a, b)
+    if stacklength(cfg) >= 1 && bufferlength(cfg) >= 1
         s, b = last(stack(cfg)), first(buffer(cfg))
         if gold_arc(b, s)
-            return LeftArc(args(s)...)
+            return LeftArc(l(s)...)
         elseif gold_arc(s, b)
-            return RightArc(args(b)...)
+            return RightArc(l(b)...)
         elseif all(k -> k > 0 && hashead(cfg, k), [s ; dependents(gold_tree, s)])
             return Reduce()
         end
@@ -82,21 +82,21 @@ function static_oracle(cfg::ArcEagerConfig, gold_tree, transition)
 end
 
 """
-    static_oracle_prefer_shift(cfg, gold_tree, transition=untyped)
+    static_oracle_prefer_shift(cfg, gold_tree, arc=untyped)
 
 Static oracle for arc-eager dependency parsing. Similar to the
 "regular" static oracle, but always Shift when ambiguity is present.
 
 See [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
-function static_oracle_prefer_shift(cfg::ArcEagerConfig, gold_tree, transition=untyped)
-    args(i) = transition(token(gold_tree, i))
-    gold_arc(a, b) = has_arc(gold_tree, a, b)
+function static_oracle_prefer_shift(cfg::ArcEagerConfig, gold_tree, arc=untyped)
+    l = i -> arc(token(gold_tree, i))
+    gold_arc = (a, b) -> has_arc(gold_tree, a, b)
     (σ, s), (b, β) = popstack(cfg), shiftbuffer(cfg)
     if gold_arc(b, s)
-        return LeftArc(args(s)...)
+        return LeftArc(l(s)...)
     elseif gold_arc(s, b)
-        return RightArc(args(b)...)
+        return RightArc(l(b)...)
     end
     must_reduce = !any(k -> gold_arc(k, b) || gold_arc(b, k), cfg.c.stack) ||
         all(k -> k == 0 || hashead(cfg, k), cfg.c.stack)
@@ -110,12 +110,12 @@ end
 
 
 # see figure 2 in goldberg & nivre 2012 "a dynamic oracle..."
-possible_transitions(cfg::ArcEagerConfig, graph::DependencyTree, transition=untyped) =
-    possible_transitions(cfg, transition)
+possible_transitions(cfg::ArcEagerConfig, graph::DependencyTree, arc=untyped) =
+    possible_transitions(cfg, arc)
 
-function possible_transitions(cfg::ArcEagerConfig, relation=untyped)
+function possible_transitions(cfg::ArcEagerConfig, arc=untyped)
     s, b = last(stack(cfg)), first(buffer(cfg))
-    l(i) = relation(token(cfg, i))
+    l = i -> arc(token(cfg, i))
     transitions = [LeftArc(l(s)...), RightArc(l(b)...), Reduce(), Shift()]
     return filter(t -> is_possible(t, cfg), transitions)
 end

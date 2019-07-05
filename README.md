@@ -74,8 +74,8 @@ The `LeftArc` and `RightArc` transition operations can be either typed (e.g., `L
 
 ```julia
 julia> # example oracles
-julia> oracle = StaticOracle(ArcEager(), transition=DependencyTrees.typed)
-julia> oracle = DynamicOracle(ArcHybrid(), transition=DependencyTrees.untyped)
+julia> oracle = StaticOracle(ArcEager(), arc=typed)
+julia> oracle = DynamicOracle(ArcHybrid(), arc=untyped)
 ```
 
 Transition systems vary on their support for nonprojective trees, so it's common to filter a treebank ahead of time to remove nonprojective trees for certain transition systems. `StaticOracle`s and `DynamicOracle`s will automatically skip nonprojective trees for projective-only transition systems when iterating over treebanks, so this step can be skipped.

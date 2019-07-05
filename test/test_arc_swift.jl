@@ -6,7 +6,7 @@
     gold2 = test_sentence("ketchup.conll")
 
     @testset "Arc Eager Reduce" begin
-        oracle = StaticOracle(ArcEager(), transition=typed)
+        oracle = StaticOracle(ArcEager(), arc=typed)
         (gold_cfgs1, gold_ts1) = zip(xys(oracle, gold1)...)
         @test gold_ts1 == (Shift(), LeftArc("nsubj"), RightArc("root"),
                            RightArc("dobj"), Reduce(), Shift(), LeftArc("case"),
@@ -19,7 +19,7 @@
     end
 
     @testset "Arc Eager Shift" begin
-        oracle = StaticOracle(ArcEager(), static_oracle_prefer_shift, transition=typed)
+        oracle = StaticOracle(ArcEager(), static_oracle_prefer_shift, arc=typed)
         (gold_cfgs1, gold_ts1) = zip(xys(oracle, gold1)...)
 
         gold_ts1 = [Shift(), LeftArc("nsubj"), RightArc("root"),
@@ -37,7 +37,7 @@
 
     @testset "Arc Swift" begin
 
-        oracle = StaticOracle(ArcSwift(), transition=typed)
+        oracle = StaticOracle(ArcSwift(), arc=typed)
 
         (gold_cfgs1, gold_ts1) = zip(xys(oracle, gold1)...)
         for (i, (cfg, t)) in enumerate(zip(gold_cfgs1, gold_ts1))

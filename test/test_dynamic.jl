@@ -2,7 +2,7 @@
 
     error_cb(args...) = nothing
     
-    oracle = DynamicOracle(ArcEager(), transition=typed)
+    oracle = DynamicOracle(ArcEager(), arc=typed)
     
     model(cfg) = nothing
     
@@ -13,7 +13,7 @@
         @assert false
     end
 
-    cfg = initconfig(oracle.transition_system, graph)
+    cfg = initconfig(oracle.system, graph)
     while !isfinal(cfg)
         pred = model(cfg)
         gold = gold_transitions(oracle, cfg, graph)
@@ -26,10 +26,10 @@
     end
 
     # make sure this works the same for untyped oracles too
-    oracle_ut = DynamicOracle(ArcEager(), transition=untyped)
+    oracle_ut = DynamicOracle(ArcEager(), arc=untyped)
     DependencyTrees.xys(oracle_ut, graph)
     model(cfg) = static_oracle(cfg, graph, untyped)
-    cfg = initconfig(oracle_ut.transition_system, graph)
+    cfg = initconfig(oracle_ut.system, graph)
     while !isfinal(cfg)
         pred = model(cfg)
         gold = gold_transitions(oracle_ut, cfg, graph)
@@ -59,7 +59,7 @@
     end
 
     @testset "Dynamic Iteration" begin
-        oracle = DynamicOracle(ArcHybrid(), transition=untyped)
+        oracle = DynamicOracle(ArcHybrid(), arc=untyped)
         policy = NeverExplore()
 
         tb = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "hybridtests.conll"))

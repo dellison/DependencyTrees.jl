@@ -269,7 +269,7 @@
             @test words(buffer(state)) == []
             @test isfinal(state)
 
-            oracle = StaticOracle(ArcStandard(), transition=typed)
+            oracle = StaticOracle(ArcStandard(), arc=typed)
             error_cb(args...) = @assert false
             pairs = DependencyTrees.xys(oracle, gold_graph)
             @test last.(pairs) == [Shift(), Shift(), RightArc("indobj"),

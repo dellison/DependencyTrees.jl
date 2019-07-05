@@ -75,7 +75,7 @@
         result = DependencyTree(cfg.A, check_single_head=false)
         @test result == graph
 
-        o = StaticOracle(ListBasedNonProjective(), transition=typed)
+        o = StaticOracle(ListBasedNonProjective(), arc=typed)
         pairs = DependencyTrees.xys(o, graph)
         @test last.(pairs) == gold_transitions
 

@@ -43,20 +43,20 @@ isfinal(cfg::ArcHybridConfig) = all(a -> head(a) != -1, tokens(cfg))
 Static oracle for arc-hybrid dependency parsing. Closes over gold trees,
 mapping parser configurations to optimal transitions.
 """
-function static_oracle(cfg::ArcHybridConfig, tree::DependencyTree, transition=untyped)
-    arc(i) = transition(tree[i])
+function static_oracle(cfg::ArcHybridConfig, tree, arc=untyped)
+    l = i -> arc(token(tree, i))
     if stacklength(cfg) > 0
         σ, s = popstack(cfg)
         if bufferlength(cfg) > 0
             b, β = shiftbuffer(cfg)
             if has_arc(tree, b, s)
-                return LeftArc(arc(s)...)
+                return LeftArc(l(s)...)
             end
         end
         if length(σ) > 0
             s2 = σ[end]
             if has_arc(tree, s2, s) && !any(k -> has_arc(tree, s, k), buffer(cfg))
-                return RightArc(arc(s)...)
+                return RightArc(l(s)...)
             end
         end
     end
@@ -65,6 +65,15 @@ function static_oracle(cfg::ArcHybridConfig, tree::DependencyTree, transition=un
     end
 end
 
+function is_possible(::LeftArc, cfg::ArcHybridConfig)
+    s = last(stack(cfg))
+    return s != 0 && !hashead(token(cfg, s)) && bufferlength(cfg) > 0
+end
+
+is_possible(::RightArc, cfg::ArcHybridConfig) =
+    stacklength(cfg) > 1 && !hashead(token(cfg, last(stack(cfg))))
+
+is_possible(::Shift, cfg::ArcHybridConfig) = bufferlength(cfg) >= 1
 
 function cost(t::LeftArc, cfg::ArcHybridConfig, gold)
     # number of arcs (s0, d) and (h, s0) for h ϵ H and d ϵ D
@@ -93,21 +102,31 @@ function cost(t::Shift, cfg::ArcHybridConfig, gold)
     return count(h -> has_arc(gold, h, b), H) + count(d -> has_arc(gold, b, d), D)
 end
 
-function possible_transitions(cfg::ArcHybridConfig, tree::DependencyTree, transition=untyped)
-    ops = TransitionOperator[]
-    S, B = length(stack(cfg)), length(buffer(cfg))
-    if S >= 1
-        s = last(stack(cfg))
-        if !iszero(s) && S > 1
-            push!(ops, RightArc(transition(tree[s])...))
-        end
-        if B >= 1
-            push!(ops, LeftArc(transition(tree[s])...))
-        end
-    end
-    B >= 1 && push!(ops, Shift())
-    return ops
+function possible_transitions(cfg::ArcHybridConfig, arc=untyped)
+    s = last(stack(cfg))
+    l = arc(token(cfg, s))
+    transitions = [LeftArc(l...), RightArc(l...), Shift()]
+    return filter(t -> is_possible(t, cfg), transitions)
 end
+
+possible_transitions(cfg::ArcHybridConfig, tree::DependencyTree, arc=untyped) =
+    possible_transitions(cfg, arc)
+
+# function possible_transitions(cfg::ArcHybridConfig, tree::DependencyTree, arc=untyped)
+#     ops = TransitionOperator[]
+#     S, B = length(stack(cfg)), length(buffer(cfg))
+#     if S >= 1
+#         s = last(stack(cfg))
+#         if !iszero(s) && S > 1
+#             push!(ops, RightArc(arc(tree[s])...))
+#         end
+#         if B >= 1
+#             push!(ops, LeftArc(arc(tree[s])...))
+#         end
+#     end
+#     B >= 1 && push!(ops, Shift())
+#     return ops
+# end
 
 
 ==(cfg1::ArcHybridConfig, cfg2::ArcHybridConfig) = cfg1.c == cfg2.c

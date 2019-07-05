@@ -6,7 +6,7 @@
 
     @testset "Figure 3.7" begin
         tree = test_sentence("economicnews.conll")
-        oracle = StaticOracle(ArcEager(), transition=typed)
+        oracle = StaticOracle(ArcEager(), arc=typed)
 
         gold_transitions = [Shift(), LeftArc("ATT"), Shift(), LeftArc("SBJ"),
                             RightArc("PRED"), Shift(), LeftArc("ATT"),
@@ -25,7 +25,7 @@
         result = DependencyTree(tokens(cfg))
         @test tree == result
 
-        oracle = StaticOracle(ArcEager(), transition=typed)
+        oracle = StaticOracle(ArcEager(), arc=typed)
         pairs = xys(oracle, tree)
         @test collect(last.(pairs)) == gold_transitions
         @test collect(xys(oracle, [tree])) == collect(pairs)

@@ -3,7 +3,7 @@
 
 TODO
 """
-abstract type AbstractOracle{T<:AbstractTransitionSystem, P} end
+abstract type AbstractOracle{T<:AbstractTransitionSystem} end
 
 # 
 
@@ -16,14 +16,14 @@ xys(oracle, tree::DependencyTree; kwargs...) =
 """
    UnparsableTree
 
-TODO
+
 """
-struct UnsearchableTreeOracle
+struct UnparsableTree
     err
 end
-Base.IteratorSize(pairs::UnsearchableTreeOracle) = Base.HasLength()
-Base.iterate(pairs::UnsearchableTreeOracle, state...) = nothing
-Base.length(::UnsearchableTreeOracle) = 0
+Base.IteratorSize(pairs::UnparsableTree) = Base.HasLength()
+Base.iterate(pairs::UnparsableTree, state...) = nothing
+Base.length(::UnparsableTree) = 0
 
 """
     OracleState
@@ -31,12 +31,13 @@ Base.length(::UnsearchableTreeOracle) = 0
 Temporary state for building a transition parse.
 """
 struct OracleState{C}
-    "The current configuration."
     cfg::C
-    "Possible transitions."
     A::Vector{TransitionOperator}
-    "Gold transitions."
     G::Vector{TransitionOperator}
+end
+
+struct OracleError <: Exception
+    msg::String
 end
 
 include("oracles/exploration.jl")
@@ -53,7 +54,7 @@ struct TreeOracle{O<:AbstractOracle, T<:Dependency, E<:AbstractExplorationPolicy
 
     function TreeOracle(oracle::AbstractOracle, tree::DependencyTree, policy=NeverExplore())
         if projective_only(transition_system(oracle)) && !isprojective(tree)
-            UnsearchableTreeOracle()
+            UnparsableTree(NonProjectiveGraphError(tree))
         else
             O,T,E = typeof(oracle), deptype(tree), typeof(policy)
             new{O,T,E}(oracle, tree, policy)
@@ -64,12 +65,21 @@ end
 Base.IteratorSize(o::TreeOracle) = Base.SizeUnknown()
 
 function Base.iterate(o::TreeOracle)
-    system, tree, policy = o.oracle.transition_system, o.tree, o.policy
+    system, tree, policy = o.oracle.system, o.tree, o.policy
     cfg = initconfig(system, tree)
     state = oracle_state(o, cfg)
-    t = policy(state)
-    next = t(cfg)
-    return (state, next)
+    try
+        t = policy(state)
+        next = t(cfg)
+        return (state, next)
+    catch err
+        if err isa OracleError
+            println("oh no")
+            @show tree cfg
+        else
+            rethrow(err)
+        end
+    end
 end
 
 function Base.iterate(o::TreeOracle, cfg)
@@ -77,9 +87,19 @@ function Base.iterate(o::TreeOracle, cfg)
         return nothing
     else
         state, policy = oracle_state(o, cfg), o.policy
-        t = policy(state)
-        next = t(cfg)
-        return (state, next)
+        try
+            t = policy(state)
+            next = t(cfg)
+            return (state, next)
+        catch err
+            if err isa OracleError
+                println("oh no")
+                @show o.tree cfg
+            else
+                @show o.tree cfg err
+                rethrow(err)
+            end
+        end
     end
 end
 

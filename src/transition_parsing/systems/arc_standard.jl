@@ -51,28 +51,28 @@ isfinal(cfg::ArcStandardConfig) =
     length(stack(cfg)) == 1 && stack(cfg)[1] == 0 && length(buffer(cfg)) == 0
 
 """
-    static_oracle(::ArcStandard, gold_tree)
+    static_oracle(cfg, gold_tree)
 
 Static oracle for arc-standard dependency parsing. Closes over gold trees,
 mapping parser configurations to optimal transitions.
 """
-function static_oracle(cfg::ArcStandardConfig, gold_tree::DependencyTree, transition=untyped)
-    args(i) = transition(gold_tree[i])
+function static_oracle(cfg::ArcStandardConfig, gold_tree, arc=untyped)
+    l = i -> arc(gold_tree[i])
     s = stack(cfg)
     if length(s) >= 2
         s1, s0 = s[end-1], s[end]
         if has_arc(gold_tree, s0, s1)
-            return LeftArc(args(s1)...)
+            return LeftArc(l(s1)...)
         elseif has_arc(gold_tree, s1, s0)
             if !any(k -> (k in s || k in buffer(cfg)), dependents(gold_tree, s0))
-                return RightArc(args(s0)...)
+                return RightArc(l(s0)...)
             end
         end
     end
     return Shift()
 end
 
-function possible_transitions(cfg::ArcStandardConfig, gold_tree::DependencyTree, transition=untyped)
+function possible_transitions(cfg::ArcStandardConfig, gold_tree::DependencyTree, arc=untyped)
     ops = TransitionOperator[]
     if length(stack(cfg)) >= 2
         # TODO LeftArc
