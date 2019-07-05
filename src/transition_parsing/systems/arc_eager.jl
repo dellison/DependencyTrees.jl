@@ -108,6 +108,12 @@ function static_oracle_prefer_shift(cfg::ArcEagerConfig, gold_tree, arc=untyped)
     end
 end
 
+"""
+    dynamic_oracle(t, cfg::ArgEagerConfig, tree)
+
+Dynamic oracle function from the paper lol. TODO
+"""
+dynamic_oracle(t, cfg::ArcEagerConfig, tree) = cost(t, cfg, tree) == 0
 
 # see figure 2 in goldberg & nivre 2012 "a dynamic oracle..."
 possible_transitions(cfg::ArcEagerConfig, graph::DependencyTree, arc=untyped) =

@@ -36,6 +36,12 @@ static_oracle_prefer_shift
 DynamicOracle
 ```
 
+### Dynamic Oracle Functions
+
+```@docs
+dynamic_oracle
+```
+
 ### Exploration Policies
 
 Something about exploration during training.

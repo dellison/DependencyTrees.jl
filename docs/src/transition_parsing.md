@@ -17,11 +17,17 @@ static_oracle(::DependencyTrees.ArcStandardConfig, tree, arc)
 ```@docs
 ArcEager
 ```
-Static oracle functions:
+### Static oracle functions
 
 ```@docs
 static_oracle(::DependencyTrees.ArcEagerConfig, tree, arc)
 static_oracle_prefer_shift(::DependencyTrees.ArcEagerConfig, tree, arc)
+```
+
+### Dynamic oracle functions
+
+```@docs
+dynamic_oracle(t, cfg::DependencyTrees.ArcEagerConfig, tree)
 ```
 
 ## Arc-Hybrid
@@ -34,6 +40,12 @@ Static oracle function:
 
 ```@docs
 static_oracle(::DependencyTrees.ArcHybridConfig, tree, arc)
+```
+
+### Dynamic oracle functions
+
+```@docs
+dynamic_oracle(t, cfg::DependencyTrees.ArcHybridConfig, tree)
 ```
 
 ## Arc-Swift

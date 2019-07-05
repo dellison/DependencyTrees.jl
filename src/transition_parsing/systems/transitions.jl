@@ -1,25 +1,3 @@
-# transition arguments
-
-abstract type Arc end
-
-"""
-    TypedTransition
-
-"""
-struct Typed <: Arc end
-
-(::Typed)(dep) = (deprel(dep),)
-(::Type{Typed})(dep) = (deprel(dep),)
-
-"""
-    UntypedTransition
-
-"""
-struct Untyped <: Arc end
-
-(::Untyped)(dep) = ()
-(::Type{Untyped})(dep) = ()
-
 untyped(dep) = ()
 typed(dep) = (deprel(dep),)
 

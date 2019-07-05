@@ -1,8 +1,3 @@
-"""
-    StackBufferConfiguration
-
-Parser configuration with a stack and a buffer.
-"""
 struct StackBufferConfiguration{T <: Dependency}
     stack::Vector{Int}
     buffer::Vector{Int}
@@ -58,11 +53,6 @@ function shiftbuffer(cfg, n=1)
     return (bh..., be)
 end
 
-"""
-    @stackbufconfig(T)
-
-Define common methods for a stack-and-buffer-based configuration type.
-"""
 macro stackbufconfig(T, f=:c)
     @eval begin
         $T{T}(words::AbstractVector) where T =
@@ -164,10 +154,4 @@ end
 
 ==(cfg1::StackBufferConfiguration, cfg2::StackBufferConfiguration) =
     cfg1.stack == cfg2.stack && cfg1.buffer == cfg2.buffer && cfg1.A == cfg2.A
-
-
-# function s_i(cfg::StackBufferConfiguration, i)
-# end
-# function b_i(cfg::StackBufferConfiguration, i)
-# end
              

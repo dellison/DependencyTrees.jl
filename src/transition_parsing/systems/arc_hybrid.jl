@@ -65,6 +65,14 @@ function static_oracle(cfg::ArcHybridConfig, tree, arc=untyped)
     end
 end
 
+"""
+    dynamic_oracle(t, cfg::ArgHybridConfig, tree)
+
+Dynamic oracle function from the paper lol. TODO
+"""
+dynamic_oracle(t, cfg::ArcHybridConfig, tree) = cost(t, cfg, tree) == 0
+
+
 function is_possible(::LeftArc, cfg::ArcHybridConfig)
     s = last(stack(cfg))
     return s != 0 && !hashead(token(cfg, s)) && bufferlength(cfg) > 0

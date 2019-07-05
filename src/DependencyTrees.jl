@@ -5,13 +5,15 @@ export
     Treebank,
     TypedDependency, UntypedDependency, CoNLLU,
 
-    Typed, Untyped, typed, untyped,
+    typed, untyped,
     
     ArcEager, ArcEagerReduce, ArcEagerShift,
     ArcStandard, ArcHybrid, ArcSwift, ListBasedNonProjective,
 
     StaticOracle, static_oracle, static_oracle_prefer_shift,
-    DynamicOracle,
+
+    DynamicOracle, dynamic_oracle,
+
     AlwaysExplore, NeverExplore, ExplorationPolicy,
 
     initconfig, isfinal, possible_transitions,
