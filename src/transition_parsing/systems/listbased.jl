@@ -119,5 +119,9 @@ possible_transitions(cfg::ListBasedNonProjectiveConfig, graph::DependencyTree, a
 ==(cfg1::ListBasedNonProjectiveConfig, cfg2::ListBasedNonProjectiveConfig) =
     cfg1.λ1 == cfg2.λ1 && cfg1.λ2 == cfg2.λ2 && cfg1.β == cfg2.β && cfg1.A == cfg2.A
 
-Base.show(io::IO, c::ListBasedNonProjectiveConfig) =
-    print(io, "ListBasedNonProjectiveConfig($(c.λ1),$(c.λ2)$(c.β))\n$(join([join([id(t),form(t),head(t)],'\t') for t in tokens(c)],'\n'))")
+function Base.show(io::IO, c::ListBasedNonProjectiveConfig)
+    λ1 = join(c.λ1, ",")
+    λ2 = join(c.λ2, ",")
+    β = join(c.β, ",")
+    print(io, "ListBasedNonProjectiveConfig([$λ1],[$λ2],[$β])\n$(join([join([id(t),form(t),head(t)],'\t') for t in tokens(c)],'\n'))")
+end
