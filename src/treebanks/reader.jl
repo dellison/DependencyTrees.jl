@@ -1,8 +1,4 @@
-"""
-    TreebankReader{Dependency}
-
-Read trees lazily from a single file.
-"""
+# read trees lazily from a single file
 mutable struct TreebankReader{T<:Dependency}
     io::IO
     lineno::Int

@@ -14,14 +14,12 @@
     end
 
     cfg = initconfig(oracle.system, graph)
+    nocost(t, cfg) = DependencyTrees.cost(t, cfg, graph) == 0
     while !isfinal(cfg)
         pred = model(cfg)
-        gold = gold_transitions(oracle, cfg, graph)
-        zeroc = zero_cost_transitions(cfg, graph, typed)
-        @test gold == zeroc
-        @test pred in gold
-        @test any(t -> hascost(t, cfg, graph), [Shift(), Reduce(), LeftArc("lol"), RightArc("lol")])
-        @test all(t -> haszerocost(t, cfg, graph), gold)
+        G = gold_transitions(oracle, cfg, graph)
+        @test pred in G
+        @test all(t -> nocost(t, cfg), G)
         cfg = pred(cfg)
     end
 
@@ -32,12 +30,10 @@
     cfg = initconfig(oracle_ut.system, graph)
     while !isfinal(cfg)
         pred = model(cfg)
-        gold = gold_transitions(oracle_ut, cfg, graph)
-        zeroc = zero_cost_transitions(cfg, graph, untyped)
-        @test gold == zeroc
-        @test pred in gold
-        @test any(t -> hascost(t, cfg, graph), [Shift(), Reduce(), LeftArc(), RightArc()])
-        @test all(t -> haszerocost(t, cfg, graph), gold)
+        G = gold_transitions(oracle_ut, cfg, graph)
+        @test pred in G
+        @test any(t -> !nocost(t, cfg), [Shift(), Reduce(), LeftArc(), RightArc()])
+        @test all(t -> nocost(t, cfg), G)
         cfg = pred(cfg)
     end
 

@@ -1,9 +1,3 @@
-"""
-    Dependency
-
-Abstract type defining a dependency relation between
-two words in a sentence.
-"""
 abstract type Dependency end
 
 _ni(f, dep) = error("$f not implemented for type $(typeof(dep))!")

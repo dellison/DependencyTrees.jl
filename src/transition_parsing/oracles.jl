@@ -9,7 +9,7 @@ xys(oracle, tree::DependencyTree; kwargs...) =
 """
    UnparsableTree
 
-
+Represents trees that an oracle can't parse.
 """
 struct UnparsableTree
     err

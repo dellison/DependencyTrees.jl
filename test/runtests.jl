@@ -16,9 +16,7 @@ using DependencyTrees: typed, untyped
 using DependencyTrees: initconfig, transition_space
 using DependencyTrees: leftarc, rightarc, noarc, shift, isfinal
 using DependencyTrees: LeftArc, RightArc, NoArc, Reduce, Shift
-using DependencyTrees: gold_transitions, zero_cost_transitions
-using DependencyTrees: hascost, haszerocost
-using DependencyTrees: xys
+using DependencyTrees: gold_transitions
 
 function showstr(op)
     buf = IOBuffer()

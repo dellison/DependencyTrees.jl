@@ -1,10 +1,6 @@
 using Random
 using Random: GLOBAL_RNG
 
-"""
-    AbstractExplorationPolicy
-
-"""
 abstract type AbstractExplorationPolicy end
 
 

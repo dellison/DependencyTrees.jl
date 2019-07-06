@@ -1,14 +1,6 @@
 untyped(dep) = ()
 typed(dep) = (deprel(dep),)
 
-"""
-    TransitionOperator
-
-An abstract type for representing a transition operation for
-dependency parsing. TransitionOperators can act as functions (with or
-without arguments) on parser configurations, but can also be easily
-used as labels for a classifier.
-"""
 abstract type TransitionOperator end
 args(r::TransitionOperator) = ()
 kwargs(r::TransitionOperator) = NamedTuple()
