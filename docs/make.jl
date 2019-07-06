@@ -2,7 +2,7 @@ using Documenter
 using DependencyTrees
 
 makedocs(
-    sitename = "DependencyTrees",
+    sitename = "DependencyTrees.jl",
     format = Documenter.HTML(),
     modules = [DependencyTrees],
     pages = ["Home" => "index.md",
@@ -10,9 +10,8 @@ makedocs(
              ["trees.md", "treebanks.md"],
              "Transition Parsing" =>
              ["oracles.md", "transition_parsing.md"],
-             "Evaluation" => "evaluation.md"]
-    # doctest = true,
-)
+             "Evaluation" => "evaluation.md"],
+    doctest = true)
 
 # Documenter can also automatically deploy documentation to gh-pages.
 # See "Hosting Documentation" and deploydocs() in the Documenter manual

@@ -8,7 +8,7 @@ In transition-based dependency parsing, oracles are used to map parser configura
 julia> oracle = DynamicOracle(ArcEager())
 julia> for state in oracle(gold_tree)
            # ...
-	   end
+       end
 ```
 
 `state` here will be a `DependencyTrees.OracleState`, which keeps track of the current configuration, possible transitions, and gold transitions.
@@ -16,6 +16,17 @@ julia> for state in oracle(gold_tree)
 ```@docs
 DependencyTrees.OracleState
 ```
+
+The iterator itself is something something
+
+```@docs
+DependencyTrees.TreeOracle
+```
+
+```@docs
+DependencyTrees.UnparsableTree
+```
+
 
 ## Static Oracles
 
@@ -42,7 +53,7 @@ DynamicOracle
 dynamic_oracle
 ```
 
-### Exploration Policies
+## Exploration Policies
 
 Something about exploration during training.
 
@@ -51,3 +62,4 @@ AlwaysExplore
 NeverExplore
 ExplorationPolicy
 ```
+
