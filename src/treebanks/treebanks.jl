@@ -1,14 +1,5 @@
 include("reader.jl")
 
-"""
-    Treebank{T<:Dependency}
-
-A lazily-accessed corpus of dependency trees.
-
-Treebank{CoNLLU}("/path/to/treebank")
-
-Treebank{CoNLLU}(["file1", "file2", ...])
-"""
 struct Treebank{T<:Dependency}
     files::Vector{String}
     add_id::Bool
@@ -16,25 +7,46 @@ struct Treebank{T<:Dependency}
     kwargs
 end
 
-function Treebank{T}(file_or_dir::String; pattern = r".", add_id=false,
+"""
+    Treebank{T}(treebank; pattern=r".", add_ad=false, remove_nonprojective=false,kwargs...) whereT
+
+hi
+"""
+function Treebank{T}(treebank::String; pattern = r".", add_id=false,
                      remove_nonprojective=false, kwargs...) where T
-    if isfile(file_or_dir)
-        Treebank{T}([file_or_dir], add_id, remove_nonprojective, kwargs)
-    elseif isdir(file_or_dir)
+    if isfile(treebank)
+        Treebank{T}([treebank], add_id, remove_nonprojective, kwargs)
+    elseif isdir(treebank)
         treebank_files = String[]
-        for (root, dirs, files) in walkdir(file_or_dir), file in files
+        for (root, dirs, files) in walkdir(treebank), file in files
             if occursin(pattern, file)
                 push!(treebank_files, joinpath(root, file))
             end
         end
         Treebank{T}(treebank_files, add_id, remove_nonprojective, kwargs)
     else
-        error("don't know how to read '$file_or_dir' as a treebank")
+        error("Couldn't read '$treebank'")
     end
 end
 
+"""
+    Treebank{T}(files; add_id=false, remove_nonprojective=false, kwargs...)
+
+hello
+"""
 function Treebank{T}(files::Vector{String}; add_id=false, remove_nonprojective=false, kwargs...) where T
     Treebank{T}(files, add_id, remove_nonprojective, kwargs)
+end
+
+"""
+    Treebank(treebank)
+
+DWIM?
+"""
+function Treebank(treebank)
+    endswith(treebank, ".conllu") ? Treebank{CoNLLU}(treebank) :
+        endswith(treebank, "conll") ? Treebank{CoNLLU}(treebank) :
+        error("error reading '$treebank'")
 end
 
 deptype(::Type{<:Treebank{T}}) where T = T

@@ -1,11 +1,4 @@
-"""
-    AbstractOracle{T, P}
-
-TODO
-"""
 abstract type AbstractOracle{T<:AbstractTransitionSystem} end
-
-# 
 
 xys(oracle, trees) =
     Base.Iterators.flatten(xys(oracle, tree) for tree in trees)
