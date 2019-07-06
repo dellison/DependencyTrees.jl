@@ -29,10 +29,6 @@ struct OracleState{C}
     G::Vector{TransitionOperator}
 end
 
-struct OracleError <: Exception
-    msg::String
-end
-
 include("oracles/exploration.jl")
 
 """
@@ -61,18 +57,9 @@ function Base.iterate(o::TreeOracle)
     system, tree, policy = o.oracle.system, o.tree, o.policy
     cfg = initconfig(system, tree)
     state = oracle_state(o, cfg)
-    try
-        t = policy(state)
-        next = t(cfg)
-        return (state, next)
-    catch err
-        if err isa OracleError
-            println("oh no")
-            @show tree cfg
-        else
-            rethrow(err)
-        end
-    end
+    t = policy(state)
+    next = t(cfg)
+    return (state, next)
 end
 
 function Base.iterate(o::TreeOracle, cfg)
@@ -80,19 +67,9 @@ function Base.iterate(o::TreeOracle, cfg)
         return nothing
     else
         state, policy = oracle_state(o, cfg), o.policy
-        try
-            t = policy(state)
-            next = t(cfg)
-            return (state, next)
-        catch err
-            if err isa OracleError
-                println("oh no")
-                @show o.tree cfg
-            else
-                @show o.tree cfg err
-                rethrow(err)
-            end
-        end
+        t = policy(state)
+        next = t(cfg)
+        return (state, next)
     end
 end
 
