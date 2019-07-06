@@ -68,13 +68,17 @@ See [Goldberg & Nivre 2012](https://www.aclweb.org/anthology/C12-1059.pdf).
 function static_oracle(cfg::ArcEagerConfig, gold_tree, arc)
     l = i -> arc(token(gold_tree, i))
     gold_arc = (a, b) -> has_arc(gold_tree, a, b)
-    if stacklength(cfg) >= 1 && bufferlength(cfg) >= 1
-        s, b = last(stack(cfg)), first(buffer(cfg))
-        if gold_arc(b, s)
-            return LeftArc(l(s)...)
-        elseif gold_arc(s, b)
-            return RightArc(l(b)...)
-        elseif all(k -> k > 0 && hashead(cfg, k), [s ; dependents(gold_tree, s)])
+    if stacklength(cfg) >= 1
+        s = last(stack(cfg))
+        if bufferlength(cfg) >= 1
+            b = first(buffer(cfg))
+            if gold_arc(b, s)
+                return LeftArc(l(s)...)
+            elseif gold_arc(s, b)
+                return RightArc(l(b)...)
+            end
+        end
+        if all(k -> k > 0 && hashead(cfg, k), [s ; dependents(gold_tree, s)])
             return Reduce()
         end
     end
