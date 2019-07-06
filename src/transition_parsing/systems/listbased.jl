@@ -43,6 +43,8 @@ end
 ListBasedNonProjectiveConfig(gold::DependencyTree) =
     ListBasedNonProjectiveConfig{eltype(gold)}(gold)
 
+buffer(cfg::ListBasedNonProjectiveConfig) = cfg.β
+
 token(cfg::ListBasedNonProjectiveConfig, i) = iszero(i) ? root(deptype(cfg)) :
                                               i == -1   ? noval(deptype(cfg)) :
                                               cfg.A[i]

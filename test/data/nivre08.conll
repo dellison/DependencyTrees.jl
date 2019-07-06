@@ -1,0 +1,26 @@
+# Figure 1
+# multi-headed czech sentence from universal dependencies treebank:
+# 
+# Z      nich je jen  jedna      na kvalitu .
+# out-of them is only one-FEM-SG to quality .
+# ("Only one of them concerns quality.")
+1	Z	_	_	_	_	5	AuxP	_	_
+2	nich	_	_	_	_	1	Atr	_	_
+3	je	_	_	_	_	0	Pred	_	_
+4	jen	_	_	_	_	5	AuxZ	_	_
+5	jedna	_	_	_	_	3	Sb	_	_
+6	na	_	_	_	_	3	AuxP	_	_
+7	kvalitu	_	_	_	_	6	Adv	_	_
+8	.	_	_	_	_	0	AuxK	_	_
+
+# Figure 2
+1	Economic	_	_	_	_	2	NMOD	_	_
+2	news	_	_	_	_	3	SUBJ	_	_
+3	had	_	_	_	_	0	ROOT	_	_
+4	little	_	_	_	_	5	NMOD	_	_
+5	effect	_	_	_	_	3	OBJ	_	_
+6	on	_	_	_	_	5	NMOD	_	_
+7	financial	_	_	_	_	8	NMOD	_	_
+8	markets	_	_	_	_	6	PMOD	_	_
+9	.	_	_	_	_	3	P	_	_
+
