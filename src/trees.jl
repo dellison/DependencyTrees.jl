@@ -1,12 +1,7 @@
 """
-    DependencyTree(T::Type{<:Dependency}, tokens)
+    DependencyTree
 
-Create a DependencyTree for dependencies of type t with
-nodes `tokens`.
-
-DependencyTree(UntypedDependency, [(\"the\", 2),(\"cat\",3),(\"slept\",0)])
-
-DependencyTree(TypedDependency, [(\"the\", \"DT\", 2),(\"cat\",\"NN\",3),(\"slept\",\"VBD\",0)])
+documentation lol
 """
 struct DependencyTree{T<:Dependency} <: AbstractGraph{Int}
     graph::SimpleDiGraph
@@ -17,11 +12,16 @@ struct DependencyTree{T<:Dependency} <: AbstractGraph{Int}
 
     function DependencyTree(graph, tokens, mwts, emptytokens, root; check=true, kwargs...)
         g = new{eltype(tokens)}(graph, tokens, mwts, emptytokens, root)
-        check && check_depgraph(g; kwargs...)
+        check && check_tree(g; kwargs...)
         return g
     end
 end
 
+"""
+   DependencyTree(T, tokens; add_id=false; kwargs...)
+
+todo
+"""
 function DependencyTree(T::Type{<:Dependency}, tokens; add_id=false, kwargs...)
     A, mwts, es = T[], MultiWordToken[], EmptyToken[]
     for (id, token) in enumerate(tokens)
@@ -61,35 +61,40 @@ function DependencyTree{T}(lines::AbstractVector{S}; add_id=false, kwargs...) wh
     DependencyTree(A; mwts=mwts, emptytokens=emptytokens, kwargs...)
 end
 
-function DependencyTree{T}(lines::String; add_id=false, kwargs...) where T
-    ls = String.(filter(x -> x != "", split(strip(lines), "\n")))
+"""
+    DependencyTree{T}(sentence::String; add_id=false, kwargs...)
+
+todo hello
+"""
+function DependencyTree{T}(sentence::String; add_id=false, kwargs...) where T
+    ls = String.(filter(x -> x != "", split(strip(sentence), "\n")))
     DependencyTree{T}(ls; add_id=false, kwargs...)
 end
 
 """
-    check_depgraph(g, check_single_head=true, check_has_root=true, check_projective=false)
+    check_tree(g, check_single_head=true, check_has_root=true, check_projective=false)
 
 Ensure the well-formedness of the dependency graph `g`, throwing an
 error if g is not well-formed.
 """
-function check_depgraph(g::DependencyTree; check_single_head=true, check_has_root=true,
+function check_tree(tree::DependencyTree; check_single_head=true, check_has_root=true,
                         check_projective=false)
-    check_has_root && iszero(g.root) && throw(RootlessGraphError(g))
+    check_has_root && iszero(tree.root) && throw(RootlessGraphError(tree))
     if check_single_head
-        if count(t -> iszero(head(t)), g.tokens) > 1
-            throw(MultipleRootsError(g))
+        if count(t -> iszero(head(t)), tree.tokens) > 1
+            throw(MultipleRootsError(tree))
         end
-        if !is_weakly_connected(g.graph)
-            throw(GraphConnectivityError(g, "dep graphs must be weakly connected"))
+        if !is_weakly_connected(tree.graph)
+            throw(GraphConnectivityError(tree, "dependency graphs must be weakly connected"))
         end
     end
-    check_projective && !isprojective(g) && throw(NonProjectiveGraphError(g))
-    for i = 1:length(g)
-        n_inc = length(inneighbors(g.graph, i))
+    check_projective && !isprojective(tree) && throw(NonProjectiveGraphError(tree))
+    for i = 1:length(tree)
+        n_inc = length(inneighbors(tree.graph, i))
         # root node and its dependency on predicate are
         # represented implicitly, so 0 is expected here
-        n_inc == 0 && head(g, i) == 0 ? continue :
-        n_inc != 1 && throw(GraphConnectivityError(g, "node $i should have exactly 1 incoming connection (has $n_inc)"))
+        n_inc == 0 && head(tree, i) == 0 ? continue :
+        n_inc != 1 && throw(GraphConnectivityError(tree, "node $i should have exactly 1 incoming connection (has $n_inc)"))
     end
     return nothing
 end

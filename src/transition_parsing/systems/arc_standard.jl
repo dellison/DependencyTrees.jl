@@ -5,19 +5,19 @@ Transition system for for Arc-Standard dependency parsing.
 
 # Transitions
 
-| Transition  | Definition                                    |
-|:----------- |:--------------------------------------------- |
-| LeftArc(l)  | (σ\\|s, b\\|β, A) → (σ, b\\|β, A ∪ (b, l, s)) |
-| RightArc(l) | (σ\\|s, b\\|β, A) → (σ, b\\|β, A ∪ (b, l, s)) |
-| Shift	      | (σ,  b\\|β, A) → (σ\\|b, β, A)                |
+| Transition  | Definition                                         |
+|:----------- |:-------------------------------------------------- |
+| LeftArc(l)  | (σ\\|s1\\|s0, β, A) → (σ\\|s0, β, A ∪ (s0, l, s1)) |
+| RightArc(l) | (σ\\|s, b\\|β, A) → (σ, b\\|β, A ∪ (b, l, s))      |
+| Shift	      | (σ,  b\\|β, A) → (σ\\|b, β, A)                     |
 
 
 # Preconditions
 
-| Transition  | Condition                        |
-|:----------- |:-------------------------------- |
-| LeftArc(l)  | ¬[i = 0], ¬∃k∃l'[(k, l', i) ϵ A] |
-| RightArc(l) | ¬∃k∃l'[(k, l', j) ϵ A]           |
+| Transition  | Condition                          |
+|:----------- |:---------------------------------- |
+| LeftArc(l)  | ¬[s1 = 0], ¬∃k∃l'[(k, l', s1) ϵ A] |
+| RightArc(l) | ¬∃k∃l'[(k, l', s0) ϵ A]            |
 
 See [Nivre 2004](https://www.aclweb.org/anthology/W04-0308.pdf).
 """
@@ -72,16 +72,32 @@ function static_oracle(cfg::ArcStandardConfig, gold_tree, arc=untyped)
     return Shift()
 end
 
-function possible_transitions(cfg::ArcStandardConfig, gold_tree::DependencyTree, arc=untyped)
-    ops = TransitionOperator[]
-    if length(stack(cfg)) >= 2
-        # TODO LeftArc
-        # TODO RightArc
+function is_possible(::LeftArc, cfg::ArcStandardConfig)
+    if stacklength(cfg) >= 2
+        s, s1, s0 = popstack(cfg, 2)
+        return s1 != 0 && !hashead(token(cfg, s1))
+    else
+        return false
     end
-    if length(buffer(cfg)) > 0
-        push!(ops, Shift())
-    end
-    return ops
 end
+
+is_possible(::RightArc, cfg::ArcStandardConfig) =
+    stacklength(cfg) > 1 && !hashead(token(cfg, last(stack(cfg))))
+
+is_possible(::Shift, cfg::ArcStandardConfig) = stacklength(cfg) > 0
+
+function possible_transitions(cfg::ArcStandardConfig, arc=untyped)
+    l = i -> arc(token(cfg, i))
+    if stacklength(cfg) >= 2
+        σ, s1, s0 = popstack(cfg, 2)
+        transitions = [LeftArc(l(s1)...), RightArc(l(s0)...), Shift()]
+        return filter(t -> is_possible(t, cfg), transitions)
+    else
+        return filter(t -> is_possible(t, cfg), TransitionOperator[Shift()])
+    end
+end
+
+possible_transitions(cfg::ArcStandardConfig, gold_tree::DependencyTree, arc=untyped) =
+    possible_transitions(cfg, arc)
 
 ==(cfg1::ArcStandardConfig, cfg2::ArcStandardConfig) = cfg1.c == cfg2.c
