@@ -31,4 +31,12 @@
     @test labeled_accuracy(gold, good) == 1
     @test labeled_accuracy(gold, ok)   == 0.75
     @test labeled_accuracy(gold, bad)  == 0.75
+
+    @test unlabeled_accuracy([gold], [good]) == 1
+    @test unlabeled_accuracy([gold], [ok])   == 1
+    @test unlabeled_accuracy([gold], [bad])  == 0.75
+
+    @test labeled_accuracy([gold], [good]) == 1
+    @test labeled_accuracy([gold], [ok])   == 0.75
+    @test labeled_accuracy([gold], [bad])  == 0.75
 end

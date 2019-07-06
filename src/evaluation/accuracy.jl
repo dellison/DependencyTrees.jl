@@ -15,8 +15,6 @@ function unlabeled_accuracy end
 const labelled_accuracy = labeled_accuracy
 const unlabelled_accuracy = unlabeled_accuracy
 
-accurate(t::Dependency, gold::Dependency) = head(t) == head(gold)
-
 function labeled_accuracy(tree::DependencyTree, gold::DependencyTree)
     results = map(zip(tokens(tree), tokens(gold))) do (t, g)
         head(t) == head(g) && deprel(t) == deprel(g)
