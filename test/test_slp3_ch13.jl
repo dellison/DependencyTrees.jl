@@ -5,278 +5,49 @@
 
     sent_f13_7 = ["book", "me", "the", "morning", "flight"]
 
-    @testset "ArcStandard" begin
+    # leftovers:
+    sent = sent_f13_7
 
-        # figure 13.7 in jurafsky & martin SLP 3rd ed., aug 2018 draft
-        sent = copy(sent_f13_7)
+    word2id = Dict(word => id for (id, word) in enumerate(sent))
+    word2id["root"] = 0
 
-        word2id = Dict(word => id for (id, word) in enumerate(sent))
-        word2id["root"] = 0
+    words(ids) = [(id == 0 ? "root" : sent[id]) for id in ids]
 
-        words(ids) = [(id == 0 ? "root" : sent[id]) for id in ids]
-
+    @testset "Figure 13.7" begin
         @test projective_only(ArcStandard())
 
-        @testset "Untyped" begin
+        # figure 13.7 in jurafsky & martin SLP 3rd ed., aug 2018 draft
+        table = [
+            # stack                                    buffer                                  # transition
+            (["ROOT"],                                 ["book","me","the","morning","flight"], Shift()),
+            (["ROOT","book"],                          ["me","the","morning","flight"],        Shift()),
+            (["ROOT","book","me"],                     ["the","morning","flight"],             RightArc("indobj")),
+            (["ROOT","book"],                          ["the","morning","flight"],             Shift()),
+            (["ROOT","book","the"],                    ["morning","flight"],                   Shift()),
+            (["ROOT","book","the","morning"],          ["flight"],                             Shift()),
+            (["ROOT","book","the","morning","flight"], [],                                     LeftArc("adv")),
+            (["ROOT","book","the","flight"],           [],                                     LeftArc("dt")),
+            (["ROOT","book","flight"],                 [],                                     RightArc("dobj")),
+            (["ROOT","book",],                         [],                                     RightArc("pred")),
+            (["ROOT",],                                [],                                     nothing)]
+        sent = copy(sent_f13_7)
 
-            # head --> dep
-            hasdep(state, head, dep) =
-                token(state, word2id[dep]).head == word2id[head]
+        gold_tree = test_sentence("morningflight.conll")
 
-            gold_graph = DependencyTree(UntypedDependency, [("book",0),
-                                                            ("me",1),
-                                                            ("the",5),
-                                                            ("morning",5),
-                                                            ("flight",1)], add_id=true)
-            oracle(cfg) = static_oracle(cfg, gold_graph, untyped)
-
-            # step 0
-            state = DependencyTrees.initconfig(ArcStandard(), UntypedDependency, sent)
-            @test words(stack(state)) == ["root"]
-            @test words(buffer(state)) == ["book", "me", "the", "morning", "flight"]
-
-            o = oracle(state)
-            @test o == Shift()
-            @test DependencyTrees.args(o) == ()
-            @test o(state) == shift(state)
-            state = shift(state)
-
-            # step 1
-            @test words(stack(state)) == ["root", "book"]
-            @test words(buffer(state)) == ["me", "the", "morning", "flight"]
-
-            o = oracle(state)
-            @test o == Shift()
-            @test o(state) == shift(state)
-            state = shift(state)
-
-            # step 2
-            @test words(stack(state)) == ["root", "book", "me"]
-            @test words(buffer(state)) == ["the", "morning", "flight"]
-
-            o = oracle(state)
-            @test o == RightArc()
-            @test DependencyTrees.args(o) == ()
-            @test o(state) == rightarc(state)
-            state = rightarc(state)
-
-            # @test state.A[word2id["me"]].head == word2id["book"]
-            @test token(state, word2id["me"]).head == word2id["book"]
-            @test hasdep(state, "book", "me") # (book --> me)
-
-            # step 3
-            @test words(stack(state)) == ["root", "book"]
-            @test words(buffer(state)) == ["the", "morning", "flight"]
-
-            o = oracle(state)
-            @test o == Shift()
-            @test o(state) == shift(state)
-            state = shift(state)
-
-            # step 4
-            @test words(stack(state)) == ["root", "book", "the"]
-            @test words(buffer(state)) == ["morning", "flight"]
-
-            o = oracle(state)
-            @test o == Shift()
-            @test o(state) == shift(state)
-            state = shift(state)
-
-            # step 5
-            @test words(stack(state)) == ["root", "book", "the", "morning"]
-            @test words(buffer(state)) == ["flight"]
-
-            o = oracle(state)
-            @test o == Shift()
-            @test o(state) == shift(state)
-            state = shift(state)
-
-            # step 6
-            @test words(stack(state)) == ["root", "book", "the", "morning", "flight"]
-            @test words(buffer(state)) == []
-
-            o = oracle(state)
-            @test o == LeftArc()
-            @test DT.args(o) == ()
-            @test o(state) == leftarc(state)
-            state = leftarc(state)
-
-            @test hasdep(state, "flight", "morning") # (morning <-- flight)
-
-            # step 7
-            @test words(stack(state)) == ["root", "book", "the", "flight"]
-            @test words(buffer(state)) == []
-
-            o = oracle(state)
-            @test o == LeftArc()
-            @test o(state) == leftarc(state)
-            state = leftarc(state)
-
-            @test hasdep(state, "flight", "the") # (the <-- flight)
-
-            # step 8
-            @test words(stack(state)) == ["root", "book", "flight"]
-            @test words(buffer(state)) == []
-
-            o = oracle(state)
-            @test o == RightArc()
-            @test o(state) == rightarc(state)
-            state = rightarc(state)
-
-            @test hasdep(state, "book", "flight") # (book --> flight)
-
-            # step 9
-            @test words(stack(state)) == ["root", "book"]
-            @test words(buffer(state)) == []
-
-            o = oracle(state)
-            @test o == RightArc()
-            @test o(state) == rightarc(state)
-            state = o(state)
-
-            @test hasdep(state, "root", "book") # (root --> book)
-
-            # step 10
-            @test words(stack(state)) == ["root"]
-            @test words(buffer(state)) == []
-            @test isfinal(state)
-
-            oracle = StaticOracle(ArcStandard())
-            function error_cb(x, ŷ, y)
-                error("oops")
+        for arc in (untyped, typed)
+            o = cfg -> static_oracle(cfg, gold_tree, arc)
+            cfg = initconfig(ArcStandard(), gold_tree)
+            for (stk, buf, t) in table
+                @test form.(tokens(cfg, stack(cfg))) == stk
+                @test form.(tokens(cfg, buffer(cfg))) == buf
+                t == nothing && break
+                if arc == untyped
+                    t isa LeftArc && (t = LeftArc())
+                    t isa RightArc && (t = RightArc())
+                end
+                @test o(cfg) == t
+                cfg = t(cfg)
             end
-            pairs = DependencyTrees.xys(oracle, gold_graph)
-            @test last.(pairs) == [Shift(), Shift(), RightArc(), Shift(), Shift(), Shift(),
-                                   LeftArc(), LeftArc(), RightArc(), RightArc()]
-
-            # throw an error if the parser makes a mistake
-        end
-
-        @testset "Typed" begin
-
-            gold_graph = DependencyTree(TypedDependency, [("book","pred",0),("me","indobj",1),("the","dt",5),("morning","adv",5),("flight","dobj",1)], add_id=true)
-            oracle(cfg) = static_oracle(cfg, gold_graph, typed)
-
-            # head --> dep
-            hasdeprel(state, head, deprel, dep) =
-                # state.A[word2id[dep]].head == word2id[head] && state.A[word2id[dep]].deprel == deprel
-                token(state, word2id[dep]).head == word2id[head] && token(state, word2id[dep]).deprel == deprel
-
-            # step 0
-            state = DependencyTrees.initconfig(ArcStandard(), TypedDependency, sent)
-            @test words(stack(state)) == ["root"]
-            @test words(buffer(state)) == ["book", "me", "the", "morning", "flight"]
-
-            o = oracle(state)
-            @test o == Shift()
-            @test o(state) == shift(state)
-            state = shift(state)
-
-            # step 1
-            @test words(stack(state)) == ["root", "book"]
-            @test words(buffer(state)) == ["me", "the", "morning", "flight"]
-
-            o = oracle(state)
-            @test o == Shift()
-            @test o(state) == shift(state)
-            state = shift(state)
-
-            # step 2
-            @test words(stack(state)) == ["root", "book", "me"]
-            @test words(buffer(state)) == ["the", "morning", "flight"]
-
-            o = oracle(state)
-            @test o == RightArc("indobj")
-            @test o(state) == rightarc(state, "indobj")
-            state = rightarc(state, "indobj")
-
-            @test token(state, word2id["me"]).head == word2id["book"]
-            @test hasdeprel(state, "book", "indobj", "me") # (book -[indobj]-> me)
-
-            # step 3
-            @test words(stack(state)) == ["root", "book"]
-            @test words(buffer(state)) == ["the", "morning", "flight"]
-
-            o = oracle(state)
-            @test o == Shift()
-            @test o(state) == shift(state)
-            state = shift(state)
-
-            # step 4
-            @test words(stack(state)) == ["root", "book", "the"]
-            @test words(buffer(state)) == ["morning", "flight"]
-
-            o = oracle(state)
-            @test o == Shift()
-            @test o(state) == shift(state)
-            state = shift(state)
-
-            # step 5
-            @test words(stack(state)) == ["root", "book", "the", "morning"]
-            @test words(buffer(state)) == ["flight"]
-
-            o = oracle(state)
-            @test o == Shift()
-            @test o(state) == shift(state)
-            state = shift(state)
-
-            # step 6
-            @test words(stack(state)) == ["root", "book", "the", "morning", "flight"]
-            @test words(buffer(state)) == []
-
-            o = oracle(state)
-            @test o == LeftArc("adv")
-            @test o(state) == leftarc(state, "adv")
-            state = leftarc(state, "adv")
-
-            @test hasdeprel(state, "flight", "adv", "morning") # (morning <-[when?]- flight)
-
-            # step 7
-            @test words(stack(state)) == ["root", "book", "the", "flight"]
-            @test words(buffer(state)) == []
-
-            o = oracle(state)
-            @test o == LeftArc("dt")
-            @test o(state) == leftarc(state, "dt")
-            state = leftarc(state, "dt")
-
-            @test hasdeprel(state, "flight", "dt", "the") # (the <-[the]- flight)
-
-            # step 8
-            @test words(stack(state)) == ["root", "book", "flight"]
-            @test words(buffer(state)) == []
-
-            o = oracle(state)
-            @test o == RightArc("dobj")
-            @test o(state) == rightarc(state, "dobj")
-            state = rightarc(state, "dobj")
-
-            @test hasdeprel(state, "book", "dobj", "flight") # (book -[dobj]-> flight)
-
-            # step 9
-            @test words(stack(state)) == ["root", "book"]
-            @test words(buffer(state)) == []
-
-            o = oracle(state)
-            @test o == RightArc("pred")
-            @test o(state) == rightarc(state, "pred")
-            state = rightarc(state, "pred")
-
-            @test hasdeprel(state, "root", "pred", "book") # (root -[pred]-> book)
-
-            # step 10
-            @test words(stack(state)) == ["root"]
-            @test words(buffer(state)) == []
-            @test isfinal(state)
-
-            oracle = StaticOracle(ArcStandard(), arc=typed)
-            error_cb(args...) = @assert false
-            pairs = DependencyTrees.xys(oracle, gold_graph)
-            @test last.(pairs) == [Shift(), Shift(), RightArc("indobj"),
-                                   Shift(), Shift(), Shift(), LeftArc("adv"),
-                                   LeftArc("dt"), RightArc("dobj"), RightArc("pred")]
-
-            # # throw an error if the parser makes a mistake
         end
     end
 
