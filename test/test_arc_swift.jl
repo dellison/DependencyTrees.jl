@@ -53,7 +53,10 @@
         for tree in (chopsticks_tree, ketchup_tree)
             c1 = initconfig(ArcSwift(), CoNLLU, [t.form for t in tree])
             c2 = initconfig(ArcSwift(), tree)
+            @test stack(c1) == stack(c2)
+            @test buffer(c1) == buffer(c2)
             @test [t.form for t in c1.A] == [t.form for t in c2.A]
+            @test startswith(showstr(c1), "ArcSwiftConfig")
         end
     end
 
