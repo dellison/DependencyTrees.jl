@@ -98,9 +98,16 @@ function static_oracle_prefer_shift(cfg::ArcEagerConfig, gold_tree, arc=untyped)
     elseif gold_arc(s, b)
         return RightArc(l(b)...)
     end
-    must_reduce = !any(k -> gold_arc(k, b) || gold_arc(b, k), cfg.c.stack) ||
-        all(k -> k == 0 || hashead(cfg, k), cfg.c.stack)
-    has_right_children = any(k -> gold_arc(s, k), cfg.c.buffer)
+    must_reduce = false
+    for k in stack(cfg)
+        if gold_arc(k, b) || gold_arc(b, k)
+            must_reduce = true
+            break
+        elseif head(token(cfg, k)) < 0
+            break
+        end
+    end
+    has_right_children = any(k -> s in rightdeps(gold_tree, k), buffer(cfg))
     if !must_reduce || s > 0 && !hashead(cfg, s) || has_right_children
         return Shift()
     else
