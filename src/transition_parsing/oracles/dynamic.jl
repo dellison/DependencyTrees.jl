@@ -13,7 +13,6 @@ See [Goldberg & Nivre, 2012](https://aclweb.org/anthology/C/C12/C12-1059.pdf).
 DynamicOracle(system, oracle_function = dynamic_oracle; arc = untyped) =
     DynamicOracle(system, oracle_function, arc)
 
-transition_system(oracle::DynamicOracle) = oracle.system
 system(oracle::DynamicOracle) = oracle.system
 
 (oracle::DynamicOracle)(tree::DependencyTree; kwargs...) =
@@ -34,6 +33,3 @@ function gold_transitions(oracle::DynamicOracle, cfg, gold::DependencyTree)
     A = possible_transitions(cfg, gold, oracle.arc)
     return filter(isoptimal, A)
 end
-
-initconfig(oracle::DynamicOracle, gold) =
-    initconfig(oracle.system, gold)

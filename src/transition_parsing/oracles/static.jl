@@ -30,11 +30,7 @@ function oracle_state(o::TreeOracle{<:StaticOracle}, cfg)
     return OracleState(cfg, A, TransitionOperator[t])
 end
 
-transition_system(oracle::StaticOracle) = oracle.system
+system(oracle::StaticOracle) = oracle.system
 
 xys(oracle::StaticOracle, tree::DependencyTree) =
     [(state.cfg, state.G[1]) for state in oracle(tree)]
-
-
-# Base.show(io::IO, oracle::StaticOracle) =
-#     show(io, "StaticOracle{
