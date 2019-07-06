@@ -1,7 +1,7 @@
 """
     DependencyTree
 
-documentation lol
+A natural language sentence annotated with dependency structure.
 """
 struct DependencyTree{T<:Dependency} <: AbstractGraph{Int}
     graph::SimpleDiGraph
@@ -20,7 +20,7 @@ end
 """
    DependencyTree(T, tokens; add_id=false; kwargs...)
 
-todo
+Make a dependency tree with tokens of type `T` from `tokens`.
 """
 function DependencyTree(T::Type{<:Dependency}, tokens; add_id=false, kwargs...)
     A, mwts, es = T[], MultiWordToken[], EmptyToken[]
@@ -64,7 +64,7 @@ end
 """
     DependencyTree{T}(sentence::String; add_id=false, kwargs...)
 
-todo hello
+Read a dependency tree from `sentence`.
 """
 function DependencyTree{T}(sentence::String; add_id=false, kwargs...) where T
     ls = String.(filter(x -> x != "", split(strip(sentence), "\n")))

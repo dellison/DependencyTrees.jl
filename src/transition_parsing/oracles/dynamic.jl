@@ -20,7 +20,7 @@ system(oracle::DynamicOracle) = oracle.system
     TreeOracle(oracle, tree; kwargs...)
 
 
-function oracle_state(gold::TreeOracle{<:DynamicOracle, T}, cfg) where T
+function oracle_state(gold::TreeOracle{<:DynamicOracle}, cfg)
     arc, oracle = gold.oracle.arc, gold.oracle.oracle_function
     A = possible_transitions(cfg, gold.tree, arc)
     isoptimal = t -> oracle(t, cfg, gold.tree)

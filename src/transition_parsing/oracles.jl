@@ -34,19 +34,18 @@ include("oracles/exploration.jl")
 """
     TreeOracle
 
-TODO
+Everything needed to build a parse tree.
 """
-struct TreeOracle{O<:AbstractOracle, T<:Dependency, E<:AbstractExplorationPolicy}
+struct TreeOracle{O<:AbstractOracle}
     oracle::O
-    tree::DependencyTree{T}
-    policy::E
+    tree::DependencyTree
+    policy
 
     function TreeOracle(oracle::AbstractOracle, tree::DependencyTree, policy=NeverExplore())
         if projective_only(transition_system(oracle)) && !isprojective(tree)
             UnparsableTree(NonProjectiveGraphError(tree))
         else
-            O,T,E = typeof(oracle), deptype(tree), typeof(policy)
-            new{O,T,E}(oracle, tree, policy)
+            new{typeof(oracle)}(oracle, tree, policy)
         end
     end
 end

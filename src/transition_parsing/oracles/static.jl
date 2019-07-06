@@ -21,7 +21,7 @@ StaticOracle(system, oracle_function=static_oracle; arc=untyped) =
 (oracle::StaticOracle)(tree::DependencyTree; kwargs...) =
     TreeOracle(oracle, tree; kwargs...)
 
-function oracle_state(o::TreeOracle{<:StaticOracle, T}, cfg) where T
+function oracle_state(o::TreeOracle{<:StaticOracle}, cfg)
     system = o.oracle.system
     tree, arc = o.tree, o.oracle.arc
     oracle = o.oracle.oracle_function
