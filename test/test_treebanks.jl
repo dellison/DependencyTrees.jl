@@ -56,8 +56,8 @@
         end
 
         np = joinpath(datadir, "nonprojective.conll")
-        ptreebank = Treebank{CoNLLU}(np, remove_nonprojective=true)
-        nptreebank = Treebank{CoNLLU}(np, remove_nonprojective=false)
+        ptreebank = Treebank{CoNLLU}(np, allow_nonprojective=false)
+        nptreebank = Treebank{CoNLLU}(np, allow_nonprojective=true)
         @test length(collect(ptreebank)) == 2
         @test length(collect(nptreebank)) == 3
     end

@@ -3,19 +3,19 @@ include("reader.jl")
 struct Treebank{T<:Dependency}
     files::Vector{String}
     add_id::Bool
-    remove_nonprojective::Bool
-    kwargs
+    allow_nonprojective::Bool
+    allow_multiheaded::Bool
 end
 
 """
-    Treebank{T}(treebank; pattern=r".", add_ad=false, remove_nonprojective=false,kwargs...) whereT
+    Treebank{T}(treebank; pattern=r".", add_ad=false, allow_nonprojective=false,kwargs...) whereT
 
 hi
 """
 function Treebank{T}(treebank::String; pattern = r".", add_id=false,
-                     remove_nonprojective=false, kwargs...) where T
+                     allow_nonprojective=true, allow_multiheaded=true) where T
     if isfile(treebank)
-        Treebank{T}([treebank], add_id, remove_nonprojective, kwargs)
+        Treebank{T}([treebank], add_id, allow_nonprojective, allow_multiheaded)
     elseif isdir(treebank)
         treebank_files = String[]
         for (root, dirs, files) in walkdir(treebank), file in files
@@ -23,29 +23,24 @@ function Treebank{T}(treebank::String; pattern = r".", add_id=false,
                 push!(treebank_files, joinpath(root, file))
             end
         end
-        Treebank{T}(treebank_files, add_id, remove_nonprojective, kwargs)
+        Treebank{T}(treebank_files, add_id, allow_nonprojective, allow_multiheaded)
     else
         error("Couldn't read '$treebank'")
     end
 end
 
 """
-    Treebank{T}(files; add_id=false, remove_nonprojective=false, kwargs...)
+    Treebank{T}(files; add_id=false, allow_nonprojective=false, kwargs...)
 
 hello
 """
-function Treebank{T}(files::Vector{String}; add_id=false, remove_nonprojective=false, kwargs...) where T
-    Treebank{T}(files, add_id, remove_nonprojective, kwargs)
+function Treebank{T}(files::Vector{String}; add_id=false, allow_nonprojective=true, allow_multiheaded=true, kwargs...) where T
+    Treebank{T}(files, add_id, allow_nonprojective, allow_multiheaded)
 end
 
-"""
-    Treebank(treebank)
-
-DWIM?
-"""
-function Treebank(treebank)
-    endswith(treebank, ".conllu") ? Treebank{CoNLLU}(treebank) :
-        endswith(treebank, "conll") ? Treebank{CoNLLU}(treebank) :
+function Treebank(treebank; kwargs...)
+    endswith(treebank, ".conllu") ? Treebank{CoNLLU}(treebank; kwargs...) :
+        endswith(treebank, "conll") ? Treebank{CoNLLU}(treebank; kwargs...) :
         error("error reading '$treebank'")
 end
 
@@ -87,7 +82,7 @@ end
 
 function Base.iterate(t::TreebankIterator)
     graph, state = iterate(t.reader)
-    if t.t.remove_nonprojective && !isprojective(graph)
+    if !t.t.allow_nonprojective && !isprojective(graph)
         return iterate(t, (state, 1))
     end
     return (graph, (state, 1))
@@ -96,14 +91,14 @@ function Base.iterate(t::TreebankIterator, state)
     next = iterate(t.reader, state)
     if next != nothing
         (graph, (st, i)) = next
-        if t.t.remove_nonprojective && !isprojective(graph)
+        if !t.t.allow_nonprojective && !isprojective(graph)
             return iterate(t, (st, i+1))
         end
         return (graph, (st, i+1))
     else
         if t.i < length(t.t.files)
             t.i += 1
-            t.reader = TreebankReader{deptype(t.t)}(t.t.files[t.i])
+            t.reader = TreebankReader{deptype(t.t)}(t.t.files[t.i]; allow_nonprojective=t.t.allow_nonprojective, allow_multiheaded=t.t.allow_multiheaded)
             graph, state = iterate(t.reader)
             return (graph, (state, 1))
         else
