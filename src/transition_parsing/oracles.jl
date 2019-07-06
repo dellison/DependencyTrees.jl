@@ -34,7 +34,9 @@ include("oracles/exploration.jl")
 """
     TreeOracle
 
-Everything needed to build a parse tree.
+A gold tree for training.
+
+Collects an `oracle`, a gold `tree`, and an exploration `policy`.
 """
 struct TreeOracle{O<:AbstractOracle}
     oracle::O

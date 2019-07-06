@@ -3,7 +3,7 @@
     error_cb(args...) = nothing
     
     oracle = DynamicOracle(ArcEager(), arc=typed)
-    
+
     model(cfg) = nothing
     
     graph = test_sentence("economicnews.conll")
@@ -39,9 +39,6 @@
 
     tbfile = joinpath(@__DIR__, "data", "wsj_0001.dp")
     treebank = Treebank{TypedDependency}(tbfile, add_id=true)
-    trees = collect(treebank)
-    for tree in trees
-    end
 
     for (cfg, gold) in xys(oracle, graph)
         @test length(gold) >= 1
@@ -52,6 +49,14 @@
         tb = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "nonprojective1.conll"))
         @test length(collect(tb)) == 1
         @test length(collect(DependencyTrees.xys(oracle, tb))) == 0
+
+        for tree in tb
+            if !isprojective(tree)
+                @test isempty(oracle(tree))
+            else
+                @test !isempty(oracle(tree))
+            end
+        end
     end
 
     @testset "Dynamic Iteration" begin
@@ -114,6 +119,8 @@ end
 @testset "Exploration Policies" begin
     always1, never1 = AlwaysExplore(), NeverExplore()
     always2, never2 = ExplorationPolicy(1), ExplorationPolicy(0)
+    @test showstr(always1) == "AlwaysExplore"
+    @test showstr(never1) == "NeverExplore"
     for i = 1:10
         @test always1() == always2() == true
         @test never1()  == never2()  == false

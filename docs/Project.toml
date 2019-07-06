@@ -1,3 +1,6 @@
 [deps]
 DependencyTrees = "9ae0eaca-57f6-5d9a-9b02-4a09e011bd92"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+
+[compat]
+Documenter = "~0.22"
