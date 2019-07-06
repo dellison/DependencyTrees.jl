@@ -1,15 +1,5 @@
-"""
-    AbstractTransitionSystem
-
-Transition system for dependency parsing.
-"""
 abstract type AbstractTransitionSystem end
 
-"""
-   AbstractParserConfiguration{D}
-
-Parser configuration (state) for dependency parsing.
-"""
 abstract type AbstractParserConfiguration{D} end
 
 deptype(::Type{<:AbstractParserConfiguration{D}}) where D = D
