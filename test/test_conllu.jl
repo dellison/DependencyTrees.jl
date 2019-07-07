@@ -17,6 +17,8 @@
         end
     end
 
+    @test DependencyTrees.noval(CoNLLU).head == -1
+
     # make sure the errors get thrown correctly
     @test_throws MultiWordTokenError CoNLLU("18-19	cannot	_	_	_	_	_	_	_	SpaceAfter=No")
     @test_throws EmptyTokenError CoNLLU("0.1	nothing	_	_	_	_	_	_	_	_")
@@ -38,6 +40,10 @@
     for d in graph.tokens
         @test untyped(d) == ()
         @test typed(d) == (d.deprel,)
+    end
+    @test startswith(showstr(graph), "DependencyTree{CoNLLU}\n1\tThey")
+    for (i, tok) in enumerate(tokens(graph))
+        @test startswith(showstr(tok), string(tok.id))
     end
 
     c = CoNLLU("1	They	they	PRON	PRP	Case=Nom|Number=Plur	2	nsubj	2:nsubj|4:nsubj	_")
