@@ -1,5 +1,14 @@
 @testset "Arc-Hybrid" begin
 
+    @test showstr(LeftArc()) == "LeftArc()"
+    @test showstr(LeftArc("mod")) == "LeftArc(mod)"
+    for t in [LeftArc(), RightArc(), Shift()]
+        @test isempty(DependencyTrees.args(t)) && isempty(DependencyTrees.kwargs(t))
+    end
+    for t in [LeftArc("label"), RightArc("label")]
+        @test !isempty(DependencyTrees.args(t)) && isempty(DependencyTrees.kwargs(t))
+    end
+
     AH = ArcHybrid()
 
     tb = test_treebank("hybridtests.conll")
