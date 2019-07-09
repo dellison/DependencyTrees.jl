@@ -3,44 +3,9 @@ abstract type AbstractParserConfiguration{D} end
 deptype(::Type{<:AbstractParserConfiguration{D}}) where D = D
 deptype(c::AbstractParserConfiguration) = deptype(typeof(c))
 
-leftdeps(cfg::AbstractParserConfiguration, dep::Dependency) = leftdeps(cfg, id(dep))
-leftdeps(cfg::AbstractParserConfiguration, i::Int) =
-    filter(t -> id(t) < i && head(t) == i, tokens(cfg))
-
-leftmostdep(cfg::AbstractParserConfiguration, dep::Dependency, n::Int=1) =
-    leftmostdep(cfg, id(dep), n)
-
-function leftmostdep(cfg::AbstractParserConfiguration, i::Int, n::Int=1)
-    A = tokens(cfg)
-    ldep = leftmostdep(A, i, n)
-    if iszero(ldep)
-        root(eltype(A))
-    elseif ldep == -1
-        noval(eltype(A))
-    else
-        A[ldep]
-    end
+for f in (:leftdeps, :rightdeps, :leftmostdep, :rightmostdep)
+    @eval $f(cfg::AbstractParserConfiguration, args...) = $f(tokens(cfg), args...)
 end
-
-rightdeps(cfg::AbstractParserConfiguration, dep::Dependency) = rightdeps(cfg, id(dep))
-rightdeps(cfg::AbstractParserConfiguration, i::Int) =
-    filter(t -> id(t) > i && head(t) == i, tokens(cfg))
-
-rightmostdep(cfg::AbstractParserConfiguration, dep::Dependency, n::Int=1) =
-    rightmostdep(cfg, id(dep))
-
-function rightmostdep(cfg::AbstractParserConfiguration, i::Int, n::Int=1)
-    A = tokens(cfg)
-    rdep = rightmostdep(A, i, n)
-    if iszero(rdep)
-        root(eltype(A))
-    elseif rdep == -1
-        noval(eltype(A))
-    else
-        A[rdep]
-    end
-end
-
 
 struct StackBufferConfiguration{T <: Dependency}
     stack::Vector{Int}
