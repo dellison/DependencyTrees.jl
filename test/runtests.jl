@@ -6,7 +6,7 @@ using DependencyTrees: TreebankReader
 using DependencyTrees: projective_only, deptype
 using DependencyTrees: deprel, form, id, hashead, head, root, isroot
 using DependencyTrees: MultiWordTokenError, EmptyTokenError
-using DependencyTrees: stack, buffer
+using DependencyTrees: stack, buffer, stacklength, bufferlength
 using DependencyTrees: leftmostdep, rightmostdep
 using DependencyTrees: leftdeps, rightdeps
 using DependencyTrees: root, noval, token, tokens, xys

@@ -126,3 +126,25 @@ end
         @test never1()  == never2()  == false
     end
 end
+
+@testset "Feature Extraction" begin
+
+    function check(oracle, gold_tree)
+        for state in oracle(gold_tree)
+            cfg = state.cfg
+            stk, buf = stack(cfg), buffer(cfg)
+            ts = [buffertoken(cfg, b) for b in buf]
+            @test id.(buffertoken(cfg, i) for i in 1:length(buf)) == buf
+            @test id.(stacktoken(cfg, i) for i in length(stk):-1:1) == stk
+        end
+        return true
+    end
+
+    treebank = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "hybridtests.conll"))
+    for system in (ArcEager(), ArcHybrid())
+        for O in (StaticOracle, DynamicOracle)
+            oracle = O(system, arc=untyped)
+            @test all(check(oracle, tree) for tree in treebank)
+        end
+    end
+end

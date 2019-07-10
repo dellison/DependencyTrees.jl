@@ -1,3 +1,5 @@
+Something here about transition parsing, I suppose.
+
 # Transition Systems
 
 ## Arc-Standard
@@ -70,4 +72,13 @@ Static oracle function:
 
 ```@docs
 static_oracle(::DependencyTrees.ListBasedNonProjectiveConfig, tree, arc)
+```
+
+# Misc.
+
+For stack-and-buffer transition systems ([Arc-Eager](@ref Arc-Eager), [Arc-Standard](@ref Arc-Standard), [Arc-Hybrid](@ref Arc-Hybrid), and [Arc-Swift](@ref Arc-Swift)), DependencyTrees.jl implements functions for getting the tokens from the stack and buffer in a safe way:
+
+```@docs
+stacktoken
+buffertoken
 ```

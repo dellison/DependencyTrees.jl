@@ -7,6 +7,31 @@ for f in (:leftdeps, :rightdeps, :leftmostdep, :rightmostdep)
     @eval $f(cfg::AbstractParserConfiguration, args...) = $f(tokens(cfg), args...)
 end
 
+"""
+    stacktoken(cfg, i)
+
+Return the token at stack index `i` (starting at 1).
+"""
+function stacktoken(cfg, i=1)
+    stk = stack(cfg)
+    stklen = length(stk)
+    s_index = stacklength(cfg) - i + 1
+    if 1 <= s_index <= stacklength(cfg)
+        a_index = stk[s_index]
+        a_index == 0 ? root(deptype(cfg)) : token(cfg, a_index)
+    else
+        noval(deptype(cfg))
+    end
+end
+
+"""
+    buffertoken(cfg, i)
+
+Return the token at buffer index `i` (starting at 1).
+"""
+buffertoken(cfg, i) =
+    1 <= i <= bufferlength(cfg) ? token(cfg, buffer(cfg)[i]) : noval(deptype(cfg))
+
 struct StackBufferConfiguration{T <: Dependency}
     stack::Vector{Int}
     buffer::Vector{Int}
@@ -45,7 +70,6 @@ tokens(cfg::StackBufferConfiguration, is) =
     [token(cfg, i) for i in is if 0 <= i <= length(cfg.A)]
 
 function popstack(cfg, n=1)
-    @assert length(cfg.stack) >= n
     sh = [s for s in cfg.stack[end-n+1:end]]
     st = length(cfg.stack) >= n ?
         [s for s in cfg.stack[1:end-n]] :

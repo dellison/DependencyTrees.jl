@@ -17,6 +17,7 @@ export
     AlwaysExplore, NeverExplore, ExplorationPolicy,
 
     initconfig, isfinal, possible_transitions,
+    stacktoken, buffertoken,
 
     labeled_accuracy, unlabeled_accuracy
 
