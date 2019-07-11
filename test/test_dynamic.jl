@@ -136,6 +136,7 @@ end
             ts = [buffertoken(cfg, b) for b in buf]
             @test id.(buffertoken(cfg, i) for i in 1:length(buf)) == buf
             @test id.(stacktoken(cfg, i) for i in length(stk):-1:1) == stk
+            @test id(stacktoken(cfg, 10000)) == -1
         end
         return true
     end
