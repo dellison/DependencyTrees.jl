@@ -13,8 +13,6 @@ noval(node::Dependency) = _ni(noval, node)
 root(t::Type{<:Dependency}) = _ni(root, t)
 unk(t::Type{<:Dependency}) = _ni(unk, t)
 
-untyped(::Dependency) = ()
-
 const ROOT = "ROOT"
 const NOVAL = "NOVAL"
 
