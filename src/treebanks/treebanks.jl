@@ -10,7 +10,7 @@ end
 """
     Treebank{T}(treebank; pattern=r".", add_ad=false, allow_nonprojective=false,kwargs...) whereT
 
-hi
+Create a treebank from a `treebank` directory from files matching `pattern`.
 """
 function Treebank{T}(treebank::String; pattern = r".", add_id=false,
                      allow_nonprojective=true, allow_multiheaded=true) where T
@@ -32,7 +32,7 @@ end
 """
     Treebank{T}(files; add_id=false, allow_nonprojective=false, kwargs...)
 
-hello
+Create a treebank from `files`.
 """
 function Treebank{T}(files::Vector{String}; add_id=false, allow_nonprojective=true, allow_multiheaded=true, kwargs...) where T
     Treebank{T}(files, add_id, allow_nonprojective, allow_multiheaded)
