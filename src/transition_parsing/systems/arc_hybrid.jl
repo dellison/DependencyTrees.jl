@@ -68,7 +68,9 @@ end
 """
     dynamic_oracle(t, cfg::ArgHybridConfig, tree)
 
-Dynamic oracle function from the paper lol. TODO
+Dynamic oracle function for arc-hybrid parsing.
+
+For details, see [Goldberg & Nivre, 2013](https://aclweb.org/anthology/Q13-1033.pdf).
 """
 dynamic_oracle(t, cfg::ArcHybridConfig, tree) = cost(t, cfg, tree) == 0
 

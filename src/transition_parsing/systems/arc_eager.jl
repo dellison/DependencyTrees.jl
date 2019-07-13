@@ -122,7 +122,9 @@ end
 """
     dynamic_oracle(t, cfg::ArgEagerConfig, tree)
 
-Dynamic oracle function from the paper lol. TODO
+Dynamic oracle function for arc-eager parsing.
+
+For details, see [Goldberg & Nivre 2012](https://aclweb.org/anthology/C12-1059).
 """
 dynamic_oracle(t, cfg::ArcEagerConfig, tree) = cost(t, cfg, tree) == 0
 
