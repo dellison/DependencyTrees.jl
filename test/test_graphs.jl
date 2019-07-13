@@ -39,13 +39,7 @@ using DependencyTrees: token, tokens
 9	.	_	_	_	_	3	PU	_	_
 """ |> strip
 
-    function tostr(g)
-        buf = IOBuffer()
-        Base.show(buf, g)
-        String(take!(buf))
-    end
-
-    @test tostr(graph) |> strip == """
+    @test showstr(graph) |> strip == """
 DependencyTree{TypedDependency}
 1	Economic	ATT	2
 2	news	SBJ	3
@@ -247,7 +241,7 @@ DependencyTree{TypedDependency}
 10	terrier	_	_	_	_	7	_	_	_
 """ |> strip
 
-        @test tostr(graph) |> strip == """
+        @test showstr(graph) |> strip == """
 DependencyTree{UntypedDependency}
 1	john	2
 2	saw	0
