@@ -81,15 +81,11 @@ function check_tree(tree::DependencyTree; check_single_head=true, check_has_root
                         check_projective=false)
     check_has_root && iszero(tree.root) && throw(RootlessGraphError(tree))
     if check_single_head
-        if count(t -> iszero(head(t)), tree.tokens) > 1
-            throw(MultipleRootsError(tree))
-        end
-        if !is_weakly_connected(tree.graph)
-            throw(GraphConnectivityError(tree, "dependency graphs must be weakly connected"))
-        end
+        !has1root(tree) && throw(MultipleRootsError(tree))
+        !is_weakly_connected(tree.graph) && throw(GraphConnectivityError(tree,"not weakly connected!"))    
     end
     check_projective && !isprojective(tree) && throw(NonProjectiveGraphError(tree))
-    for i = 1:length(tree)
+    for i in 1:length(tree)
         n_inc = length(inneighbors(tree.graph, i))
         # root node and its dependency on predicate are
         # represented implicitly, so 0 is expected here
@@ -99,10 +95,12 @@ function check_tree(tree::DependencyTree; check_single_head=true, check_has_root
     return nothing
 end
 
-isprojective(g::DependencyTree) =
+has1root(tree::DependencyTree) = count(iszero ∘ head, tokens(tree)) == 1
+
+isprojective(tree::DependencyTree) =
     # For every arc (i,l,j) there is a directed path from i to every
     # word k such that min(i,j) < k < max(i,j)
-    all(isprojective(g, src(edge), dst(edge)) for edge in edges(g.graph))
+    all(isprojective(tree, src(e), dst(e)) for e in edges(tree.graph))
 
 isprojective(g::DependencyTree, head::Int, dep::Int) =
     all(k -> has_path(g.graph, head, k), min(head, dep):max(head, dep))
