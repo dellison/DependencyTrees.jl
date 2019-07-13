@@ -2,9 +2,7 @@ abstract type AbstractOracle{T<:AbstractTransitionSystem} end
 
 initconfig(oracle::AbstractOracle, args...) = initconfig(system(oracle), args...)
 
-xys(oracle, trees) =
-    Base.Iterators.flatten(xys(oracle, tree) for tree in trees)
-
+xys(oracle, trees) = Base.Iterators.flatten(xys(oracle, tree) for tree in trees)
 xys(oracle, tree::DependencyTree; kwargs...) =
     ((state.cfg, state.G) for state in oracle(tree; kwargs...))
 
