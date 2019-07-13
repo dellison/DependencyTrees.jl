@@ -69,6 +69,12 @@ Base.IteratorSize(treebank::Treebank) = Base.SizeUnknown()
 
 Base.length(treebank::Treebank) = length(collect(treebank))
 
+function Base.show(io::IO, treebank::Treebank)
+    T = deptype(treebank)
+    len = length(treebank.files)
+    print(io, "Treebank{$T} of $len file(s)")
+end
+
 mutable struct TreebankIterator{T}
     t::Treebank{T}
     i::Int

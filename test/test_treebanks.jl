@@ -41,6 +41,7 @@
         @test_throws Exception Treebank{CoNLLU}("not a corpus")
 
         treebank = Treebank{CoNLLU}(files)
+        @test showstr(treebank) == "Treebank{CoNLLU} of 3 file(s)"
         trees = collect(treebank)
         @test length(treebank) == length(trees) == 4
         @test deptype(treebank) == CoNLLU
