@@ -13,7 +13,7 @@
         @assert false
     end
 
-    cfg = initconfig(oracle.system, graph)
+    cfg = initconfig(oracle, graph)
     nocost(t, cfg) = DependencyTrees.cost(t, cfg, graph) == 0
     while !isfinal(cfg)
         pred = model(cfg)
