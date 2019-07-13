@@ -13,7 +13,10 @@ end
 """
     StaticOracle(system, oracle_function=static_oracle; arc=untyped)
 
-TODO
+Create a static (deterministic) oracle for dependency parsing.
+
+Static oracles deterministically map each parser configuration to
+a single gold transition.
 """
 StaticOracle(system, oracle_function=static_oracle; arc=untyped) =
     StaticOracle(system, oracle_function, arc)

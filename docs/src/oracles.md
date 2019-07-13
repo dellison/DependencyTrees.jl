@@ -2,7 +2,7 @@
 
 In transition-based dependency parsing, oracles are used to map parser configurations (intermediate parser states) to gold transitions.
 
-[Static](@ref Static-Oracles) and [Dynamic](@ref Dynamic-Oracles) oracles can both be used to iterate through trees.
+[Static](@ref Static-Oracles) and [dynamic](@ref Dynamic-Oracles) oracles can both be used to iterate through trees.
 
 ```julia-repl
 julia> oracle = DynamicOracle(ArcEager())
@@ -21,12 +21,15 @@ The iterator itself is something something
 
 ```@docs
 DependencyTrees.TreeOracle
-```
-
-```@docs
 DependencyTrees.UnparsableTree
 ```
 
+Both kinds of oracles can build parse trees with labelled (typed) or unlabelled (untyped) dependency relations using the `arc` keyword argument.
+
+```@docs
+untyped
+typed
+```
 
 ## Static Oracles
 

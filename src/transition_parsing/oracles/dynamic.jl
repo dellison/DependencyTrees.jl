@@ -7,8 +7,9 @@ end
 """
     DynamicOracle(system, oracle_function = dynamic_oracle; arc = untyped)
 
-Dynamic oracle for nondeterministic dependency parsing.
-See [Goldberg & Nivre, 2012](https://aclweb.org/anthology/C/C12/C12-1059.pdf).
+Create a dynamic oracle for dependency parsing (see [Goldberg & Nivre, 2012](https://aclweb.org/anthology/C/C12/C12-1059.pdf)).
+
+Dynamic oracles allow multiple gold transitions from each parser configuration.
 """
 DynamicOracle(system, oracle_function = dynamic_oracle; arc = untyped) =
     DynamicOracle(system, oracle_function, arc)

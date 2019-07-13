@@ -1,5 +1,16 @@
-untyped(dep) = ()
-typed(dep) = (deprel(dep),)
+"""
+    untyped(token)
+
+Create an arc without a dependency label.
+"""
+untyped(token) = ()
+
+"""
+    typed(token)
+
+Create an arc with a labeled dependency relation.
+"""
+typed(token) = (deprel(token),)
 
 abstract type TransitionOperator end
 args(r::TransitionOperator) = ()

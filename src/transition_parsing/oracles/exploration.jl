@@ -20,7 +20,7 @@ AlwaysExplore() = AlwaysExplore(GLOBAL_RNG)
 Base.show(io::IO, ::AlwaysExplore) = print(io, "AlwaysExplore")
 
 """
-    ExplorationNever()
+    NeverExplore()
 
 Policy for never exploring sub-optimal transitions.
 """
