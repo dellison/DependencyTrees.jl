@@ -28,16 +28,13 @@ function Base.iterate(t::TreebankReader, state)
             !newl ? (newl = true) : break
         else
             try
-                tok = t.add_id ? T(length(tokens) + 1, String(line)) :
-                                 T(String(line))
-                push!(tokens, tok)
+                token = t.add_id ? T(length(tokens) + 1, String(line)) :
+                                   T(String(line))
+                push!(tokens, token)
             catch err
-                if isa(err, MultiWordTokenError)
-                    push!(mwts, MultiWordToken(line))
-                elseif isa(err, EmptyTokenError)
-                    push!(emptytokens, EmptyToken(line))
-                end
-                continue
+                isa(err, MultiWordTokenError) ? push!(mwts, MultiWordToken(line)) :
+                isa(err, EmptyTokenError)     ? push!(emptytokens, EmptyToken(line)) :
+                throw(err)
             end
         end
     end
