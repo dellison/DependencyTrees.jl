@@ -6,7 +6,7 @@
         T = TypedDependency
         tb1 = TreebankReader{T}(joinpath(datadir, "wsj_0001.dp"), add_id=true)
         tb2 = TreebankReader{T}(joinpath(datadir, "wsj_0001.ids.dp"), add_id=false)
-
+        @test deptype(tb1) == deptype(tb2) == T
         @test collect(tb1) == collect(tb2)
     end
 
@@ -14,7 +14,7 @@
         T = UntypedDependency
         tb1 = TreebankReader{T}(joinpath(datadir, "wsj_0001.untyped.dp"), add_id=true)
         tb2 = TreebankReader{T}(joinpath(datadir, "wsj_0001.untyped.ids.dp"), add_id=false)
-
+        @test deptype(tb1) == deptype(tb2) == T
         @test collect(tb1) == collect(tb2)
     end
 

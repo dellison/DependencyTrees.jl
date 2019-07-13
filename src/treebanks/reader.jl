@@ -11,9 +11,6 @@ end
 TreebankReader{T}(file::String; comment_rx=r"^#", add_id=false, allow_nonprojective=true, allow_multiheaded=true) where T =
     TreebankReader{T}(open(file), 0, comment_rx, add_id, allow_nonprojective, allow_multiheaded)
 
-TreebankReader{T}(io::IO; comment_rx=r"^#", allow_nonprojective=true, allow_multiheaded=true) where T =
-    TreebankReader{T}(io, 0, comment_rx, add_id, allow_nonprojective, allow_multiheaded)
-
 Base.iterate(t::TreebankReader) = iterate(t, 1)
 
 function Base.iterate(t::TreebankReader, state)
