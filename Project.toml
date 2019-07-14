@@ -1,7 +1,7 @@
 name = "DependencyTrees"
 uuid = "9ae0eaca-57f6-5d9a-9b02-4a09e011bd92"
 authors = ["David Ellison <davidehellison@gmail.com>"]
-version = "0.1.1"
+version = "0.2.0"
 
 [deps]
 LightGraphs = "093fc24a-ae57-5d10-9952-331d41423f4d"
