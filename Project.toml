@@ -3,6 +3,8 @@ uuid = "9ae0eaca-57f6-5d9a-9b02-4a09e011bd92"
 authors = ["David Ellison <davidehellison@gmail.com>"]
 version = "0.2.0"
 
+[compat]
+
 [deps]
 LightGraphs = "093fc24a-ae57-5d10-9952-331d41423f4d"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
