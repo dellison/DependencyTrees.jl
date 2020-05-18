@@ -28,8 +28,8 @@ struct ArcEager <: AbstractTransitionSystem end
 
 initconfig(::ArcEager, graph::DependencyTree) =
     ArcEagerConfig(graph)
-initconfig(::ArcEager, deptype, words) =
-    ArcEagerConfig{deptype}(words)
+# initconfig(::ArcEager, ptype, words) =
+#     ArcEagerConfig(words)
 
 transition_space(::ArcEager, labels=[]) =
     isempty(labels) ? [LeftArc(), RightArc(), Reduce(), Shift()] :
@@ -37,8 +37,8 @@ transition_space(::ArcEager, labels=[]) =
 
 projective_only(::ArcEager) = true
 
-struct ArcEagerConfig{T} <: AbstractParserConfiguration{T}
-    c::StackBufferConfiguration{T}
+struct ArcEagerConfig <: AbstractParserConfiguration
+    c::StackBufferCfg
 end
 
 @stackbufconfig ArcEagerConfig
@@ -54,8 +54,9 @@ reduce(cfg::ArcEagerConfig) = ArcEagerConfig(reduce(cfg.c))
 
 shift(cfg::ArcEagerConfig) = ArcEagerConfig(shift(cfg.c))
 
-isfinal(cfg::ArcEagerConfig) = all(a -> head(a) >= 0, cfg.c.A)
-hashead(cfg::ArcEagerConfig, k) = head(token(cfg, k)) != -1
+isfinal(cfg::ArcEagerConfig) = all(a -> a.head >= 0, cfg.c.A)
+# hashead(cfg::ArcEagerConfig, k) = token(cfg, k) != -1
+has_head(cfg::ArcEagerConfig, k) = has_head(token(cfg, k))
 
 """
     static_oracle(cfg, tree, transition)
@@ -78,7 +79,7 @@ function static_oracle(cfg::ArcEagerConfig, gold_tree, arc)
                 return RightArc(l(b)...)
             end
         end
-        if all(k -> k > 0 && hashead(cfg, k), [s ; dependents(gold_tree, s)])
+        if all(k -> k > 0 && has_head(cfg, k), [s ; deps(gold_tree, s)])
             return Reduce()
         end
     end
@@ -107,12 +108,12 @@ function static_oracle_prefer_shift(cfg::ArcEagerConfig, gold_tree, arc=untyped)
         if gold_arc(k, b) || gold_arc(b, k)
             must_reduce = true
             break
-        elseif head(token(cfg, k)) < 0
+        elseif has_head(token(cfg, k), -1)
             break
         end
     end
     has_right_children = any(k -> s in rightdeps(gold_tree, k), buffer(cfg))
-    if !must_reduce || s > 0 && !hashead(cfg, s) || has_right_children
+    if !must_reduce || s > 0 && !has_head(cfg, s) || has_right_children
         return Shift()
     else
         return Reduce()
@@ -155,7 +156,8 @@ function cost(t::RightArc, cfg::ArcEagerConfig, gold)
     #                 plus num of gold arcs (b,l',k) s.t. k ϵ σ
     σ, s = popstack(cfg)
     b, β = shiftbuffer(cfg)
-    if has_dependency(gold, s, b)
+    # if has_dependency(gold, s, b)
+    if has_arc(gold, s, b)
         0
     else
         count(k -> has_arc(gold, k, b), [σ ; β]) + count(k -> has_arc(gold, b, k), σ)
@@ -176,14 +178,14 @@ end
 
 function is_possible(::LeftArc, cfg::ArcEagerConfig)
     s = last(stack(cfg))
-    return s != 0 && !hashead(token(cfg, s))
+    return s != 0 && !has_head(token(cfg, s))
 end
 
 is_possible(::RightArc, cfg::ArcEagerConfig) =
-    !hashead(token(cfg, first(buffer(cfg))))
+    !has_head(token(cfg, first(buffer(cfg))))
 
 is_possible(::Reduce, cfg::ArcEagerConfig) =
-    hashead(token(cfg, last(stack(cfg))))
+    has_head(token(cfg, last(stack(cfg))))
 
 is_possible(::Shift, cfg::ArcEagerConfig) = true
 

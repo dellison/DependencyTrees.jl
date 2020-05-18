@@ -24,7 +24,7 @@ See [Nivre 2004](https://www.aclweb.org/anthology/W04-0308.pdf).
 struct ArcStandard <: AbstractTransitionSystem end
 
 initconfig(s::ArcStandard, graph::DependencyTree) = ArcStandardConfig(graph)
-initconfig(s::ArcStandard, deptype, words) = ArcStandardConfig{deptype}(words)
+initconfig(s::ArcStandard, words) = ArcStandardConfig(words)
 
 projective_only(::ArcStandard) = true
 
@@ -32,8 +32,8 @@ transition_space(::ArcStandard, labels=[]) =
     isempty(labels) ? [LeftArc(), RightArc(), Shift()] :
     [LeftArc.(labels)..., RightArc.(labels)..., Shift()]
 
-struct ArcStandardConfig{T} <: AbstractParserConfiguration{T}
-    c::StackBufferConfiguration{T}
+struct ArcStandardConfig <: AbstractParserConfiguration
+    c::StackBufferCfg
 end
 
 @stackbufconfig ArcStandardConfig
@@ -64,7 +64,7 @@ function static_oracle(cfg::ArcStandardConfig, gold_tree, arc=untyped)
         if has_arc(gold_tree, s0, s1)
             return LeftArc(l(s1)...)
         elseif has_arc(gold_tree, s1, s0)
-            if !any(k -> (k in s || k in buffer(cfg)), dependents(gold_tree, s0))
+            if !any(k -> (k in s || k in buffer(cfg)), deps(gold_tree, s0))
                 return RightArc(l(s0)...)
             end
         end
@@ -75,14 +75,14 @@ end
 function is_possible(::LeftArc, cfg::ArcStandardConfig)
     if stacklength(cfg) >= 2
         s, s1, s0 = popstack(cfg, 2)
-        return s1 != 0 && !hashead(token(cfg, s1))
+        return s1 != 0 && !has_head(token(cfg, s1))
     else
         return false
     end
 end
 
 is_possible(::RightArc, cfg::ArcStandardConfig) =
-    stacklength(cfg) > 1 && !hashead(token(cfg, last(stack(cfg))))
+    stacklength(cfg) > 1 && !has_head(token(cfg, last(stack(cfg))))
 
 is_possible(::Shift, cfg::ArcStandardConfig) = stacklength(cfg) > 0
 

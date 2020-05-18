@@ -44,7 +44,7 @@ struct TreeOracle{O<:AbstractOracle}
     policy
 
     function TreeOracle(oracle::AbstractOracle, tree::DependencyTree, policy=NeverExplore())
-        if projective_only(system(oracle)) && !isprojective(tree)
+        if projective_only(system(oracle)) && !is_projective(tree)
             UnparsableTree(NonProjectiveGraphError(tree))
         else
             new{typeof(oracle)}(oracle, tree, policy)

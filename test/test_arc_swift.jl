@@ -7,7 +7,7 @@
     # note that the transition sequences tested here are compared with
     # the arc-swift implementation at https://github.com/qipeng/arc-swift
     
-    @test projective_only(ArcSwift())
+    # @test projective_only(ArcSwift())
 
     chopsticks_tree = test_sentence("chopsticks.conll")
     ketchup_tree = test_sentence("ketchup.conll")
@@ -51,7 +51,7 @@
              RightArc(1, "nmod"), RightArc(1, "case"), RightArc(4, ".")]
 
         for tree in (chopsticks_tree, ketchup_tree)
-            c1 = initconfig(ArcSwift(), CoNLLU, [t.form for t in tree])
+            c1 = initconfig(ArcSwift(), [t.form for t in tree])
             c2 = initconfig(ArcSwift(), tree)
             @test stack(c1) == stack(c2)
             @test buffer(c1) == buffer(c2)

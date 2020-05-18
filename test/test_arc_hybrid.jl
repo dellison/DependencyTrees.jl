@@ -20,7 +20,8 @@
     @test DT.projective_only(ArcHybrid())
 
     t1 = first(trees)
-    c1,c2 = initconfig(AH, CoNLLU, [t.form for t in t1]), initconfig(AH, t1)
+    # c1,c2 = initconfig(AH, CoNLLU, [t.form for t in t1]), initconfig(AH, t1)
+    c1,c2 = initconfig(AH, [t.form for t in t1]), initconfig(AH, t1)
     @test [t.form for t in tokens(c1)] == [t.form for t in tokens(c2)]
 
     @testset "Static Oracle" begin
@@ -32,10 +33,11 @@
             gold_xys = collect(xys(oracle, gold))
             cfg, t = last(gold_xys)
             cfg = t(cfg)
-            graph = DependencyTree(tokens(cfg))
+            # graph = DependencyTree(tokens(cfg))
+            graph = deptree(tokens(cfg))
             @test all(enumerate(graph)) do (i, token)
                 g = gold[i]
-                token.form == g.form && token.deprel == g.deprel && token.head == g.head
+                token.form == g.form && token.label == g.label && token.head == g.head
             end
         end
 

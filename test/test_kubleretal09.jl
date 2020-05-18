@@ -2,7 +2,7 @@
 # parsing" (https://doi.org/10.2200/S00169ED1V01Y200901HLT002)
 
 @testset "Kübler et al 09" begin
-    @test projective_only(ArcEager())
+    # @test projective_only(ArcEager())
 
     @testset "Figure 3.7" begin
         tree = test_sentence("economicnews.conll")
@@ -22,8 +22,9 @@
             cfg = t(cfg)
         end
         @test isfinal(cfg)
-        result = DependencyTree(tokens(cfg))
-        @test tree == result
+        result = deptree(cfg)
+        # @test tree == result
+        @test labeled_accuracy(result, tree) == 1
 
         oracle = StaticOracle(ArcEager(), arc=typed)
         pairs = xys(oracle, tree)

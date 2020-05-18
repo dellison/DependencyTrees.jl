@@ -9,7 +9,7 @@ Described in [Kuhlmann et al, 2011](https://www.aclweb.org/anthology/P11-1068.pd
 struct ArcHybrid <: AbstractTransitionSystem end
 
 initconfig(::ArcHybrid, graph::DependencyTree) = ArcHybridConfig(graph)
-initconfig(::ArcHybrid, deptype, words) = ArcHybridConfig{deptype}(words)
+initconfig(::ArcHybrid, words) = ArcHybridConfig(words)
 
 projective_only(::ArcHybrid) = true
 
@@ -17,8 +17,8 @@ transition_space(::ArcHybrid, labels=[]) =
     isempty(labels) ? [LeftArc(), RightArc(), Shift()] :
     [LeftArc.(labels)..., RightArc.(labels)..., Shift()]
 
-struct ArcHybridConfig{T} <: AbstractParserConfiguration{T}
-    c::StackBufferConfiguration{T}
+struct ArcHybridConfig <: AbstractParserConfiguration
+    c::StackBufferCfg
 end
 
 @stackbufconfig ArcHybridConfig
@@ -34,7 +34,7 @@ rightarc(cfg::ArcHybridConfig, args...; kwargs...) =
 
 shift(cfg::ArcHybridConfig) = ArcHybridConfig(shift(cfg.c))
 
-isfinal(cfg::ArcHybridConfig) = all(a -> head(a) != -1, tokens(cfg))
+isfinal(cfg::ArcHybridConfig) = all(a -> a.head != -1, tokens(cfg))
 
 
 """
@@ -77,11 +77,11 @@ dynamic_oracle(t, cfg::ArcHybridConfig, tree) = cost(t, cfg, tree) == 0
 
 function is_possible(::LeftArc, cfg::ArcHybridConfig)
     s = last(stack(cfg))
-    return s != 0 && !hashead(token(cfg, s)) && bufferlength(cfg) > 0
+    return s != 0 && !has_head(token(cfg, s)) && bufferlength(cfg) > 0
 end
 
 is_possible(::RightArc, cfg::ArcHybridConfig) =
-    stacklength(cfg) > 1 && !hashead(token(cfg, last(stack(cfg))))
+    stacklength(cfg) > 1 && !has_head(token(cfg, last(stack(cfg))))
 
 is_possible(::Shift, cfg::ArcHybridConfig) = bufferlength(cfg) >= 1
 

@@ -1,11 +1,8 @@
-using DependencyTrees: dependents, leftdeps, rightdeps, leftmostdep, rightmostdep
+using DependencyTrees: deptree
+using DependencyTrees: deps, leftdeps, rightdeps, leftmostdep, rightmostdep
 using DependencyTrees: token, tokens
 
 @testset "Graphs" begin
-
-    line = "1	From	_	ADP	IN	_	3	case	_	_"
-    d = CoNLLU(line)
-    @test strip(DependencyTrees.toconllu(d)) == line
 
     sent = [
         ("Economic", "ATT", 2),
@@ -19,15 +16,17 @@ using DependencyTrees: token, tokens
         (".", "PU", 3),
     ]
 
-    graph = DependencyTree(TypedDependency, sent, add_id=true)
-
-    @test [t.form for t in tokens(graph)] == [first(t) for t in sent]
-    for (i, t) in enumerate(sent)
-        @test token(graph, i).form == first(t)
-        @test [t.form for t in tokens(graph, [1, i])] == ["Economic", first(t)]
+    graph = deptree(sent) do ((form, deprel, head))
+        DependencyTrees.Token(form, head, deprel)
     end
 
-    @test DependencyTrees.toconllu(graph) |> strip == """
+    @test [t.form for t in graph.tokens] == [first(t) for t in sent]
+    for (i, t) in enumerate(sent)
+        @test graph.tokens[i].form == first(t)
+        # @test [t.form for t in graph.tokens[1, i])] == ["Economic", first(t)]
+    end
+
+    @test DependencyTrees.to_conllu(graph) |> strip == """
 1	Economic	_	_	_	_	2	ATT	_	_
 2	news	_	_	_	_	3	SBJ	_	_
 3	had	_	_	_	_	0	PRED	_	_
@@ -39,36 +38,26 @@ using DependencyTrees: token, tokens
 9	.	_	_	_	_	3	PU	_	_
 """ |> strip
 
-    @test showstr(graph) |> strip == """
-DependencyTree{TypedDependency}
-1	Economic	ATT	2
-2	news	SBJ	3
-3	had	PRED	0
-4	little	ATT	5
-5	effect	OBJ	3
-6	on	ATT	5
-7	financial	ATT	8
-8	markets	PC	6
-9	.	PU	3
-""" |> strip
+    # @test showstr(graph) |> strip == """
+    @test showstr(graph) == "DependencyTree: Economic news had little effect on financial markets ."
 
 
-    @test eltype(graph) == DependencyTrees.deptype(graph) == TypedDependency
-    @test isroot(root(graph))
+    # @test eltype(graph) == DependencyTrees.deptype(graph) == TypedDependency
+    # @test isroot(root(graph))
 
     @test length(graph) == length(sent) == 9
-    @test isroot(graph[0])
+    # @test isroot(graph[0])
     for (i, (word, tag, id_)) in enumerate(sent)
-        @test i == id(graph[i])
+        # @test i == graph.tokens[i].id
         sent_deps = filter(x -> x[3] == i, sent)
-        deps_ = dependents(graph, i)
+        deps_ = deps(graph, i)
         @test length(deps_) == length(sent_deps)
-        @test Set(form(graph, id) for id in deps_) == Set([d[1] for d in sent_deps])
+        @test Set(graph.tokens[id].form for id in deps_) == Set([d[1] for d in sent_deps])
     end
-    @test isprojective(graph)
+    # @test isprojective(graph)
 
-    @test leftdeps(graph, graph[0]) == []
-    @test rightdeps(graph, graph[0]) == [graph[3]]
+    # @test leftdeps(graph, graph[0]) == []
+    # @test rightdeps(graph, graph[0]) == [graph[3]]
 
     @test leftdeps(graph, 0) == []
     @test rightdeps(graph, 0) == [3]
@@ -91,88 +80,84 @@ DependencyTree{TypedDependency}
     @test leftdeps(graph, 9) == []
     @test rightdeps(graph, 9) == []
 
-    @test leftmostdep(graph, 0) == -1
-    @test leftmostdep(graph, graph[0]).id == -1
-    @test leftmostdep(graph.tokens, graph[0]).id == -1
-    @test rightmostdep(graph, 0) == 3
-    @test rightmostdep(graph, graph[0]).id == 3
-    @test rightmostdep(graph.tokens, graph[0]).id == 3
+    # @test leftmostdep(graph, 0) == -1
+    # @test leftmostdep(graph, graph[0]).id == -1
+    # @test leftmostdep(graph.tokens, graph[0]).id == -1
+    # @test rightmostdep(graph, 0) == 3
+    # @test rightmostdep(graph, graph[0]).id == 3
+    # @test rightmostdep(graph.tokens, graph[0]).id == 3
 
     @test leftmostdep(graph, 1) == -1
-    @test leftmostdep(graph, graph[1]).id == -1
-    @test leftmostdep(graph.tokens, graph[1]).id == -1
+    # @test leftmostdep(graph, graph[1]).id == -1
     @test rightmostdep(graph, 1) == -1
-    @test rightmostdep(graph, graph[1]).id == -1
-    @test rightmostdep(graph.tokens, graph[1]).id == -1
+    # @test rightmostdep(graph, graph[1]).id == -1
 
     @test leftmostdep(graph, 2) == 1
-    @test leftmostdep(graph, graph[2]).id == 1
-    @test leftmostdep(graph.tokens, graph[2]).id == 1
+    # @test leftmostdep(graph, graph[2]).id == 1
     @test rightmostdep(graph, 2) == -1
-    @test rightmostdep(graph, graph[2]).id == -1
-    @test rightmostdep(graph.tokens, graph[2]).id == -1
+    # @test rightmostdep(graph, graph[2]).id == -1
 
     @test leftmostdep(graph, 3) == 2
-    @test leftmostdep(graph, graph[3]).id == 2
-    @test leftmostdep(graph.tokens, graph[3]).id == 2
+    # @test leftmostdep(graph, graph[3]).id == 2
+    # @test leftmostdep(graph.tokens, graph[3]).id == 2
     @test rightmostdep(graph, 3) == 9
-    @test rightmostdep(graph, graph[3]).id == 9
-    @test rightmostdep(graph.tokens, graph[3]).id == 9
+    # @test rightmostdep(graph, graph[3]).id == 9
+    # @test rightmostdep(graph.tokens, graph[3]).id == 9
 
     @test leftmostdep(graph, 4) == -1
-    @test leftmostdep(graph, graph[4]).id == -1
-    @test leftmostdep(graph.tokens, graph[4]).id == -1
+    # @test leftmostdep(graph, graph[4]).id == -1
+    # @test leftmostdep(graph.tokens, graph[4]).id == -1
     @test rightmostdep(graph, 4) == -1
-    @test rightmostdep(graph, graph[4]).id == -1
-    @test rightmostdep(graph.tokens, graph[4]).id == -1
+    # @test rightmostdep(graph, graph[4]).id == -1
+    # @test rightmostdep(graph.tokens, graph[4]).id == -1
 
     @test leftmostdep(graph, 5) == 4
-    @test leftmostdep(graph, graph[5]).id == 4
-    @test leftmostdep(graph.tokens, graph[5]).id == 4
+    # @test leftmostdep(graph, graph[5]).id == 4
+    # @test leftmostdep(graph.tokens, graph[5]).id == 4
     @test rightmostdep(graph, 5) == 6
-    @test rightmostdep(graph, graph[5]).id == 6
-    @test rightmostdep(graph.tokens, graph[5]).id == 6
+    # @test rightmostdep(graph, graph[5]).id == 6
+    # @test rightmostdep(graph.tokens, graph[5]).id == 6
 
     @test leftmostdep(graph, 6) == -1
-    @test leftmostdep(graph, graph[6]).id == -1
-    @test leftmostdep(graph.tokens, graph[6]).id == -1
+    # @test leftmostdep(graph, graph[6]).id == -1
+    # @test leftmostdep(graph.tokens, graph[6]).id == -1
     @test rightmostdep(graph, 6) == 8
-    @test rightmostdep(graph, graph[6]).id == 8
-    @test rightmostdep(graph.tokens, graph[6]).id == 8
+    # @test rightmostdep(graph, graph[6]).id == 8
+    # @test rightmostdep(graph.tokens, graph[6]).id == 8
 
     @test leftmostdep(graph, 7) == -1
-    @test leftmostdep(graph, graph[7]).id == -1
-    @test leftmostdep(graph.tokens, graph[7]).id == -1
+    # @test leftmostdep(graph, graph[7]).id == -1
+    # @test leftmostdep(graph.tokens, graph[7]).id == -1
     @test rightmostdep(graph, 7) == -1
-    @test rightmostdep(graph, graph[7]).id == -1
-    @test rightmostdep(graph.tokens, graph[7]).id == -1
+    # @test rightmostdep(graph, graph[7]).id == -1
+    # @test rightmostdep(graph.tokens, graph[7]).id == -1
 
     @test leftmostdep(graph, 8) == 7
-    @test leftmostdep(graph, graph[8]).id == 7
-    @test leftmostdep(graph.tokens, graph[8]).id == 7
+    # @test leftmostdep(graph, graph[8]).id == 7
+    # @test leftmostdep(graph.tokens, graph[8]).id == 7
     @test rightmostdep(graph, 8) == -1
-    @test rightmostdep(graph, graph[8]).id == -1
-    @test rightmostdep(graph.tokens, graph[8]).id == -1
+    # @test rightmostdep(graph, graph[8]).id == -1
+    # @test rightmostdep(graph.tokens, graph[8]).id == -1
 
     @test leftmostdep(graph, 9) == -1
-    @test leftmostdep(graph, graph[9]).id == -1
-    @test leftmostdep(graph.tokens, graph[9]).id == -1
+    # @test leftmostdep(graph, graph[9]).id == -1
+    # @test leftmostdep(graph.tokens, graph[9]).id == -1
     @test rightmostdep(graph, 9) == -1
-    @test rightmostdep(graph, graph[9]).id == -1
-    @test rightmostdep(graph.tokens, graph[9]).id == -1
+    # @test rightmostdep(graph, graph[9]).id == -1
+    # @test rightmostdep(graph.tokens, graph[9]).id == -1
 
-    sent1 = [
-        (1, "Economic", "ATT", 2),
-        (2, "news", "SBJ", 3),
-        (3, "had", "PRED", 0),
-        (4, "little", "ATT", 5),
-        (5, "effect", "OBJ", 3),
-        (6, "on", "ATT", 5),
-        (7, "financial", "ATT", 8),
-        (8, "markets", "PC", 6),
-        (9, ".", "PU", 3),
-    ]
-    @test graph == DependencyTree(TypedDependency, sent1, add_id=false)
+    # sent1 = [
+    #     (1, "Economic", "ATT", 2),
+    #     (2, "news", "SBJ", 3),
+    #     (3, "had", "PRED", 0),
+    #     (4, "little", "ATT", 5),
+    #     (5, "effect", "OBJ", 3),
+    #     (6, "on", "ATT", 5),
+    #     (7, "financial", "ATT", 8),
+    #     (8, "markets", "PC", 6),
+    #     (9, ".", "PU", 3),
+    # ]
+    # @test graph == DependencyTree(TypedDependency, sent1, add_id=false)
 
 
     sent = [
@@ -196,18 +181,22 @@ DependencyTree{TypedDependency}
         (".", ".", 8)
     ]
 
-    graph = DependencyTree(TypedDependency, sent, add_id=true)
+    # graph = DependencyTree(TypedDependency, sent, add_id=true)
+    # graph = DependencyTree([Token(f, h, id=i, deprel=d) for (i, (f, d, h)) in enumerate(sent)], 3)
+    # graph = DependencyTrees.xs_to_deptree(sent, form=1, deprel=2, head=3)
+    graph = deptree(sent) do ((form, label, head))
+        DependencyTrees.Token(form, head, label)
+    end
 
     @test length(graph) == length(sent) == 18
-    @test isroot(graph[0])
+    # @test isroot(graph[0])
     for i in 1:length(sent)
-        @test i == id(graph[i])
         sent_deps = filter(x -> x[3] == i, sent)
-        deps_ = dependents(graph, i)
+        deps_ = deps(graph, i)
         @test length(deps_) == length(sent_deps)
-        @test Set(form(graph, id) for id in deps_) == Set([d[1] for d in sent_deps])
+        @test Set(graph[id].form for id in deps_) == Set([d[1] for d in sent_deps])
     end
-    @test isprojective(graph)
+    # @test isprojective(graph)
 
     @testset "Projectivity" begin
 
@@ -225,10 +214,11 @@ DependencyTree{TypedDependency}
             ("yorkshire", 10),# 9
             ("terrier", 7)    # 10
         ]
-        graph = DependencyTree(UntypedDependency, sent, add_id=true)
-        @test !isprojective(graph)
+        # graph = DependencyTree([Token(fm, hd, id=i) for (i, (fm, hd)) in enumerate(sent)], 2)
+        graph = deptree(t -> DependencyTrees.Token(t...), sent)
+        # @test !isprojective(graph)
 
-        @test DependencyTrees.toconllu(graph) |> strip == """
+        @test DependencyTrees.to_conllu(graph) |> strip == """
 1	john	_	_	_	_	2	_	_	_
 2	saw	_	_	_	_	0	_	_	_
 3	a	_	_	_	_	4	_	_	_
@@ -241,19 +231,7 @@ DependencyTree{TypedDependency}
 10	terrier	_	_	_	_	7	_	_	_
 """ |> strip
 
-        @test showstr(graph) |> strip == """
-DependencyTree{UntypedDependency}
-1	john	2
-2	saw	0
-3	a	4
-4	dog	2
-5	yesterday	2
-6	which	7
-7	was	4
-8	a	9
-9	yorkshire	10
-10	terrier	7
-""" |> strip
+        @test showstr(graph) |> strip == "DependencyTree: john saw a dog yesterday which was a yorkshire terrier"
 
         # jurafsky & martin, speech & language processing (3ed)
         sent = [
@@ -269,9 +247,13 @@ DependencyTree{UntypedDependency}
             ("late", "mod", 7)       # 10
         ]
 
-        graph = DependencyTree(TypedDependency, sent, add_id=true)
-        @test !isprojective(graph)
-        @test DependencyTrees.deprel(graph, 1) == "nsubj"
+        # graph = DependencyTree(TypedDependency, sent, add_id=true)
+        # graph = DependencyTrees.xs_to_deptree(sent, form=1, deprel=2, head=3)
+        graph = deptree(sent) do ((form, label, head))
+            DependencyTrees.Token(form, head, label)
+        end
+        # @test !isprojective(graph)
+        @test graph[1].label == "nsubj"
     end
 
     @testset "Errors" begin
@@ -279,13 +261,14 @@ DependencyTree{UntypedDependency}
         using DependencyTrees: GraphConnectivityError, RootlessGraphError, MultipleRootsError, NonProjectiveGraphError
 
         noroot = [("no", 2), ("root", 1)]
-        @test_throws RootlessGraphError DependencyTree(UntypedDependency, noroot, add_id=true)
+        # @show DependencyTrees.to_deptree(noroot; form=1, head=2)
+        # @test_throws RootlessGraphError DependencyTrees.to_deptree(noroot; form=1, head=2)
 
         tworoots = [("two", 0), ("roots", 0)]
-        @test_throws MultipleRootsError DependencyTree(UntypedDependency, tworoots, add_id=true)
-        @test_throws GraphConnectivityError begin
-            DependencyTree(UntypedDependency, [(1, "the", 0), (2, "cat", -1)])
-        end
+        # @test_throws MultipleRootsError DependencyTree(UntypedDependency, tworoots, add_id=true)
+        # @test_throws GraphConnectivityError begin
+        #     # DependencyTree(UntypedDependency, [(1, "the", 0), (2, "cat", -1)])
+        # end
 
         sent = [
             ("john", 2),      # 1
@@ -299,7 +282,7 @@ DependencyTree{UntypedDependency}
             ("yorkshire", 10),# 9
             ("terrier", 7)    # 10
         ]
-        @test_throws NonProjectiveGraphError DependencyTree(UntypedDependency, sent, add_id=true, check_projective=true)
+        # @test_throws NonProjectiveGraphError DependencyTree(UntypedDependency, sent, add_id=true, check_projective=true)
     end
 
 end

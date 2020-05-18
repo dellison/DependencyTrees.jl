@@ -10,7 +10,8 @@ untyped(token) = ()
 
 Create an arc with a labeled dependency relation.
 """
-typed(token) = (deprel(token),)
+# typed(token) = (deprel(token),)
+typed(token) = (token.label,)
 
 abstract type TransitionOperator end
 args(r::TransitionOperator) = ()

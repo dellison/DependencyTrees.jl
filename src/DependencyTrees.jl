@@ -1,9 +1,10 @@
 module DependencyTrees
 
 export
-    DependencyTree, isprojective,
+    DependencyTree, is_projective,
     Treebank,
-    TypedDependency, UntypedDependency, CoNLLU,
+    # TypedDependency, UntypedDependency, CoNLLU,
+    deptree,
 
     typed, untyped,
     
@@ -23,7 +24,7 @@ export
 
 
 using Random
-using LightGraphs
+# using LightGraphs
 
 import Base.==
 import Base.getindex
@@ -31,11 +32,11 @@ import Base.reduce
 import Base: iterate, IteratorSize, length
 
 include("errors.jl")
-include("dependencies.jl")
-include("conllu.jl")
+include("tokens.jl")
 include("trees.jl")
+include("conllu.jl")
 
-include("treebanks/treebanks.jl")
+include("treebanks.jl")
 
 include("transition_parsing/systems.jl")
 include("transition_parsing/oracles.jl")

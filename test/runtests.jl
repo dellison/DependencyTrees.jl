@@ -2,14 +2,14 @@ using DependencyTrees, Test
 
 const DT = DependencyTrees
 
-using DependencyTrees: TreebankReader
-using DependencyTrees: projective_only, deptype
-using DependencyTrees: deprel, form, id, hashead, head, root, isroot
+# using DependencyTrees: projective_only, deptype
+# using DependencyTrees: deprel, form, id, hashead, head, root, isroot
 using DependencyTrees: MultiWordTokenError, EmptyTokenError
 using DependencyTrees: stack, buffer, stacklength, bufferlength
 using DependencyTrees: leftmostdep, rightmostdep
 using DependencyTrees: leftdeps, rightdeps
-using DependencyTrees: root, noval, token, tokens, xys
+# using DependencyTrees: root, noval, token, tokens, xys
+using DependencyTrees: xys
 
 using DependencyTrees: typed, untyped
 using DependencyTrees: initconfig, transition_space
@@ -24,7 +24,7 @@ function showstr(op)
 end
 
 function test_treebank(filename)
-    Treebank{CoNLLU}(joinpath(@__DIR__, "data", filename))
+    Treebank(joinpath(@__DIR__, "data", filename), DependencyTrees.from_conllu)
 end
 
 function test_sentence(filename)

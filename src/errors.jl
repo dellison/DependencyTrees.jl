@@ -17,6 +17,10 @@ struct MultipleRootsError <: DependencyTreeError
     g
 end
 
-struct MultiWordTokenError <: DependencyTreeError end
+struct MultiWordTokenError <: DependencyTreeError
+    token
+end
 
-struct EmptyTokenError <: DependencyTreeError end
+struct EmptyTokenError <: DependencyTreeError
+    token
+end
