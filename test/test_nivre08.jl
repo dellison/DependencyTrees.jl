@@ -105,8 +105,10 @@
         # @test result == tree_fig1
         @test labeled_accuracy(result, tree_fig1) == 1
 
-        oracle = StaticOracle(ListBasedNonProjective(), arc=typed)
-        pairs = DependencyTrees.xys(oracle, tree_fig1)
+        # oracle = StaticOracle(ListBasedNonProjective(), arc=typed)
+        oracle = Oracle(ListBasedNonProjective(), static_oracle, typed)
+        # pairs = DependencyTrees.xys(oracle, tree_fig1)
+        pairs = oracle(tree_fig1)
         @test last.(pairs) == first.(table)
 
         # cfg1 = initconfig(ListBasedNonProjective(), CoNLLU, [w.form for w in tree_fig1])

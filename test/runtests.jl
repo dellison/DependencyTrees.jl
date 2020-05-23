@@ -1,21 +1,14 @@
-using DependencyTrees, Test
+using DependencyTrees
+using Test
+
+using DependencyTrees.TransitionParsing
 
 const DT = DependencyTrees
 
-# using DependencyTrees: projective_only, deptype
-# using DependencyTrees: deprel, form, id, hashead, head, root, isroot
 using DependencyTrees: MultiWordTokenError, EmptyTokenError
-using DependencyTrees: stack, buffer, stacklength, bufferlength
-using DependencyTrees: leftmostdep, rightmostdep
-using DependencyTrees: leftdeps, rightdeps
-# using DependencyTrees: root, noval, token, tokens, xys
-using DependencyTrees: xys
+using DependencyTrees: leftdeps, rightdeps, leftmostdep, rightmostdep
+using DependencyTrees.TransitionParsing: stack, buffer, token, tokens
 
-using DependencyTrees: typed, untyped
-using DependencyTrees: initconfig, transition_space
-using DependencyTrees: leftarc, rightarc, noarc, shift, isfinal
-using DependencyTrees: LeftArc, RightArc, NoArc, Reduce, Shift
-using DependencyTrees: gold_transitions
 
 function showstr(op)
     buf = IOBuffer()

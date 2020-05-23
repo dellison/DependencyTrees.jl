@@ -2,7 +2,8 @@
 
     error_cb(args...) = nothing
     
-    oracle = DynamicOracle(ArcEager(), arc=typed)
+    oracle = Oracle(ArcEager(), dynamic_oracle, typed)
+    # o = Oracle(ArcEager(), dynamic_oracle, typed)
 
     model(cfg) = nothing
     
@@ -14,23 +15,23 @@
     end
 
     cfg = initconfig(oracle, graph)
-    nocost(t, cfg) = DependencyTrees.cost(t, cfg, graph) == 0
+    nocost(t, cfg) = DependencyTrees.TransitionParsing.cost(t, cfg, graph) == 0
     while !isfinal(cfg)
         pred = model(cfg)
-        G = gold_transitions(oracle, cfg, graph)
+        G = oracle(cfg, graph)
         @test pred in G
         @test all(t -> nocost(t, cfg), G)
         cfg = pred(cfg)
     end
 
     # make sure this works the same for untyped oracles too
-    oracle_ut = DynamicOracle(ArcEager(), arc=untyped)
-    DependencyTrees.xys(oracle_ut, graph)
+    oracle = Oracle(ArcEager(), dynamic_oracle, untyped)
     model(cfg) = static_oracle(cfg, graph, untyped)
-    cfg = initconfig(oracle_ut.system, graph)
+    cfg = initconfig(oracle.system, graph)
     while !isfinal(cfg)
         pred = model(cfg)
-        G = gold_transitions(oracle_ut, cfg, graph)
+        # G = gold_transitions(oracle_ut, cfg, graph)
+        G = oracle(cfg, graph)
         @test pred in G
         @test any(t -> !nocost(t, cfg), [Shift(), Reduce(), LeftArc(), RightArc()])
         @test all(t -> nocost(t, cfg), G)
@@ -46,16 +47,17 @@
     end
     treebank = Treebank(tbfile, readtok)
 
-    for (cfg, gold) in xys(oracle, graph)
+    for (cfg, gold) in oracle(graph)
         @test length(gold) >= 1
     end
 
     @testset "Projectivity" begin
-        oracle = DynamicOracle(ArcHybrid())
+        o = Oracle(ArcHybrid(), dynamic_oracle)
         # tb = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "nonprojective1.conll"))
         tb = Treebank(joinpath(@__DIR__, "data", "nonprojective1.conll"))
         @test length(collect(tb)) == 1
-        @test length(collect(DependencyTrees.xys(oracle, tb))) == 0
+        @test length(collect(Iterators.flatten(oracle.(tb)))) == 0
+        @test sum(length(o(t)) for t in tb) == 0
 
         for tree in tb
             if !is_projective(tree)
@@ -67,24 +69,25 @@
     end
 
     @testset "Dynamic Iteration" begin
-        oracle = DynamicOracle(ArcHybrid(), arc=untyped)
+        oracle = Oracle(ArcHybrid(), dynamic_oracle, untyped)
         policy = NeverExplore()
 
         tb = Treebank(joinpath(@__DIR__, "data", "hybridtests.conll"))
 
         for tree in treebank
-            for (cfg, G) in xys(oracle, tree)
-                @test cfg isa DT.ArcHybridConfig
+            for (cfg, G) in oracle(tree)
+                @test cfg isa DependencyTrees.TransitionParsing.ArcHybridConfig
                 for t in G
                     T = typeof(t)
                     @test T <: LeftArc || T <: RightArc || T <: Shift
                 end
             end
 
-            for state in oracle(tree)
-                @test state.G ⊆ state.A
-                t = policy(state)
-                @test t in state.A
+            for (cfg, G) in oracle(tree)
+                A = possible_transitions(cfg, tree)
+                @test G ⊆ A
+                t = policy(A, G)
+                @test t in A
             end
         end
     end
@@ -137,8 +140,7 @@ end
 @testset "Feature Extraction" begin
 
     function check(oracle, gold_tree)
-        for state in oracle(gold_tree)
-            cfg = state.cfg
+        for (cfg, G) in oracle(gold_tree)
             stk, buf = stack(cfg), buffer(cfg)
             ts = [buffertoken(cfg, b) for b in buf]
             # @test id.(buffertoken(cfg, i) for i in 1:length(buf)) == buf
@@ -150,8 +152,8 @@ end
 
     treebank = Treebank(joinpath(@__DIR__, "data", "hybridtests.conll"))
     for system in (ArcEager(), ArcHybrid())
-        for O in (StaticOracle, DynamicOracle)
-            oracle = O(system, arc=untyped)
+        for oracle_fn in (static_oracle, dynamic_oracle)
+            oracle = Oracle(system, oracle_fn, untyped)
             @test all(check(oracle, tree) for tree in treebank)
         end
     end

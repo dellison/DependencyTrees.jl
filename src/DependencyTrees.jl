@@ -1,30 +1,18 @@
 module DependencyTrees
 
 export
-    DependencyTree, is_projective,
-    Treebank,
-    # TypedDependency, UntypedDependency, CoNLLU,
+    DependencyTree,
     deptree,
+    is_projective,
+    Treebank,
+    from_conllu,
 
     typed, untyped,
-    
-    ArcEager, ArcEagerReduce, ArcEagerShift,
-    ArcStandard, ArcHybrid, ArcSwift, ListBasedNonProjective,
-
-    StaticOracle, static_oracle, static_oracle_prefer_shift,
-
-    DynamicOracle, dynamic_oracle,
-
-    AlwaysExplore, NeverExplore, ExplorationPolicy,
-
-    initconfig, isfinal, possible_transitions,
-    stacktoken, buffertoken,
 
     labeled_accuracy, unlabeled_accuracy
 
 
 using Random
-# using LightGraphs
 
 import Base.==
 import Base.getindex
@@ -38,8 +26,8 @@ include("conllu.jl")
 
 include("treebanks.jl")
 
-include("transition_parsing/systems.jl")
-include("transition_parsing/oracles.jl")
+include("transition_parsing/TransitionParsing.jl")
+using .TransitionParsing
 
 include("evaluation/accuracy.jl")
 

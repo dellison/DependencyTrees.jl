@@ -1,6 +1,4 @@
-using DependencyTrees: deptree
 using DependencyTrees: deps, leftdeps, rightdeps, leftmostdep, rightmostdep
-using DependencyTrees: token, tokens
 
 @testset "Graphs" begin
 

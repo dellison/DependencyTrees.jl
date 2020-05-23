@@ -71,16 +71,18 @@
 
     @testset "Oracles & Projectivity" begin
         tb = Treebank(joinpath(datadir, "nonprojective1.conll"))
-        np_oracle = StaticOracle(ListBasedNonProjective())
-        p_oracle  = StaticOracle(ArcEager())
-        np_data = collect(xys(np_oracle, tb))
-        p_data = collect(xys(p_oracle, tb))
+        # np_oracle = StaticOracle(ListBasedNonProjective())
+        # p_oracle  = StaticOracle(ArcEager())
+        np_oracle = Oracle(ListBasedNonProjective(), static_oracle, untyped)
+        p_oracle = Oracle(ArcEager(), static_oracle, untyped)
+        np_data = collect(Iterators.flatten(np_oracle.(tb)))
+        p_data = collect(Iterators.flatten(p_oracle.(tb)))
         @test length(np_data) > 1
         @test length(p_data) == 0
-        @test length(xys(p_oracle, first(tb))) == 0
+        @test length(p_oracle(first(tb))) == 0
 
         count = 0
-        for (cfg, t) in xys(p_oracle, first(tb))
+        for (cfg, t) in p_oracle(first(tb))
             count += 1
         end
         @test count == 0

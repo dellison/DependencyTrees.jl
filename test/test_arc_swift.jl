@@ -13,26 +13,27 @@
     ketchup_tree = test_sentence("ketchup.conll")
 
     @testset "Arc Eager Reduce" begin
-        oracle = StaticOracle(ArcEager(), arc=typed)
-        @test last.(xys(oracle, chopsticks_tree)) ==
+        oracle = Oracle(ArcEager(), static_oracle, typed)
+        @test last.(oracle(chopsticks_tree)) ==
             [Shift(), LeftArc("nsubj"), RightArc("root"), RightArc("dobj"), Reduce(),
              Shift(), LeftArc("case"), RightArc("inst"), Reduce(), RightArc(".")]
 
-        @test last.(xys(oracle, ketchup_tree)) ==
+        @test last.(oracle(ketchup_tree)) ==
             [Shift(), LeftArc("nsubj"), RightArc("root"), RightArc("dobj"),
              RightArc("nmod"), RightArc("case"), Reduce(), Reduce(), Reduce(),
              RightArc(".")]
     end
 
     @testset "Arc Eager Shift" begin
-        oracle = StaticOracle(ArcEager(), static_oracle_prefer_shift, arc=typed)
+        oracle = Oracle(ArcEager(), static_oracle_prefer_shift, typed)
 
-        @test last.(xys(oracle, chopsticks_tree)) ==
+        @test last.(oracle(chopsticks_tree)) ==
             [Shift(), LeftArc("nsubj"), RightArc("root"), RightArc("dobj"),
              Shift(), LeftArc("case"), Reduce(), RightArc("inst"), Reduce(),
              RightArc(".")]
 
-        @test last.(xys(oracle, ketchup_tree)) ==
+        # @test last.(oracle(ketchup_tree)) ==
+        @test last.(oracle(ketchup_tree)) ==
             [Shift(), LeftArc("nsubj"), RightArc("root"),
              RightArc("dobj"), RightArc("nmod"), RightArc("case"), 
              Reduce(), Reduce(), Reduce(), RightArc(".")]
@@ -40,13 +41,13 @@
 
     @testset "Arc Swift" begin
 
-        oracle = StaticOracle(ArcSwift(), arc=typed)
+        oracle = Oracle(ArcSwift(), static_oracle, typed)
 
-        @test last.(xys(oracle, chopsticks_tree)) ==
+        @test last.(oracle(chopsticks_tree)) ==
             [Shift(), LeftArc(1, "nsubj"), RightArc(1, "root"), RightArc(1, "dobj"),
              Shift(), LeftArc(1, "case"), RightArc(2, "inst"), RightArc(2, ".")]
 
-        @test last.(xys(oracle, ketchup_tree)) ==
+        @test last.(oracle(ketchup_tree)) ==
             [Shift(), LeftArc(1, "nsubj"), RightArc(1, "root"), RightArc(1, "dobj"),
              RightArc(1, "nmod"), RightArc(1, "case"), RightArc(4, ".")]
 

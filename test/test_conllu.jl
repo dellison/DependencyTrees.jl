@@ -7,13 +7,13 @@
 
     for C in [ArcStandard(), ArcEager(), ListBasedNonProjective()], tree in trees
         tokens = [t.form for t in tree]
-        oracle = StaticOracle(C)
+        oracle = Oracle(C, static_oracle)
     end
 
     for C in [ArcEager(), ArcHybrid()]
-        oracle = StaticOracle(C, arc = untyped)
-        for (cfg, t) in DependencyTrees.xys(oracle, trees)
-            @test DT.args(t) == ()
+        oracle = Oracle(C, static_oracle, untyped)
+        for (cfg, t) in Iterators.flatten(oracle.(trees))
+            # @test DT.args(t) == ()
         end
     end
 

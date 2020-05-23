@@ -74,6 +74,8 @@ For details, see [Goldberg & Nivre, 2013](https://aclweb.org/anthology/Q13-1033.
 """
 dynamic_oracle(t, cfg::ArcHybridConfig, tree) = cost(t, cfg, tree) == 0
 
+dynamic_oracle(cfg::ArcHybridConfig, tree, arc) =
+    filter(t -> cost(t, cfg, tree) == 0, possible_transitions(cfg, tree, arc))
 
 function is_possible(::LeftArc, cfg::ArcHybridConfig)
     s = last(stack(cfg))
@@ -119,8 +121,12 @@ function possible_transitions(cfg::ArcHybridConfig, arc=untyped)
     return filter(t -> is_possible(t, cfg), transitions)
 end
 
-possible_transitions(cfg::ArcHybridConfig, tree::DependencyTree, arc=untyped) =
-    possible_transitions(cfg, arc)
+function possible_transitions(cfg::ArcHybridConfig, tree::DependencyTree, arc=untyped)
+    s = last(stack(cfg))
+    l = arc(token(tree, s))
+    transitions = [LeftArc(l...), RightArc(l...), Shift()]
+    return filter(t -> is_possible(t, cfg), transitions)
+end
 
 # function possible_transitions(cfg::ArcHybridConfig, tree::DependencyTree, arc=untyped)
 #     ops = TransitionOperator[]

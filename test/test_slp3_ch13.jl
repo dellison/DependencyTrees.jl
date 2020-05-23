@@ -1,3 +1,5 @@
+using DependencyTrees.TransitionParsing: LeftArc, RightArc, NoArc, Shift, Reduce
+
 # tests from chapter 13 of the draft of "Speech and Language
 # Processing" 3rd edition by Jurafsky & Martin
 
@@ -36,6 +38,7 @@
         id2w = i -> iszero(i) ? "ROOT" : sent_f13_7
 
         for arc in (untyped, typed)
+            oracle = Oracle(ArcStandard(), static_oracle, arc)
             o = cfg -> static_oracle(cfg, gold_tree, arc)
             cfg = initconfig(ArcStandard(), gold_tree)
             # @show cfg
@@ -48,7 +51,7 @@
                     t isa LeftArc && (t = LeftArc())
                     t isa RightArc && (t = RightArc())
                 end
-                @test o(cfg) == t
+                @test o(cfg) == oracle(cfg, gold_tree) == t
                 cfg = t(cfg)
             end
         end
@@ -75,7 +78,10 @@
 
         gold_tree = test_sentence("flightthroughhouston.conll")
 
+
         for arc in (untyped, typed)
+            oracle = Oracle(ArcStandard(), static_oracle, arc)
+
             o = cfg -> static_oracle(cfg, gold_tree, arc)
             cfg = initconfig(ArcStandard(), gold_tree)
             for (stk, buf, t) in table
@@ -87,15 +93,16 @@
                     t isa RightArc && (t = RightArc())
                     @test endswith(showstr(t), "()")
                 end
-                @test o(cfg) == t
+                @test o(cfg) == oracle(cfg, gold_tree) == t
                 cfg = t(cfg)
             end
+            @test isfinal(cfg)
         end
     end
 
     @testset "Figure 13.10" begin
 
-        @test DependencyTrees.projective_only(ArcEager())
+        @test DependencyTrees.TransitionParsing.projective_only(ArcEager())
 
         table = [
             # stack                                    buffer                                  # transition
@@ -114,6 +121,7 @@
         gold_tree = test_sentence("flightthroughhouston.conll")
 
         for arc in (untyped, typed)
+            oracle = Oracle(ArcEager(), static_oracle, arc)
             o = cfg -> static_oracle(cfg, gold_tree, arc)
             cfg = initconfig(ArcEager(), gold_tree)
             for (stk, buf, t) in table
@@ -125,7 +133,7 @@
                     t isa RightArc && (t = RightArc())
                     @test endswith(showstr(t), "()")
                 end
-                @test o(cfg) == t
+                @test o(cfg) == oracle(cfg, gold_tree) == t
                 if o(cfg) != t
                     @show stk buf t cfg o(cfg)
                 end

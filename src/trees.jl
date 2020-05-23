@@ -98,7 +98,7 @@ function is_projective(tree::DependencyTree)
     return true
 end
     
-Base.getindex(tree::DependencyTree, i::Int) = tree.tokens[i]
+Base.getindex(tree::DependencyTree, i::Int) = iszero(i) ? ROOT : tree.tokens[i]
 
 Base.iterate(tree::DependencyTree, state...) = iterate(tree.tokens, state...)
 

@@ -66,20 +66,15 @@ Default static oracle function for arc-eager dependency parsing.
 See [Goldberg & Nivre 2012](https://www.aclweb.org/anthology/C12-1059.pdf).
 (Also called Arc-Eager-Reduce in [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf)).
 """
-function static_oracle(cfg::ArcEagerConfig, gold_tree, arc)
-    l = i -> arc(token(gold_tree, i))
-    gold_arc = (a, b) -> has_arc(gold_tree, a, b)
+function static_oracle(cfg::ArcEagerConfig, gold::DependencyTree, labelf)
     if stacklength(cfg) >= 1
-        s = last(stack(cfg))
+        (σ, s) = popstack(cfg)
         if bufferlength(cfg) >= 1
-            b = first(buffer(cfg))
-            if gold_arc(b, s)
-                return LeftArc(l(s)...)
-            elseif gold_arc(s, b)
-                return RightArc(l(b)...)
-            end
+            (b, β) = shiftbuffer(cfg)
+            has_arc(gold, b, s) && return LeftArc(labelf(gold[s])...)
+            has_arc(gold, s, b) && return RightArc(labelf(gold[b])...)
         end
-        if all(k -> k > 0 && has_head(cfg, k), [s ; deps(gold_tree, s)])
+        if all(k -> k > 0 && has_head(cfg, k), [s ; deps(gold, s)])
             return Reduce()
         end
     end
@@ -129,6 +124,9 @@ For details, see [Goldberg & Nivre 2012](https://aclweb.org/anthology/C12-1059).
 """
 dynamic_oracle(t, cfg::ArcEagerConfig, tree) = cost(t, cfg, tree) == 0
 
+dynamic_oracle(cfg::ArcEagerConfig, tree, arc) =
+    filter(t -> cost(t, cfg, tree) == 0, possible_transitions(cfg, tree, arc))
+
 # see figure 2 in goldberg & nivre 2012 "a dynamic oracle..."
 possible_transitions(cfg::ArcEagerConfig, graph::DependencyTree, arc=untyped) =
     possible_transitions(cfg, arc)
@@ -156,7 +154,6 @@ function cost(t::RightArc, cfg::ArcEagerConfig, gold)
     #                 plus num of gold arcs (b,l',k) s.t. k ϵ σ
     σ, s = popstack(cfg)
     b, β = shiftbuffer(cfg)
-    # if has_dependency(gold, s, b)
     if has_arc(gold, s, b)
         0
     else
