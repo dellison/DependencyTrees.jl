@@ -82,7 +82,8 @@ Base.length(::UnparsableTree) = 0
 
 abstract type AbstractExplorationPolicy end
 
-(p::AbstractExplorationPolicy)(A, G::TransitionOperator) = (p)(A, [G])
+_sample(rng, x::TransitionOperator) = rand(rng, [x])
+_sample(rng, x) = rand(rng, x)
 
 """
     AlwaysExplore()
@@ -95,7 +96,7 @@ end
 AlwaysExplore() = AlwaysExplore(GLOBAL_RNG)
 
 (::AlwaysExplore)() = true
-(p::AlwaysExplore)(A::AbstractVector, _) = rand(p.rng, A)
+(p::AlwaysExplore)(A::AbstractVector, _) = _sample(p.rng, A)
 
 Base.show(io::IO, ::AlwaysExplore) = print(io, "AlwaysExplore")
 
@@ -110,7 +111,7 @@ end
 NeverExplore() = NeverExplore(GLOBAL_RNG)
 
 (::NeverExplore)() = false
-(p::NeverExplore)(A, G::AbstractVector) = rand(p.rng, G)
+(p::NeverExplore)(A, G) = _sample(p.rng, G)
 
 Base.show(io::IO, ::NeverExplore) = print(io, "NeverExplore")
 
@@ -131,5 +132,6 @@ end
 
 (p::ExplorationPolicy)() =
     rand(p.rng) >= 1 - p.p
+(p::ExplorationPolicy)(A::AbstractVector, G::TransitionOperator) = p(A, [G])
 (p::ExplorationPolicy)(A::AbstractVector, G::AbstractVector) =
     rand(p.rng) >= 1 - p.p ? rand(A) : rand(G)
