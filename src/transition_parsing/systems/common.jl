@@ -7,6 +7,7 @@ import Base.==
 ==(op1::TransitionOperator, op2::TransitionOperator) =
     typeof(op1) == typeof(op2) && args(op1) == args(op2) && kwargs(op1) == kwargs(op2)
 
+is_possible(t, cfg) = false
 
 struct NoArc <: TransitionOperator end
 (::NoArc)(cfg) = noarc(cfg)

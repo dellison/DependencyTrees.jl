@@ -86,7 +86,7 @@
             for (cfg, G) in oracle(tree)
                 A = possible_transitions(cfg, tree)
                 @test G ⊆ A
-                t = policy(A, G)
+                t = policy(cfg, A, G)
                 @test t in A
             end
         end

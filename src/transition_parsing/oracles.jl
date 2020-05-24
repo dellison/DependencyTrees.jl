@@ -1,4 +1,4 @@
-using Random: GLOBAL_RNG
+using Random: GLOBAL_RNG, AbstractRNG
 
 abstract type AbstractOracle{T<:AbstractTransitionSystem} end
 
@@ -36,6 +36,11 @@ end
     OracleSequence(oracle, tree, policy=NeverExplore())
 
 A "gold" sequence of parser configurations and transitions to build `tree`.
+
+The sequence of transitions is performed according to
+
+`policy` is a function that determines whether or not "incorrect" transitions
+are explored. It will be called like so: `policy(
 """
 struct OracleSequence{T,P}
     oracle::Oracle{T}
@@ -54,7 +59,7 @@ end
 
 function choose_transition(ts::OracleSequence, cfg)
     A, G = transitions(cfg, ts.tree, ts.oracle)
-    t = ts.policy(A, G)
+    t = ts.policy(cfg, A, G)
     return t
 end
 
@@ -68,7 +73,7 @@ function Base.iterate(ts::OracleSequence, state=nothing)
         return nothing
     else
         A, G = transitions(state, ts.tree, ts.oracle)
-        t = ts.policy(A, G)
+        t = ts.policy(state, A, G)
         return ((state, G), t(state))
     end
 end
@@ -90,18 +95,24 @@ abstract type AbstractExplorationPolicy end
 _sample(rng, x::TransitionOperator) = rand(rng, [x])
 _sample(rng, x) = rand(rng, x)
 
+passthrough_model(cfg, A, G) = nothing
+
 """
     AlwaysExplore()
 
 Policy for always exploring sub-optimal transitions.
 """
-struct AlwaysExplore <: AbstractExplorationPolicy
-    rng
+struct AlwaysExplore{R<:AbstractRNG,M} <: AbstractExplorationPolicy
+    rng::R
+    model::M
 end
-AlwaysExplore() = AlwaysExplore(GLOBAL_RNG)
+AlwaysExplore() = AlwaysExplore(GLOBAL_RNG, passthrough_model)
 
 (::AlwaysExplore)() = true
-(p::AlwaysExplore)(A::AbstractVector, _) = _sample(p.rng, A)
+function (p::AlwaysExplore)(cfg, A::AbstractVector, G)
+    t = p.model(cfg, A, G)
+    is_possible(t, cfg) ?  t : _sample(p.rng, A)
+end
 
 Base.show(io::IO, ::AlwaysExplore) = print(io, "AlwaysExplore")
 
@@ -110,33 +121,47 @@ Base.show(io::IO, ::AlwaysExplore) = print(io, "AlwaysExplore")
 
 Policy for never exploring sub-optimal transitions.
 """
-struct NeverExplore <: AbstractExplorationPolicy
-    rng
+struct NeverExplore{R<:AbstractRNG,M} <: AbstractExplorationPolicy
+    rng::R
+    model::M
 end
-NeverExplore() = NeverExplore(GLOBAL_RNG)
+NeverExplore() = NeverExplore(GLOBAL_RNG, passthrough_model)
 
 (::NeverExplore)() = false
-(p::NeverExplore)(A, G) = _sample(p.rng, G)
+function (p::NeverExplore)(cfg, A, G)
+    t = p.model(cfg, A, G)
+    is_possible(t, cfg) && t in G ? t : _sample(p.rng, G)
+end
 
 Base.show(io::IO, ::NeverExplore) = print(io, "NeverExplore")
 
 """
     ExplorationPolicy(k, p)
 
-Simple exploration policy from Goldberg & Nivre, 2012. Returns true at rate p.
+Simple exploration policy from Goldberg & Nivre, 2012. Explores at rate `p`.
 """
-struct ExplorationPolicy <: AbstractExplorationPolicy
+struct ExplorationPolicy{R<:AbstractRNG,M} <: AbstractExplorationPolicy
     p::Float64
-    rng
+    rng::R
+    model::M
 
-    function ExplorationPolicy(p, rng=GLOBAL_RNG)
+    function ExplorationPolicy(p, rng=GLOBAL_RNG, model=passthrough_model)
         @assert 0 <= p <= 1
-        new(p, rng)
+        new{typeof(rng),typeof(model)}(p, rng, model)
     end
 end
 
 (p::ExplorationPolicy)() =
     rand(p.rng) >= 1 - p.p
-(p::ExplorationPolicy)(A::AbstractVector, G::TransitionOperator) = p(A, [G])
-(p::ExplorationPolicy)(A::AbstractVector, G::AbstractVector) =
-    rand(p.rng) >= 1 - p.p ? rand(A) : rand(G)
+
+(p::ExplorationPolicy)(cfg, A::AbstractVector, G::TransitionOperator) = p(cfg, A, [G])
+
+function (p::ExplorationPolicy)(cfg, A::AbstractVector, G::AbstractVector)
+    t = p.model(cfg, A, G)
+    explore = rand(p.rng) >= 1 - p.p
+    if explore
+        return is_possible(t, cfg) ? t : rand(A)
+    else
+        return rand(G)
+    end
+end
