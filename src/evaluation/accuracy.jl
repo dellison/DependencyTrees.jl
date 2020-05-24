@@ -16,44 +16,37 @@ const labelled_accuracy = labeled_accuracy
 const unlabelled_accuracy = unlabeled_accuracy
 
 function labeled_accuracy(tree::DependencyTree, gold::DependencyTree)
-    results = map(zip(tree, gold)) do (t, g)
-        t.head == g.head && t.label == g.label
+    correct, total = 0, 0
+    for (t, g) in zip(tree, gold)
+        t.head == g.head && t.label == g.label && (correct += 1)
+        total += 1
     end
-    count(results) / length(results)
+    return correct / total
 end
 
 function labeled_accuracy(trees, goldtrees)
-    # results = Bool[]
     correct, total = 0, 0
-    for (tree, gold) in zip(trees, goldtrees)
-        for (t, g) in zip(tree, gold)
-            # append!(results, head(t) == head(g) && deprel(t) == deprel(g))
-            # @show t
-            if t.head == g.head && t.label == g.label
-                correct += 1
-            end
-            total += 1
-        end
+    for (tree, gold) in zip(trees, goldtrees), (t, g) in zip(tree, gold)
+        t.head == g.head && t.label == g.label && (correct += 1)
+        total += 1
     end
     return correct / total
 end
 
 function unlabeled_accuracy(tree::DependencyTree, gold::DependencyTree)
-    results = map(zip(tree, gold)) do (t, g)
-        t.head == g.head
+    correct, total = 0, 0
+    for (t, g) in zip(tree, gold)
+        t.head == g.head && (correct += 1)
+        total += 1
     end
-    count(results) / length(results)
+    return correct / total
 end
 
 function unlabeled_accuracy(trees, goldtrees)
     correct, total = 0, 0
-    for (tree, gold) in zip(trees, goldtrees)
-        for (t, g) in zip(tree, gold)
-            if t.head == g.head
-                correct += 1
-            end
-            total += 1
-        end
+    for (tree, gold) in zip(trees, goldtrees), (t, g) in zip(tree, gold)
+        t.head == g.head && (correct += 1)
+        total += 1
     end
-    correct / total
+    return correct / total
 end
