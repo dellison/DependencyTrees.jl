@@ -2,15 +2,13 @@
 
 Dependency structure in natural language consists of directed relations between words in a sentence.
 
+Simple API for building dependency trees:
+
 ```@docs
-DependencyTree
-DependencyTrees.check_tree
+deptree
+deptoken
 ```
 
-## Types of tokens
-
 ```@docs
-UntypedDependency
-TypedDependency
-CoNLLU
+DependencyTree
 ```

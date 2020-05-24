@@ -2,7 +2,7 @@ module DependencyTrees
 
 export
     DependencyTree,
-    deptree,
+    deptree, deptoken,
     is_projective,
     Treebank,
     from_conllu,

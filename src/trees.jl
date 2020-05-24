@@ -1,10 +1,20 @@
+
 # TODO keep track of outgoing arcs?
+"""
+    todo
+"""
 struct DependencyTree{T<:Token, R<:Union{Int,Set{Int}}}
     tokens::Vector{T}
     root::R
     # inc::Vector{Set{Int}}
 end
 
+"""
+    deptree
+
+todo
+"""
+function deptree end
 
 function deptree(tokens)
     return DependencyTree(tokens, find_root(tokens))

@@ -59,20 +59,20 @@ isfinal(cfg::ArcEagerConfig) = all(a -> a.head >= 0, cfg.c.A)
 has_head(cfg::ArcEagerConfig, k) = has_head(token(cfg, k))
 
 """
-    static_oracle(cfg, tree, transition)
+    static_oracle(cfg::ArcEagerConfig, gold, arc=untyped)
 
 Default static oracle function for arc-eager dependency parsing.
 
 See [Goldberg & Nivre 2012](https://www.aclweb.org/anthology/C12-1059.pdf).
 (Also called Arc-Eager-Reduce in [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf)).
 """
-function static_oracle(cfg::ArcEagerConfig, gold::DependencyTree, labelf)
+function static_oracle(cfg::ArcEagerConfig, gold, arc=untyped)
     if stacklength(cfg) >= 1
         (σ, s) = popstack(cfg)
         if bufferlength(cfg) >= 1
             (b, β) = shiftbuffer(cfg)
-            has_arc(gold, b, s) && return LeftArc(labelf(gold[s])...)
-            has_arc(gold, s, b) && return RightArc(labelf(gold[b])...)
+            has_arc(gold, b, s) && return LeftArc(arc(gold[s])...)
+            has_arc(gold, s, b) && return RightArc(arc(gold[b])...)
         end
         if all(k -> k > 0 && has_head(cfg, k), [s ; deps(gold, s)])
             return Reduce()
@@ -82,16 +82,16 @@ function static_oracle(cfg::ArcEagerConfig, gold::DependencyTree, labelf)
 end
 
 """
-    static_oracle_prefer_shift(cfg, gold_tree, arc=untyped)
+    static_oracle_prefer_shift(cfg::ArcEagerConfig, tree, arc=untyped)
 
 Static oracle for arc-eager dependency parsing. Similar to the
 "regular" static oracle, but always Shift when ambiguity is present.
 
 See [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
-function static_oracle_prefer_shift(cfg::ArcEagerConfig, gold_tree, arc=untyped)
-    l = i -> arc(token(gold_tree, i))
-    gold_arc = (a, b) -> has_arc(gold_tree, a, b)
+function static_oracle_prefer_shift(cfg::ArcEagerConfig, tree, arc=untyped)
+    l = i -> arc(token(tree, i))
+    gold_arc = (a, b) -> has_arc(tree, a, b)
     (σ, s), (b, β) = popstack(cfg), shiftbuffer(cfg)
     if gold_arc(b, s)
         return LeftArc(l(s)...)
@@ -107,7 +107,7 @@ function static_oracle_prefer_shift(cfg::ArcEagerConfig, gold_tree, arc=untyped)
             break
         end
     end
-    has_right_children = any(k -> s in rightdeps(gold_tree, k), buffer(cfg))
+    has_right_children = any(k -> s in rightdeps(tree, k), buffer(cfg))
     if !must_reduce || s > 0 && !has_head(cfg, s) || has_right_children
         return Shift()
     else
@@ -116,15 +116,13 @@ function static_oracle_prefer_shift(cfg::ArcEagerConfig, gold_tree, arc=untyped)
 end
 
 """
-    dynamic_oracle(t, cfg::ArgEagerConfig, tree)
+    dynamic_oracle(cfg::ArgEagerConfig, tree, arc=untyped)
 
 Dynamic oracle function for arc-eager parsing.
 
 For details, see [Goldberg & Nivre 2012](https://aclweb.org/anthology/C12-1059).
 """
-dynamic_oracle(t, cfg::ArcEagerConfig, tree) = cost(t, cfg, tree) == 0
-
-dynamic_oracle(cfg::ArcEagerConfig, tree, arc) =
+dynamic_oracle(cfg::ArcEagerConfig, tree, arc=untyped) =
     filter(t -> cost(t, cfg, tree) == 0, possible_transitions(cfg, tree, arc))
 
 # see figure 2 in goldberg & nivre 2012 "a dynamic oracle..."

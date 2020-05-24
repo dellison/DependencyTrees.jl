@@ -24,6 +24,13 @@ const TokenNH{F,L}  = Token{F,Set{Int},L}
 const ROOT = Token("ROOT", 0, id=0)
 # const 
 
+"""
+    deptoken()
+
+todo
+"""
+deptoken(a...; k...) = Token(a...; k...)
+
 function from_indices(x; form::Int=1, head=2, label=3, kw...)
     ks, is = isempty(kw) ? ((), ()) : zip(pairs(kw)...)
     new_kw = NamedTuple{ks}(Tuple(x[i] for i in is))

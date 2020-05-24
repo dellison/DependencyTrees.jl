@@ -10,6 +10,9 @@ struct Treebank{F}
     read_token::F
 end
 
+"""
+todo
+"""
 Treebank(file::String, read_token) = Treebank([file], read_token)
 
 Treebank(file::String) = Treebank([file])
@@ -59,7 +62,6 @@ function read_tree(trees::TreeReader)
         return nothing
     end
     str = readuntil(io, "\n\n")
-    # lines = [line for line in split(strip(str), "\n") if !startswith(line, "#")]
     return deptree(str, trees.read_token)
 end
 

@@ -256,7 +256,7 @@ using DependencyTrees: deps, leftdeps, rightdeps, leftmostdep, rightmostdep
 
     @testset "Errors" begin
 
-        using DependencyTrees: GraphConnectivityError, RootlessGraphError, MultipleRootsError, NonProjectiveGraphError
+        using DependencyTrees: RootlessGraphError, MultipleRootsError, NonProjectiveGraphError
 
         noroot = [("no", 2), ("root", 1)]
         # @show DependencyTrees.to_deptree(noroot; form=1, head=2)

@@ -4,17 +4,20 @@ abstract type AbstractOracle{T<:AbstractTransitionSystem} end
 
 initconfig(oracle::AbstractOracle, args...) = initconfig(system(oracle), args...)
 
-"""
-todo!
-"""
 struct Oracle{T,O,L}
     system::T
     oracle_function::O
     labelf::L
 end
 
-Oracle(system, oracle_fn; label=untyped) =
-    Oracle(system, oracle_fn, label)
+"""
+    Oracle(system, oracle_function; label=untyped)
+
+Mapping from parser configurations to gold transitions.
+"""
+function Oracle(system, oracle_function; label=untyped)
+    Oracle(system, oracle_function, label)
+end
 
 (oracle::Oracle)(tree::DependencyTree) = OracleSequence(oracle, tree)
 
@@ -30,7 +33,9 @@ function transitions(cfg, gold::DependencyTree, oracle::Oracle)
 end
 
 """
-todo!
+    OracleSequence(oracle, tree, policy=NeverExplore())
+
+A "gold" sequence of parser configurations and transitions to build `tree`.
 """
 struct OracleSequence{T,P}
     oracle::Oracle{T}
@@ -71,7 +76,7 @@ end
 """
    UnparsableTree
 
-Represents trees that an oracle can't parse.
+A dependency tree that an oracle cannot parse.
 """
 struct UnparsableTree
     err

@@ -1,26 +1,46 @@
 abstract type DependencyTreeError <: Exception end
 
-struct GraphConnectivityError <: DependencyTreeError
-    g
-    msg::String
-end
+"""
+    NonProjectiveGraphError
 
+todo
+"""
 struct NonProjectiveGraphError <: DependencyTreeError
-    g
+    tree
 end
 
+"""
+    RootlessGraphError
+
+todo
+"""
 struct RootlessGraphError <: DependencyTreeError
-    g
+    tree
 end
 
+"""
+    MultipleRootsError
+
+todo
+"""
 struct MultipleRootsError <: DependencyTreeError
-    g
+    tree
 end
 
+"""
+    MultiWordTokenError
+
+todo
+"""
 struct MultiWordTokenError <: DependencyTreeError
     token
 end
 
+"""
+    EmptyTokenError
+
+todo
+"""
 struct EmptyTokenError <: DependencyTreeError
     token
 end

@@ -11,11 +11,11 @@ function from_conllu(line::AbstractString)
             # i, j = Int.(split(fields[1], "-"))
             i, j = (parse(Int, x) for x in split(fields[1], "-"))
             form = String(fields[2])
-            throw(MultiWordTokenError(Token(form; i=i, j=j)))
+            throw(MultiWordTokenError(deptoken(form; i=i, j=j)))
         elseif occursin(".", fields[1])
             i, j = (parse(Int, x) for x in split(fields[1], "."))
             form = String(fields[2])
-            throw(EmptyTokenError(Token(form; i=i, j=j)))
+            throw(EmptyTokenError(deptoken(form; i=i, j=j)))
         end
     end
     form, lemma, upos, xpos = String.(fields[2:5])
@@ -36,7 +36,7 @@ function from_conllu(line::AbstractString)
         end
     end
     misc = String(fields[10])
-    return Token(form, head, deprel;
+    return deptoken(form, head, deprel;
                  id=id, lemma=lemma, upos=upos, xpos=xpos,
                  feats=feats, deprel=deprel, deps=deps, misc=misc)
 end

@@ -38,7 +38,7 @@ isfinal(cfg::ArcHybridConfig) = all(a -> a.head != -1, tokens(cfg))
 
 
 """
-    static_oracle(::ArcHybrid, tree)
+    static_oracle(cfg::ArcHybridConfig, tree, arc=untyped)
 
 Static oracle for arc-hybrid dependency parsing. Closes over gold trees,
 mapping parser configurations to optimal transitions.
