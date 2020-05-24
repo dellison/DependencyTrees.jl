@@ -135,6 +135,23 @@ end
         @test always1() == always2() == true
         @test never1()  == never2()  == false
     end
+
+    @testset "Models" begin
+        oracle = Oracle(ArcEager(), dynamic_oracle, untyped)
+        tree = first(test_treebank("chopsticks.conll"))
+        @testset "Always" begin
+            policy = AlwaysExplore((cfg, A, G) -> first(A))
+            xys = collect(oracle(tree, policy))
+        end
+        @testset "Never" begin
+            policy = NeverExplore((cfg, A, G) -> first(A))
+            xys = collect(oracle(tree, policy))
+        end
+        @testset "Rate" begin
+            policy = ExplorationPolicy(0.1, (cfg, A, G) -> first(A))
+            xys = collect(oracle(tree, policy))
+        end
+    end
 end
 
 @testset "Feature Extraction" begin

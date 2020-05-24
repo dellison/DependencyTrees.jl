@@ -19,7 +19,9 @@ function Oracle(system, oracle_function; label=untyped)
     Oracle(system, oracle_function, label)
 end
 
-(oracle::Oracle)(tree::DependencyTree) = OracleSequence(oracle, tree)
+# (oracle::Oracle)(tree::DependencyTree) = OracleSequence(oracle, tree)
+(oracle::Oracle)(tree::DependencyTree, policy=NeverExplore()) =
+    OracleSequence(oracle, tree, policy)
 
 (oracle::Oracle)(cfg, tree::DependencyTree) =
     oracle.oracle_function(cfg, tree, oracle.labelf)
@@ -95,18 +97,24 @@ abstract type AbstractExplorationPolicy end
 _sample(rng, x::TransitionOperator) = rand(rng, [x])
 _sample(rng, x) = rand(rng, x)
 
-passthrough_model(cfg, A, G) = nothing
+no_model(cfg, A, G) = nothing
 
 """
     AlwaysExplore()
 
 Policy for always exploring sub-optimal transitions.
+
+If `model` predicts a legal transition, apply it. Otherwise,
+sample from the possible transitions (without regard to the oracle transitions)
+according to `rng`.
 """
 struct AlwaysExplore{R<:AbstractRNG,M} <: AbstractExplorationPolicy
     rng::R
     model::M
 end
-AlwaysExplore() = AlwaysExplore(GLOBAL_RNG, passthrough_model)
+AlwaysExplore() = AlwaysExplore(GLOBAL_RNG, no_model)
+AlwaysExplore(rng::AbstractRNG) = AlwaysExplore(rng, no_model)
+AlwaysExplore(model) = AlwaysExplore(GLOBAL_RNG, model)
 
 (::AlwaysExplore)() = true
 function (p::AlwaysExplore)(cfg, A::AbstractVector, G)
@@ -120,12 +128,17 @@ Base.show(io::IO, ::AlwaysExplore) = print(io, "AlwaysExplore")
     NeverExplore()
 
 Policy for never exploring sub-optimal transitions.
+
+If `model` predicts a gold transition, apply it. Otherwise,
+sample from the gold transitions according to `rng`.
 """
 struct NeverExplore{R<:AbstractRNG,M} <: AbstractExplorationPolicy
     rng::R
     model::M
 end
-NeverExplore() = NeverExplore(GLOBAL_RNG, passthrough_model)
+NeverExplore() = NeverExplore(GLOBAL_RNG, no_model)
+NeverExplore(rng::AbstractRNG) = NeverExplore(rng, no_model)
+NeverExplore(model) = NeverExplore(GLOBAL_RNG, model)
 
 (::NeverExplore)() = false
 function (p::NeverExplore)(cfg, A, G)
@@ -145,7 +158,11 @@ struct ExplorationPolicy{R<:AbstractRNG,M} <: AbstractExplorationPolicy
     rng::R
     model::M
 
-    function ExplorationPolicy(p, rng=GLOBAL_RNG, model=passthrough_model)
+    function ExplorationPolicy(p, rng::AbstractRNG=GLOBAL_RNG, model=no_model)
+        @assert 0 <= p <= 1
+        new{typeof(rng),typeof(model)}(p, rng, model)
+    end
+    function ExplorationPolicy(p, model, rng::AbstractRNG=GLOBAL_RNG)
         @assert 0 <= p <= 1
         new{typeof(rng),typeof(model)}(p, rng, model)
     end

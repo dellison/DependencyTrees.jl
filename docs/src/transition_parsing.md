@@ -118,6 +118,9 @@ typed
 Training a parser on only optimal sequeces of transitions can result in poor decisions under suboptimal conditions (i.e., after a mistake has been made).
 To compensate for this, `OracleSequence`s can be created with *exploration policies* to control when (if ever) a "wrong" transition that prevents the correct parse from being produced is allowed.
 
+Exploration policies can wrap a `model`, which will be called to predict a transition (called like `model(cfg, A, G)` where `cfg` is the parser configuration, `A` is a vector of possible transitions, and `G` is the `gold` transition(s) according to the oracle function).
+The exploration policy then selects the next transition from `A` and `G` and the prediction, if available.
+
 
 ```@docs
 AlwaysExplore
