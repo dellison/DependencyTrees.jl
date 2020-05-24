@@ -1,7 +1,9 @@
 
 # TODO keep track of outgoing arcs?
 """
-    todo
+    DependencyTree
+
+A rooted tree of dependency relations among the tokens of a sentence.
 """
 struct DependencyTree{T<:Token, R<:Union{Int,Set{Int}}}
     tokens::Vector{T}
@@ -10,9 +12,9 @@ struct DependencyTree{T<:Token, R<:Union{Int,Set{Int}}}
 end
 
 """
-    deptree
+    deptree(read_token, xs)
 
-todo
+Create a `DependencyTree` by calling `read_token` on each of `xs`.
 """
 function deptree end
 

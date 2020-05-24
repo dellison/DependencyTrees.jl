@@ -11,10 +11,17 @@ struct Treebank{F}
 end
 
 """
-todo
+    Treebank(file, read_token)
+
+Read treebank from file `file`, calling `read_token` on each line to read tokens.
 """
 Treebank(file::String, read_token) = Treebank([file], read_token)
 
+"""
+    Treebank(files)
+
+Read a treebank from `files`, inferring the format from the filenames.
+"""
 Treebank(file::String) = Treebank([file])
 function Treebank(files::Vector{String})
     if all(file -> endswith(file, ".conllu") || endswith(file, ".conll"), files)
@@ -23,8 +30,6 @@ function Treebank(files::Vector{String})
         error("don't know how to read $files")
     end
 end
-
-
 
 function Base.iterate(tb::Treebank)
     r = TreeReader(first(tb.files), tb.read_token)

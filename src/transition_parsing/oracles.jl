@@ -152,6 +152,9 @@ Base.show(io::IO, ::NeverExplore) = print(io, "NeverExplore")
     ExplorationPolicy(k, p)
 
 Simple exploration policy from Goldberg & Nivre, 2012. Explores at rate `p`.
+
+With probability `p`, follow `model`'s prediction if legal, or sample from `A` according to `rng` if the prediction can't be followed.
+With probability 1 -`p`, sample from `G` according to `rng`.
 """
 struct ExplorationPolicy{R<:AbstractRNG,M} <: AbstractExplorationPolicy
     p::Float64

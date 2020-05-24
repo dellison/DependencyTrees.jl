@@ -22,12 +22,11 @@ const Token1H{F,L} = Token{F,Int,L}
 const TokenNH{F,L}  = Token{F,Set{Int},L}
 
 const ROOT = Token("ROOT", 0, id=0)
-# const 
 
 """
-    deptoken()
-
-todo
+    deptoken(form, [head], [label]; kw...)
+    
+Create a `DependencyTrees.token`.
 """
 deptoken(a...; k...) = Token(a...; k...)
 
