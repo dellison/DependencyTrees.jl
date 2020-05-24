@@ -28,8 +28,6 @@ struct ArcEager <: AbstractTransitionSystem end
 
 initconfig(::ArcEager, graph::DependencyTree) =
     ArcEagerConfig(graph)
-# initconfig(::ArcEager, ptype, words) =
-#     ArcEagerConfig(words)
 
 transition_space(::ArcEager, labels=[]) =
     isempty(labels) ? [LeftArc(), RightArc(), Reduce(), Shift()] :
@@ -55,7 +53,7 @@ reduce(cfg::ArcEagerConfig) = ArcEagerConfig(reduce(cfg.c))
 shift(cfg::ArcEagerConfig) = ArcEagerConfig(shift(cfg.c))
 
 isfinal(cfg::ArcEagerConfig) = all(a -> a.head >= 0, cfg.c.A)
-# hashead(cfg::ArcEagerConfig, k) = token(cfg, k) != -1
+
 has_head(cfg::ArcEagerConfig, k) = has_head(token(cfg, k))
 
 """

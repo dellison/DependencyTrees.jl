@@ -27,7 +27,6 @@ end
 function ArcSwiftConfig(words)
     σ = [0]
     β = collect(1:length(words))
-    # A = [unk(T, id, w) for (id, w) in enumerate(words)]
     A = Token.(words)
     ArcSwiftConfig(σ, β, A)
 end
@@ -35,18 +34,13 @@ end
 function ArcSwiftConfig(gold::DependencyTree)
     σ = [0]
     β = collect(1:length(gold))
-    # A = [dep(word, head=-1) for word in gold]
     A = [Token(t, head=-1) for t in gold]
     ArcSwiftConfig(σ, β, A)
 end
-# ArcSwiftConfig(gold::DependencyTree) = ArcSwiftConfig{eltype(gold)}(gold)
 
 stack(cfg::ArcSwiftConfig)  = cfg.σ
 buffer(cfg::ArcSwiftConfig) = cfg.β
 
-# token(cfg::ArcSwiftConfig, i) = iszero(i) ? root(deptype(cfg)) :
-#                                 i == -1   ? noval(deptype(cfg)) :
-#                                 cfg.A[i]
 tokens(cfg::ArcSwiftConfig) = cfg.A
 tokens(cfg::ArcSwiftConfig, is) = [token(cfg, i) for i in is if 0 <= i <= length(cfg.A)]
 
@@ -58,7 +52,6 @@ function leftarc(cfg::ArcSwiftConfig, k::Int, args...; kwargs...)
     s, b = cfg.σ[i], cfg.β[1]
     A = copy(cfg.A)
     if s > 0
-        # A[s] = dep(A[s], args...; head=b, kwargs...)
         A[s] = Token(A[s]; head=b, kwargs...)
     end
     ArcSwiftConfig(cfg.σ[1:i-1], cfg.β, A)
@@ -71,7 +64,6 @@ function rightarc(cfg::ArcSwiftConfig, k::Int, args...; kwargs...)
     i = length(cfg.σ) - k + 1
     s, b = cfg.σ[i], cfg.β[1]
     A = copy(cfg.A)
-    # A[b] = dep(A[b], args...; head=s, kwargs...)
     A[b] = Token(A[b]; head=s, kwargs...)
     ArcSwiftConfig([cfg.σ[1:i] ; b], cfg.β[2:end], A)
 end

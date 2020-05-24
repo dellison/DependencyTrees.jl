@@ -23,7 +23,6 @@ end
 
 @stackbufconfig ArcHybridConfig
 
-
 # transition operations: leftarc, rightarc, shift
 
 leftarc(cfg::ArcHybridConfig, args...; kwargs...) =
@@ -127,22 +126,5 @@ function possible_transitions(cfg::ArcHybridConfig, tree::DependencyTree, arc=un
     transitions = [LeftArc(l...), RightArc(l...), Shift()]
     return filter(t -> is_possible(t, cfg), transitions)
 end
-
-# function possible_transitions(cfg::ArcHybridConfig, tree::DependencyTree, arc=untyped)
-#     ops = TransitionOperator[]
-#     S, B = length(stack(cfg)), length(buffer(cfg))
-#     if S >= 1
-#         s = last(stack(cfg))
-#         if !iszero(s) && S > 1
-#             push!(ops, RightArc(arc(tree[s])...))
-#         end
-#         if B >= 1
-#             push!(ops, LeftArc(arc(tree[s])...))
-#         end
-#     end
-#     B >= 1 && push!(ops, Shift())
-#     return ops
-# end
-
 
 ==(cfg1::ArcHybridConfig, cfg2::ArcHybridConfig) = cfg1.c == cfg2.c

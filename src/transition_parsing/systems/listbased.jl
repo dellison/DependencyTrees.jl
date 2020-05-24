@@ -29,7 +29,6 @@ function ListBasedNonProjectiveConfig(words::Vector{String})
     λ1 = [0]
     λ2 = Int[]
     β = 1:length(words)
-    # A = [unk(T, id, w) for (id,w) in enumerate(words)]
     A = Token.(words)
     ListBasedNonProjectiveConfig(λ1, λ2, β, A)
 end
@@ -38,12 +37,9 @@ function ListBasedNonProjectiveConfig(gold::DependencyTree)
     λ1 = [0]
     λ2 = Int[]
     β = 1:length(gold)
-    # A = [dep(token, head=-1) for token in gold]
     A = [Token(t, head=-1) for t in gold]
     ListBasedNonProjectiveConfig(λ1, λ2, β, A)
 end
-# ListBasedNonProjectiveConfig(gold::DependencyTree) =
-#     ListBasedNonProjectiveConfig{eltype(gold)}(gold)
 
 buffer(cfg::ListBasedNonProjectiveConfig) = cfg.β
 
@@ -57,7 +53,6 @@ function leftarc(cfg::ListBasedNonProjectiveConfig, args...; kwargs...)
     λ1, i = cfg.λ1[1:end-1], cfg.λ1[end]
     j, β = cfg.β[1], cfg.β[2:end]
     A = copy(cfg.A)
-    # i != 0 && (A[i] = dep(A[i], args...; head=j, kwargs...))
     i != 0 && (A[i] = Token(A[i]; head=j, kwargs...))
     ListBasedNonProjectiveConfig(λ1, [i ; cfg.λ2], [j ; β], A)
 end
@@ -66,7 +61,6 @@ function rightarc(cfg::ListBasedNonProjectiveConfig, args...; kwargs...)
     λ1, i = cfg.λ1[1:end-1], cfg.λ1[end]
     j, β = cfg.β[1], cfg.β[2:end]
     A = copy(cfg.A)
-    # A[j] = dep(A[j], args...; head=i, kwargs...)
     A[j] = Token(A[j]; head=i, kwargs...)
     ListBasedNonProjectiveConfig(λ1, [i ; cfg.λ2], [j ; β], A)
 end

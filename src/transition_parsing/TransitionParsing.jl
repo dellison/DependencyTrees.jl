@@ -19,7 +19,6 @@ import ..Token, ..DependencyTree, ..deptree, ..ROOT, ..deps, ..token,
     ..has_arc, ..has_head, ..is_projective, ..leftdeps, ..rightdeps,
     ..NonProjectiveGraphError
 
-
 """
     untyped(token)
 
@@ -35,7 +34,6 @@ Create an arc with a labeled dependency relation.
 typed(token) = (token.label,)
 
 abstract type AbstractTransitionSystem end
-
 
 include("systems/common.jl")
 include("systems/arc_standard.jl")

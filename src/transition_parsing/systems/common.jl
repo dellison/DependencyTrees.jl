@@ -69,13 +69,6 @@ end
 
 abstract type AbstractParserConfiguration end
 
-# deptype(::Type{<:AbstractParserConfiguration{D}}) where D = D
-# deptype(c::AbstractParserConfiguration) = deptype(typeof(c))
-
-# for f in (:leftdeps, :rightdeps, :leftmostdep, :rightmostdep)
-#     @eval $f(cfg::AbstractParserConfiguration, args...) = $f(tokens(cfg), args...)
-# end
-
 deptree(cfg::AbstractParserConfiguration) = deptree(tokens(cfg))
 
 """
@@ -102,7 +95,6 @@ end
 Return the token at buffer index `i` (starting at 1).
 """
 buffertoken(cfg, i) =
-    # 1 <= i <= bufferlength(cfg) ? token(cfg, buffer(cfg)[i]) : noval(deptype(cfg))
     1 <= i <= bufferlength(cfg) ? token(cfg, buffer(cfg)[i]) : Token()
     
 
@@ -115,7 +107,6 @@ end
 function StackBufferCfg(words)
     σ = [0]
     β = collect(1:length(words))
-    # A = [(T, id, w) for (id,w) in enumerate(words)]
     A = Token.(words)
     return StackBufferCfg(σ, β, A)
 end
@@ -123,22 +114,15 @@ end
 function StackBufferCfg(gold::DependencyTree)
     σ = [0]
     β = collect(1:length(gold))
-    # A = [dep(word, head=-1) for word in gold]
     A = [Token(t; head=-1) for t in gold]
     StackBufferCfg(σ, β, A)
 end
-
-# StackBufferCfg(gold::DependencyTree) =
-#     StackBufferCfg(gold)
 
 deptype(cfg::StackBufferCfg) = eltype(cfg.A)
 
 stacklength(cfg) = length(cfg.stack)
 bufferlength(cfg) = length(cfg.stack)
 
-# token(cfg::StackBufferCfg, i) = iszero(i) ? root(deptype(cfg)) :
-#                                 i == -1   ? noval(deptype(cfg)) :
-#                                 cfg.A[i]
 token(cfg::StackBufferCfg, i) = iszero(i) ? ROOT :
                                 i == -1   ? Token(nothing) :
                                 cfg.A[i]
@@ -169,14 +153,6 @@ macro stackbufconfig(T, f=:c)
     @eval begin
         $T(words::AbstractVector) = $T(StackBufferCfg(words))
         $T(gold::DependencyTree) = $T(StackBufferCfg(gold))
-
-        # $T{T}(words::AbstractVector) where T =
-        #     $T{T}(StackBufferCfg{T}(words))
-
-        # $T{T}(gold::DependencyTree) where T =
-        #     $T{T}(StackBufferCfg{T}(gold))
-
-        # $T(gold::DependencyTree) = $T{eltype(gold)}(gold)
 
         stack(cfg::$T)  = cfg.$f.stack
         buffer(cfg::$T) = cfg.$f.buffer
@@ -209,7 +185,6 @@ function leftarc_reduce2(cfg, args...; kwargs...)
     @assert length(cfg.stack) >= 2
     σ, s1, s0 = cfg.stack[1:end-2], cfg.stack[end-1], cfg.stack[end]
     A = copy(cfg.A)
-    # A[s1] = dep(A[s1], args...; head=s0, kwargs...)
     A[s1] = Token(A[s1]; head=s0, kwargs...)
     StackBufferCfg([σ ; s0], cfg.buffer, A)
 end
@@ -223,7 +198,6 @@ function leftarc_reduce(cfg, args...; kwargs...)
     # the stack.
     s, b, A = cfg.stack[end], cfg.buffer[1], copy(cfg.A)
     if s > 0
-        # A[s] = dep(A[s], args...; head=b, kwargs...)
         A[s] = Token(A[s]; head=b, kwargs...)
     end
     StackBufferCfg(cfg.stack[1:end-1], cfg.buffer, A)
@@ -238,7 +212,6 @@ function rightarc_reduce(cfg, args...; kwargs...)
     σ, s1, s0 = popstack(cfg, 2)
     A = copy(cfg.A)
     if s0 > 0
-        # A[s0] = dep(A[s0], args...; head=s1, kwargs...)
         A[s0] = Token(A[s0]; head=s1, kwargs...)
     end
     StackBufferCfg([σ ; s1], cfg.buffer, A)
@@ -250,7 +223,6 @@ function rightarc_shift(cfg, args...; kwargs...)
     # the σ and the word at front of the input buffer; shift the
     # word at the front of the input buffer to the stack.
     (σ, s), (b, β), A = popstack(cfg), shiftbuffer(cfg), copy(cfg.A)
-    # A[b] = dep(A[b], args...; head=s, kwargs...)
     A[b] = Token(A[b]; head=s, kwargs...)
     StackBufferCfg([cfg.stack ; b], β, A)
 end
