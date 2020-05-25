@@ -1,16 +1,8 @@
 # DependencyTrees.jl
 
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://dellison.github.io/DependencyTrees.jl/stable) [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://dellison.github.io/DependencyTrees.jl/dev)
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://dellison.github.io/DependencyTrees.jl/stable) [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://dellison.github.io/DependencyTrees.jl/dev) [![Build Status](https://travis-ci.org/dellison/DependencyTrees.jl.svg?branch=master)](https://travis-ci.org/dellison/DependencyTrees.jl) [![CodeCov](https://codecov.io/gh/dellison/DependencyTrees.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/dellison/DependencyTrees.jl)
 
-[![Build Status](https://travis-ci.org/dellison/DependencyTrees.jl.svg?branch=master)](https://travis-ci.org/dellison/DependencyTrees.jl) [![CodeCov](https://codecov.io/gh/dellison/DependencyTrees.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/dellison/DependencyTrees.jl)
-
-DependencyTrees.jl is a Julia package for working with natural language sentence annotated with dependency structure. It provides implementations of dependency parse trees (`DependencyTree`), a treebank reader, and implementations of several transition systems with oracles.
-
-Install it with Julia's built-in package manager:
-
-```julia
-julia> ]add DependencyTrees
-```
+DependencyTrees.jl is a Julia package for working with dependency structures in natural language sentences. It provides implementations of dependency parse trees (`DependencyTree`), a treebank reader, and parsing algorithms.
 
 ## Features
 
@@ -19,25 +11,25 @@ julia> ]add DependencyTrees
 ```julia-repl
 julia> using DependencyTrees
 
-julia> treebank = Treebank("path/to/trees.conll")
+julia> treebank = Treebank("test/data/english.conllu")
+
 julia> for tree in treebank
            # ...
-	   end
+       end
 ```
 
 ### Transition-based parsing
 
+A number of transition systems and oracles are implemented in the `TransitionParsing` submodule.
+
 ```julia-repl
 julia> using DependencyTrees
-
-julia> treebank = Treebank("path/to/trees.conll")
-julia> oracle = DynamicOracle(ArcHybrid())
-julia> for tree in treebank
-           for state in oracle(tree)
-		       cfg, possible_arcs, gold_arcs = state.cfg, state.A, state.G
-			   # ...
-		   end
-	   end
+julia> using DependencyTrees.TransitionParsing
+julia> treebank = Treebank("test/data/english.conll")
+julia> oracle = Oracle(ArcHybrid(), dymanic_oracle)
+julia> for tree in treebank, (config, gold ts) in oracle(tree)
+           # ...
+       end
 ```
 
 Transition systems:
@@ -48,9 +40,17 @@ Transition systems:
 * `ArcSwift`<sup>[5]</sup> (static oracle)
 * `ListBasedNonProjective`<sup>[2]</sup> (static oracle)
 
+See the [documentation](https://dellison.github.io/DependencyTrees.jl/stable/transition_parsing) for details.
+
+## Installation
+
+```
+]add DependencyTrees
+```
+
 ## Contributing & Help
 
-[Open an issue](https://github.com/dellison/DependencyTrees.jl/issues/new)! Bug reports, feature requests, etc. are all welcome. 
+[Open an issue](https://github.com/dellison/DependencyTrees.jl/issues/new)! Bug reports, feature requests, etc. are all welcome.
 
 ## References
 
