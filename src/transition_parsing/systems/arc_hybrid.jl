@@ -39,8 +39,12 @@ isfinal(cfg::ArcHybridConfig) = all(a -> a.head != -1, tokens(cfg))
 """
     static_oracle(cfg::ArcHybridConfig, tree, arc=untyped)
 
-Static oracle for arc-hybrid dependency parsing. Closes over gold trees,
-mapping parser configurations to optimal transitions.
+Static oracle for arc-hybrid dependency parsing.
+
+Return a gold transition (one of LeftArc, RightArc, or Shift)
+for parser configuration `cfg`.
+
+TODO paper reference [Kuhlmann et al, 2011](https://www.aclweb.org/anthology/P11-1068.pdf)?
 """
 function static_oracle(cfg::ArcHybridConfig, tree, arc=untyped)
     l = i -> arc(token(tree, i))
@@ -64,15 +68,22 @@ function static_oracle(cfg::ArcHybridConfig, tree, arc=untyped)
     end
 end
 
+# """
+#     dynamic_oracle(t, cfg::ArgHybridConfig, tree)
+
+# Dynamic oracle function for arc-hybrid parsing.
+
+# For details, see [Goldberg & Nivre, 2013](https://aclweb.org/anthology/Q13-1033.pdf).
+# """
+dynamic_oracle(t, cfg::ArcHybridConfig, tree) = cost(t, cfg, tree) == 0
+
 """
-    dynamic_oracle(t, cfg::ArgHybridConfig, tree)
+    dynamic_oracle(cfg::ArgHybridConfig, tree, arc)
 
 Dynamic oracle function for arc-hybrid parsing.
 
 For details, see [Goldberg & Nivre, 2013](https://aclweb.org/anthology/Q13-1033.pdf).
 """
-dynamic_oracle(t, cfg::ArcHybridConfig, tree) = cost(t, cfg, tree) == 0
-
 dynamic_oracle(cfg::ArcHybridConfig, tree, arc) =
     filter(t -> cost(t, cfg, tree) == 0, possible_transitions(cfg, tree, arc))
 

@@ -53,7 +53,7 @@ Oracle functions for arc-hybrid parsing:
 
 ```@docs
 static_oracle(::TransitionParsing.ArcHybridConfig, tree, arc=untyped)
-dynamic_oracle(t, cfg::TransitionParsing.ArcHybridConfig, tree)
+dynamic_oracle(::TransitionParsing.ArcHybridConfig, tree, arc)
 ```
 
 ## Arc-Swift

@@ -1,7 +1,7 @@
 """
     ArcSwift()
 
-Parser configuration for arc-swift dependency parsing.
+Arc-Swift transition system for dependency parsing.
 
 Described in [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
@@ -81,8 +81,7 @@ isfinal(cfg::ArcSwiftConfig) =
 """
     static_oracle(cfg::ArcSwiftConfig, tree, arc)
 
-Return a training oracle function which returns gold transition
-operations from a parser configuration with reference to `graph`.
+Oracle function for arc-swift dependency parsing.
 
 Described in [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
