@@ -1,8 +1,6 @@
-using Random: GLOBAL_RNG, AbstractRNG
-
 abstract type AbstractOracle{T<:AbstractTransitionSystem} end
 
-initconfig(oracle::AbstractOracle, args...) = initconfig(system(oracle), args...)
+initconfig(oracle::AbstractOracle, args...) = initconfig(oracle.system, args...)
 
 struct Oracle{T,O,L}
     system::T

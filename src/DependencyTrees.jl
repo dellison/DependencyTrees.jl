@@ -11,9 +11,6 @@ export
 
     labeled_accuracy, unlabeled_accuracy
 
-
-using Random
-
 import Base.==
 import Base.getindex
 import Base.reduce
@@ -29,6 +26,6 @@ include("treebanks.jl")
 include("transition_parsing/TransitionParsing.jl")
 using .TransitionParsing
 
-include("evaluation/accuracy.jl")
+include("evaluation.jl")
 
 end # module

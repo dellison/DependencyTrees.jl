@@ -34,6 +34,7 @@ end
     include("test_conllu.jl")
     include("test_dynamic.jl")
     include("test_arc_hybrid.jl")
+    include("test_arc_standard.jl")
     include("test_arc_swift.jl")
     include("test_evaluation.jl")
 end

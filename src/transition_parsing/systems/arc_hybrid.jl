@@ -18,22 +18,40 @@ transition_space(::ArcHybrid, labels=[]) =
     [LeftArc.(labels)..., RightArc.(labels)..., Shift()]
 
 struct ArcHybridConfig <: AbstractParserConfiguration
-    c::StackBufferCfg
+    stack::Vector{Int}
+    buffer::Vector{Int}
+    A::Vector{Token}
 end
 
-@stackbufconfig ArcHybridConfig
+ArcHybridConfig(sentence) = stack_buffer_config(ArcHybridConfig, sentence)
+
+buffer(cfg::ArcHybridConfig) = cfg.buffer
+stack(cfg::ArcHybridConfig)  = cfg.stack
+tokens(cfg::ArcHybridConfig) = cfg.A
+
+function Base.show(io::IO, cfg::ArcHybridConfig)
+    print(io, "$(typeof(cfg))($(stack(cfg)),$(buffer(cfg)))")
+    for (i, t) in enumerate(tokens(cfg))
+        print("(",join((i, t.form, t.head), ","), ")")
+    end
+end
 
 # transition operations: leftarc, rightarc, shift
 
+function apply_transition(f, cfg::ArcHybridConfig, a...; k...)
+    σ, β, A = f(cfg.stack, cfg.buffer, cfg.A, a...; k...)
+    return ArcHybridConfig(σ, β, A)
+end
+
 leftarc(cfg::ArcHybridConfig, args...; kwargs...) =
-    ArcHybridConfig(leftarc_reduce(cfg.c, args...; kwargs...))
+    apply_transition(leftarc_reduce, cfg, args...; kwargs...)
 
 rightarc(cfg::ArcHybridConfig, args...; kwargs...) =
-    ArcHybridConfig(rightarc_reduce(cfg.c, args...; kwargs...))
+    apply_transition(rightarc_reduce, cfg, args...; kwargs...)
 
-shift(cfg::ArcHybridConfig) = ArcHybridConfig(shift(cfg.c))
+shift(cfg::ArcHybridConfig) = apply_transition(shift, cfg)
 
-isfinal(cfg::ArcHybridConfig) = all(a -> a.head != -1, tokens(cfg))
+isfinal(cfg::ArcHybridConfig) = all(has_head, tokens(cfg))
 
 
 """
@@ -67,15 +85,6 @@ function static_oracle(cfg::ArcHybridConfig, tree, arc=untyped)
         return Shift()
     end
 end
-
-# """
-#     dynamic_oracle(t, cfg::ArgHybridConfig, tree)
-
-# Dynamic oracle function for arc-hybrid parsing.
-
-# For details, see [Goldberg & Nivre, 2013](https://aclweb.org/anthology/Q13-1033.pdf).
-# """
-dynamic_oracle(t, cfg::ArcHybridConfig, tree) = cost(t, cfg, tree) == 0
 
 """
     dynamic_oracle(cfg::ArgHybridConfig, tree, arc)

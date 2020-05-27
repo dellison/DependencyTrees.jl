@@ -32,20 +32,39 @@ transition_space(::ArcStandard, labels=[]) =
     isempty(labels) ? [LeftArc(), RightArc(), Shift()] :
     [LeftArc.(labels)..., RightArc.(labels)..., Shift()]
 
+
 struct ArcStandardConfig <: AbstractParserConfiguration
-    c::StackBufferCfg
+    stack::Vector{Int}
+    buffer::Vector{Int}
+    A::Vector{Token}
 end
 
-@stackbufconfig ArcStandardConfig
+ArcStandardConfig(sentence) = stack_buffer_config(ArcStandardConfig, sentence)
 
+buffer(cfg::ArcStandardConfig) = cfg.buffer
+stack(cfg::ArcStandardConfig)  = cfg.stack
+tokens(cfg::ArcStandardConfig) = cfg.A
+
+function Base.show(io::IO, cfg::ArcStandardConfig)
+    print(io, "$(typeof(cfg))($(stack(cfg)),$(buffer(cfg)))")
+    for (i, t) in enumerate(tokens(cfg))
+        print("(",join((i, t.form, t.head), ","), ")")
+    end
+end
+
+function apply_transition(f, cfg::ArcStandardConfig, a...; k...)
+    σ, β, A = f(cfg.stack, cfg.buffer, cfg.A, a...; k...)
+    return ArcStandardConfig(σ, β, A)
+end
 
 leftarc(cfg::ArcStandardConfig, args...; kwargs...) =
-    ArcStandardConfig(leftarc_reduce2(cfg.c, args...; kwargs...))
+    apply_transition(leftarc_reduce2, cfg, args...; kwargs...)
 
-rightarc(cfg::ArcStandardConfig, args...; kwargs...) = 
-    ArcStandardConfig(rightarc_reduce(cfg.c, args...; kwargs...))
+rightarc(cfg::ArcStandardConfig, args...; kwargs...) =
+    apply_transition(rightarc_reduce, cfg, args...; kwargs...)
 
-shift(cfg::ArcStandardConfig) = ArcStandardConfig(shift(cfg.c))
+shift(cfg::ArcStandardConfig) =
+    apply_transition(shift, cfg)
 
 isfinal(cfg::ArcStandardConfig) =
     length(stack(cfg)) == 1 && stack(cfg)[1] == 0 && length(buffer(cfg)) == 0
@@ -53,8 +72,7 @@ isfinal(cfg::ArcStandardConfig) =
 """
     static_oracle(cfg, gold_tree)
 
-Static oracle for arc-standard dependency parsing. Closes over gold trees,
-mapping parser configurations to optimal transitions.
+Static oracle for arc-standard dependency parsing.
 """
 function static_oracle(cfg::ArcStandardConfig, gold_tree, arc=untyped)
     l = i -> arc(gold_tree[i])
@@ -100,4 +118,5 @@ end
 possible_transitions(cfg::ArcStandardConfig, gold_tree::DependencyTree, arc=untyped) =
     possible_transitions(cfg, arc)
 
-==(cfg1::ArcStandardConfig, cfg2::ArcStandardConfig) = cfg1.c == cfg2.c
+==(cfg1::ArcStandardConfig, cfg2::ArcStandardConfig) =
+    cfg1.stack == cfg2.stack && cfg1.buffer == cfg2.buffer && cfg1.A == cfg2.A

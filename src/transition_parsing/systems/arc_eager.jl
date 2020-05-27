@@ -36,23 +36,33 @@ transition_space(::ArcEager, labels=[]) =
 projective_only(::ArcEager) = true
 
 struct ArcEagerConfig <: AbstractParserConfiguration
-    c::StackBufferCfg
+    stack::Vector{Int}
+    buffer::Vector{Int}
+    A::Vector{Token}
 end
 
-@stackbufconfig ArcEagerConfig
+ArcEagerConfig(sentence) = stack_buffer_config(ArcEagerConfig, sentence)
 
+buffer(cfg::ArcEagerConfig) = cfg.buffer
+stack(cfg::ArcEagerConfig)  = cfg.stack
+tokens(cfg::ArcEagerConfig) = cfg.A
+
+function apply_transition(f, cfg::ArcEagerConfig, a...; k...)
+    σ, β, A = f(cfg.stack, cfg.buffer, cfg.A, a...; k...)
+    return ArcEagerConfig(σ, β, A)
+end
 
 leftarc(cfg::ArcEagerConfig, args...; kwargs...) =
-    ArcEagerConfig(leftarc_reduce(cfg.c, args...; kwargs...))
+    apply_transition(leftarc_reduce, cfg, args...; kwargs...)
 
 rightarc(cfg::ArcEagerConfig, args...; kwargs...) =
-    ArcEagerConfig(rightarc_shift(cfg.c, args...; kwargs...))
+    apply_transition(rightarc_shift, cfg, args...; kwargs...)
 
-reduce(cfg::ArcEagerConfig) = ArcEagerConfig(reduce(cfg.c))
+reduce(cfg::ArcEagerConfig) = apply_transition(reduce, cfg)
 
-shift(cfg::ArcEagerConfig) = ArcEagerConfig(shift(cfg.c))
+shift(cfg::ArcEagerConfig) = apply_transition(shift, cfg)
 
-isfinal(cfg::ArcEagerConfig) = all(a -> a.head >= 0, cfg.c.A)
+isfinal(cfg::ArcEagerConfig) = all(has_head, cfg.A)
 
 has_head(cfg::ArcEagerConfig, k) = has_head(token(cfg, k))
 
@@ -91,11 +101,8 @@ function static_oracle_prefer_shift(cfg::ArcEagerConfig, tree, arc=untyped)
     l = i -> arc(token(tree, i))
     gold_arc = (a, b) -> has_arc(tree, a, b)
     (σ, s), (b, β) = popstack(cfg), shiftbuffer(cfg)
-    if gold_arc(b, s)
-        return LeftArc(l(s)...)
-    elseif gold_arc(s, b)
-        return RightArc(l(b)...)
-    end
+    gold_arc(b, s) && return LeftArc(l(s)...)
+    gold_arc(s, b) && return RightArc(l(b)...)
     must_reduce = false
     for k in stack(cfg)
         if gold_arc(k, b) || gold_arc(b, k)
@@ -182,6 +189,7 @@ is_possible(::Reduce, cfg::ArcEagerConfig) =
 
 is_possible(::Shift, cfg::ArcEagerConfig) = true
 
-==(cfg1::ArcEagerConfig, cfg2::ArcEagerConfig) = cfg1.c == cfg2.c
+==(cfg1::ArcEagerConfig, cfg2::ArcEagerConfig) =
+    cfg1.stack == cfg2.stack && cfg1.buffer == cfg2.buffer && cfg1.A == cfg2.A
 
 Base.getindex(cfg::ArcEagerConfig, i) = arc(cfg, i)

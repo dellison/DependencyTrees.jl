@@ -1,8 +1,7 @@
 module TransitionParsing
 
 export
-    ArcEager, ArcEagerReduce, ArcEagerShift,
-    ArcStandard, ArcHybrid, ArcSwift, ListBasedNonProjective,
+    ArcEager, ArcStandard, ArcHybrid, ArcSwift, ListBasedNonProjective,
 
     Oracle,
     static_oracle, dynamic_oracle, static_oracle_prefer_shift,
@@ -14,6 +13,9 @@ export
     stacktoken, buffertoken
 
 import Base.reduce
+
+import Random.AbstractRNG
+import Random.GLOBAL_RNG
 
 import ..Token, ..DependencyTree, ..deptree, ..ROOT, ..deps, ..token, 
     ..has_arc, ..has_head, ..is_projective, ..leftdeps, ..rightdeps,

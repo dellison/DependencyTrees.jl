@@ -82,9 +82,8 @@ function stacktoken(cfg, i=1)
     s_index = stacklength(cfg) - i + 1
     if 1 <= s_index <= stacklength(cfg)
         a_index = stk[s_index]
-        a_index == 0 ? root(deptype(cfg)) : token(cfg, a_index)
+        a_index == 0 ? ROOT : token(cfg, a_index)
     else
-        # noval(deptype(cfg))
         Token()
     end
 end
@@ -98,151 +97,112 @@ buffertoken(cfg, i) =
     1 <= i <= bufferlength(cfg) ? token(cfg, buffer(cfg)[i]) : Token()
     
 
-struct StackBufferCfg
-    stack::Vector{Int}
-    buffer::Vector{Int}
-    A::Vector{Token}
-end
-
-function StackBufferCfg(words)
+function stack_buffer_config(T, words)
     σ = [0]
     β = collect(1:length(words))
     A = Token.(words)
-    return StackBufferCfg(σ, β, A)
+    return T(σ, β, A)
 end
 
-function StackBufferCfg(gold::DependencyTree)
+function stack_buffer_config(T, gold::DependencyTree)
     σ = [0]
     β = collect(1:length(gold))
     A = [Token(t; head=-1) for t in gold]
-    StackBufferCfg(σ, β, A)
+    T(σ, β, A)
 end
 
-deptype(cfg::StackBufferCfg) = eltype(cfg.A)
+stacklength(cfg) = length(stack(cfg))
+bufferlength(cfg) = length(buffer(cfg))
 
-stacklength(cfg) = length(cfg.stack)
-bufferlength(cfg) = length(cfg.stack)
+token(cfg::AbstractParserConfiguration, i) =
+    iszero(i) ? ROOT : i == -1   ? Token(nothing) : tokens(cfg)[i]
 
-token(cfg::StackBufferCfg, i) = iszero(i) ? ROOT :
-                                i == -1   ? Token(nothing) :
-                                cfg.A[i]
+tokens(cfg::AbstractParserConfiguration, is) =
+    [token(cfg, i) for i in is if 0 <= i <= length(tokens(cfg))]
 
-tokens(cfg::StackBufferCfg) = cfg.A
+popstack(cfg::AbstractParserConfiguration, n=1) = popstack(stack(cfg), n)
 
-tokens(cfg::StackBufferCfg, is) =
-    [token(cfg, i) for i in is if 0 <= i <= length(cfg.A)]
-
-function popstack(cfg, n=1)
-    sh = [s for s in cfg.stack[end-n+1:end]]
-    st = length(cfg.stack) >= n ?
-        [s for s in cfg.stack[1:end-n]] :
-        Int[]
+function popstack(stk::Vector, n=1)
+    sh = [s for s in stk[end-n+1:end]]
+    st = length(stk) >= n ? [s for s in stk[1:end-n]] : Int[]
     return (st, sh...)
 end
 
-function shiftbuffer(cfg, n=1)
-    @assert length(cfg.buffer) >= n "can't shift $n from buffer $(cfg.buffer)"
-    bh = [b for b in cfg.buffer[1:n]]
-    be = length(cfg.buffer) > n ? 
-        [b for b in cfg.buffer[n+1:end]] :
-        Int[]
+shiftbuffer(cfg::AbstractParserConfiguration, n=1) = shiftbuffer(buffer(cfg), n)
+
+function shiftbuffer(buf, n=1)
+    @assert length(buf) >= n "can't shift $n from buffer $buf"
+    bh = [b for b in buf[1:n]]
+    be = length(buf) > n ? [b for b in buf[n+1:end]] : Int[]
     return (bh..., be)
 end
 
-macro stackbufconfig(T, f=:c)
-    @eval begin
-        $T(words::AbstractVector) = $T(StackBufferCfg(words))
-        $T(gold::DependencyTree) = $T(StackBufferCfg(gold))
-
-        stack(cfg::$T)  = cfg.$f.stack
-        buffer(cfg::$T) = cfg.$f.buffer
-
-        stacklength(cfg::$T) = length(cfg.$f.stack)
-        bufferlength(cfg::$T) = length(cfg.$f.buffer)
-
-        popstack(cfg::$T, args...)    = popstack(cfg.$f, args...)
-        shiftbuffer(cfg::$T, args...) = shiftbuffer(cfg.$f, args...)
-
-        token(cfg::$T, args...)  = token(cfg.$f, args...)
-        tokens(cfg::$T, args...) = tokens(cfg.$f, args...)
-
-        DependencyTree(cfg::$T, args...) = DependencyTree(cfg.$f.A, check=false)
-
-        function Base.show(io::IO, cfg::$T)
-            println(io, "$(typeof(cfg))($(stack(cfg)),$(buffer(cfg)))")
-            for (i, t) in enumerate(tokens(cfg))
-                println(join((i, t.form, t.head), "\t"))
-            end
-        end
-    end
-end
-
 # LeftArc in ArcStandard
-function leftarc_reduce2(cfg, args...; kwargs...)
+# function leftarc_reduce2(cfg, args...; kwargs...)
+function leftarc_reduce2(stack, buffer, A, args...; kwargs...)
     # assert a head-dependent relation between the word at the top of
     # the stack and the word directly beneath it; remove the lower
     # word from the stack
-    @assert length(cfg.stack) >= 2
-    σ, s1, s0 = cfg.stack[1:end-2], cfg.stack[end-1], cfg.stack[end]
-    A = copy(cfg.A)
+    @assert length(stack) >= 2
+    σ, s1, s0 = stack[1:end-2], stack[end-1], stack[end]
+    A = copy(A)
     A[s1] = Token(A[s1]; head=s0, kwargs...)
-    StackBufferCfg([σ ; s0], cfg.buffer, A)
+    return [σ ; s0], buffer, A
 end
 
 
 # LeftArc in ArcEager
 # LeftArc in ArcHybrid
-function leftarc_reduce(cfg, args...; kwargs...)
+function leftarc_reduce(stack, buffer, A, args...; kwargs...)
     # Assert a head-dependent relation between the word at the front
     # of the input buffer and the word at the top of the stack; pop
     # the stack.
-    s, b, A = cfg.stack[end], cfg.buffer[1], copy(cfg.A)
+    (σ, s) = popstack(stack)
+    A = copy(A)
     if s > 0
+        b, β = shiftbuffer(buffer)
         A[s] = Token(A[s]; head=b, kwargs...)
     end
-    StackBufferCfg(cfg.stack[1:end-1], cfg.buffer, A)
+    return σ, buffer, A
 end
 
 # RightArc in ArcHybrid
 # RightArc in ArcStandard
-function rightarc_reduce(cfg, args...; kwargs...)
+function rightarc_reduce(stack, buffer, A, args...; kwargs...)
     # assert a head-dependent relation btwn the 2nd word on the stack
     # and the word on top; remove the word at the top of the stack
     # σ, s1, s0 = σs1s0(cfg)
-    σ, s1, s0 = popstack(cfg, 2)
-    A = copy(cfg.A)
+    σ, s1, s0 = popstack(stack, 2)
+    A = copy(A)
     if s0 > 0
         A[s0] = Token(A[s0]; head=s1, kwargs...)
     end
-    StackBufferCfg([σ ; s1], cfg.buffer, A)
+    return [σ ; s1], buffer, A
 end
 
 # RightArc in ArcEager
-function rightarc_shift(cfg, args...; kwargs...)
+function rightarc_shift(stack, buffer, A, args...; kwargs...)
     # Assert a head-dependent relation between the word on the top of
     # the σ and the word at front of the input buffer; shift the
     # word at the front of the input buffer to the stack.
-    (σ, s), (b, β), A = popstack(cfg), shiftbuffer(cfg), copy(cfg.A)
+    (σ, s), (b, β) = popstack(stack), shiftbuffer(buffer)
+    A = copy(A)
     A[b] = Token(A[b]; head=s, kwargs...)
-    StackBufferCfg([cfg.stack ; b], β, A)
+    return [stack ; b], β, A
 end
 
 # Reduce in ArcEager
-function Base.reduce(cfg)
+function Base.reduce(stack::Vector, buffer::Vector, A::Vector)
     # Pop the stack.
-    StackBufferCfg(cfg.stack[1:end-1], cfg.buffer, cfg.A)
+    return stack[1:end-1], buffer, A
 end
 
 # Shift in ArcEager
 # Shift in ArcHybrid
 # Shift in ArcStandard
-function shift(cfg::StackBufferCfg)
+function shift(stack, buffer, A)
     # Remove the word from the front of the input buffer and push it
     # onto the stack.
-    b, β = shiftbuffer(cfg)
-    StackBufferCfg([cfg.stack ; b], β, cfg.A)
+    b, β = shiftbuffer(buffer)
+    return [stack ; b], β, A
 end
-
-==(cfg1::StackBufferCfg, cfg2::StackBufferCfg) =
-    cfg1.stack == cfg2.stack && cfg1.buffer == cfg2.buffer && cfg1.A == cfg2.A
-             
