@@ -192,4 +192,4 @@ is_possible(::Shift, cfg::ArcEagerConfig) = true
 ==(cfg1::ArcEagerConfig, cfg2::ArcEagerConfig) =
     cfg1.stack == cfg2.stack && cfg1.buffer == cfg2.buffer && cfg1.A == cfg2.A
 
-Base.getindex(cfg::ArcEagerConfig, i) = arc(cfg, i)
+Base.getindex(cfg::ArcEagerConfig, i) = token(cfg, i)

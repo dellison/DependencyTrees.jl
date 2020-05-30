@@ -1,3 +1,8 @@
+"""
+    from_conllu(cfg, line)
+
+Read a token (in a dependency tree) from CoNLL-U format.
+"""
 function from_conllu(line::AbstractString)
     local id::Int
     fields = split(strip(line), "\t")

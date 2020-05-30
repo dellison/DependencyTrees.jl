@@ -1,6 +1,3 @@
-
-# TODO should tokens always know their IDs?
-# TODO default label (deprel)?
 struct Token{F,H<:Union{Int,Set{Int}},L}
     form::F
     head::H
@@ -12,9 +9,8 @@ Token() = Token(nothing, -1, nothing, nothing)
 function Token(form, head::Int=-1, label=nothing; kwargs...)
     return Token(form, head, label, isempty(kwargs) ? nothing : Dict(kwargs))
 end
-function Token(form, head, label=nothing; kwargs...)
-    return Token(form, Set(head), label; kwargs...)
-end
+Token(form, head, label=nothing; kwargs...) =
+    Token(form, Set(head), label, isempty(kwargs) ? nothing : Dict(kwargs))
 Token(token::Token; head=token.head, label=token.label, kwargs...) =
     Token(token.form, head, label, isempty(kwargs) ? nothing : Dict(kwargs))
 
@@ -35,8 +31,6 @@ function from_indices(x; form::Int=1, head=2, label=3, kw...)
     new_kw = NamedTuple{ks}(Tuple(x[i] for i in is))
     return Token(x[form], x[head], x[label], new_kw...)
 end
-
-# TODO token api?
 
 isroot(t::Token) = t === ROOT
 
@@ -60,13 +54,6 @@ end
 
 ==(a::Token, b::Token) =
     a.form == b.form && a.head == b.head && a.label == b.label && a.data == b.data
-
-# dep(t::Token, a...; k...) = 
-# deprel
-# form
-# hashead
-# isroot
-# noval
 
 headisroot(t::Token1H) = t.head == 0
 headisroot(t::TokenNH) = 0 in t.head

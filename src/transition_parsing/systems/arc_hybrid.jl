@@ -147,4 +147,5 @@ function possible_transitions(cfg::ArcHybridConfig, tree::DependencyTree, arc=un
     return filter(t -> is_possible(t, cfg), transitions)
 end
 
-==(cfg1::ArcHybridConfig, cfg2::ArcHybridConfig) = cfg1.c == cfg2.c
+==(cfg1::ArcHybridConfig, cfg2::ArcHybridConfig) =
+    cfg1.stack == cfg2.stack && cfg1.buffer == cfg2.buffer && cfg1.A == cfg2.A

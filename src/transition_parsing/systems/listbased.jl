@@ -43,8 +43,8 @@ end
 
 buffer(cfg::ListBasedNonProjectiveConfig) = cfg.β
 
-token(cfg::ListBasedNonProjectiveConfig, i) = iszero(i) ? root(deptype(cfg)) :
-                                              i == -1   ? noval(deptype(cfg)) :
+token(cfg::ListBasedNonProjectiveConfig, i) = iszero(i) ? ROOT :
+                                              i == -1   ? Token() :
                                               cfg.A[i]
 tokens(cfg::ListBasedNonProjectiveConfig) = cfg.A
 tokens(cfg::ListBasedNonProjectiveConfig, is) = [token(cfg, i) for i in is]

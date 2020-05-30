@@ -1,7 +1,5 @@
 abstract type AbstractOracle{T<:AbstractTransitionSystem} end
 
-initconfig(oracle::AbstractOracle, args...) = initconfig(oracle.system, args...)
-
 struct Oracle{T,O,L}
     system::T
     oracle_function::O
@@ -11,13 +9,20 @@ end
 """
     Oracle(system, oracle_function; label=untyped)
 
-Mapping from parser configurations to gold transitions.
+Create an oracle for predicting gold transitions in dependency parsing.
+
+`system` is a transition system, defining configurations and valid transitions.
+
+`oracle_function` is called on a paraser configuration and tree for gold predictions:
+
+    oracle(cfg, tree, label)
+
+`label` is a function that's called on the gold tokens for that parameters of arcs.
 """
 function Oracle(system, oracle_function; label=untyped)
     Oracle(system, oracle_function, label)
 end
 
-# (oracle::Oracle)(tree::DependencyTree) = OracleSequence(oracle, tree)
 (oracle::Oracle)(tree::DependencyTree, policy=NeverExplore()) =
     OracleSequence(oracle, tree, policy)
 
@@ -92,8 +97,8 @@ Base.length(::UnparsableTree) = 0
 
 abstract type AbstractExplorationPolicy end
 
-_sample(rng, x::TransitionOperator) = rand(rng, [x])
-_sample(rng, x) = rand(rng, x)
+choose(rng, x::TransitionOperator) = rand(rng, [x])
+choose(rng, x) = rand(rng, x)
 
 no_model(cfg, A, G) = nothing
 
@@ -117,7 +122,7 @@ AlwaysExplore(model) = AlwaysExplore(GLOBAL_RNG, model)
 (::AlwaysExplore)() = true
 function (p::AlwaysExplore)(cfg, A::AbstractVector, G)
     t = p.model(cfg, A, G)
-    is_possible(t, cfg) ?  t : _sample(p.rng, A)
+    is_possible(t, cfg) ?  t : choose(p.rng, A)
 end
 
 Base.show(io::IO, ::AlwaysExplore) = print(io, "AlwaysExplore")
@@ -128,7 +133,7 @@ Base.show(io::IO, ::AlwaysExplore) = print(io, "AlwaysExplore")
 Policy for never exploring sub-optimal transitions.
 
 If `model` predicts a gold transition, apply it. Otherwise,
-sample from the gold transitions according to `rng`.
+choose from the gold transitions according to `rng`.
 """
 struct NeverExplore{R<:AbstractRNG,M} <: AbstractExplorationPolicy
     rng::R
@@ -136,12 +141,12 @@ struct NeverExplore{R<:AbstractRNG,M} <: AbstractExplorationPolicy
 end
 NeverExplore() = NeverExplore(GLOBAL_RNG, no_model)
 NeverExplore(rng::AbstractRNG) = NeverExplore(rng, no_model)
-NeverExplore(model) = NeverExplore(GLOBAL_RNG, model)
+NeverExplore(model, rng=GLOBAL_RNG) = NeverExplore(rng, model)
 
 (::NeverExplore)() = false
 function (p::NeverExplore)(cfg, A, G)
     t = p.model(cfg, A, G)
-    is_possible(t, cfg) && t in G ? t : _sample(p.rng, G)
+    is_possible(t, cfg) && t in G ? t : choose(p.rng, G)
 end
 
 Base.show(io::IO, ::NeverExplore) = print(io, "NeverExplore")
@@ -151,8 +156,9 @@ Base.show(io::IO, ::NeverExplore) = print(io, "NeverExplore")
 
 Simple exploration policy from Goldberg & Nivre, 2012. Explores at rate `p`.
 
-With probability `p`, follow `model`'s prediction if legal, or sample from `A` according to `rng` if the prediction can't be followed.
-With probability 1 -`p`, sample from `G` according to `rng`.
+With rate `p`, follow `model`'s prediction if legal, or choose from the possible
+transitions according to `rng` if the prediction can't be followed.
+With probability 1 -`p`, choose from gold transitions according to `rng`.
 """
 struct ExplorationPolicy{R<:AbstractRNG,M} <: AbstractExplorationPolicy
     p::Float64

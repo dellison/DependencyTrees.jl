@@ -1,7 +1,15 @@
 # Treebanks
 
-A treebank is a corpus of dependency-annotated sentences contained in one or more files on disk.
+A `Treebank` is a corpus of dependency-annotated sentences in one or more files.
 
 ```@docs
 Treebank
+```
+
+```jldoctest; setup = :(using DependencyTrees)
+treebank = Treebank("data/example.conllu")
+tree = first(treebank)
+
+# output
+DependencyTree: The cat slept by the window .
 ```

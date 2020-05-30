@@ -40,8 +40,6 @@
         end
         @test isfinal(cfg)
         result = DependencyTree(tokens(cfg), DependencyTrees.find_root(tokens(cfg)))
-        # @show result.tokens tree_fig2.tokens
-        # @test result == tree_fig2
         @test labeled_accuracy(result, tree_fig2) == 1
     end
 
@@ -89,32 +87,17 @@
             @test buffer(cfg) == buf
         end
         @test isfinal(cfg)
-        # @test replace(showstr(cfg), r"\s+"=>"") ==
-        #     "ListBasedNonProjectiveConfig([0,1,2,3,4,5,6,7,8],[],[],)
-        #      1	Z	5
-        #      2	nich	1
-        #      3	je	0
-        #      4	jen	5
-        #      5	jedna	3
-        #      6	na	3
-        #      7	kvalitu	6
-        #      8	.	0" |> x->replace(x, r"\s"=>"")
 
-        # result = DependencyTree(cfg.A, check_single_head=false)
-        result = deptree(identity, cfg.A)
-        # @test result == tree_fig1
+        result = deptree(cfg)
         @test labeled_accuracy(result, tree_fig1) == 1
+        @test result.root == Set((3,8))
 
-        # oracle = StaticOracle(ListBasedNonProjective(), arc=typed)
         oracle = Oracle(ListBasedNonProjective(), static_oracle, typed)
-        # pairs = DependencyTrees.xys(oracle, tree_fig1)
-        pairs = oracle(tree_fig1)
-        @test last.(pairs) == first.(table)
+        gold_seq = oracle(tree_fig1)
+        @test last.(gold_seq) == first.(table)
 
-        # cfg1 = initconfig(ListBasedNonProjective(), CoNLLU, [w.form for w in tree_fig1])
         cfg1 = initconfig(ListBasedNonProjective(), [w.form for w in tree_fig1])
         cfg2 = initconfig(ListBasedNonProjective(), tree_fig1)
-        @test cfg1 != cfg2 # cfg2 knows about the gold labels, cfg1 doesn't
         @test cfg1.λ1 == cfg2.λ1 && cfg1.λ2 == cfg2.λ2 && cfg1.β == cfg2.β
         @test [token(cfg, 1)] == tokens(cfg, [1])
     end

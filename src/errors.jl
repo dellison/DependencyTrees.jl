@@ -3,34 +3,16 @@ abstract type DependencyTreeError <: Exception end
 """
     NonProjectiveGraphError
 
-todo
+Error trying to parse a nonprojective tree with a projective only algorithm.
 """
 struct NonProjectiveGraphError <: DependencyTreeError
     tree
 end
 
 """
-    RootlessGraphError
-
-todo
-"""
-struct RootlessGraphError <: DependencyTreeError
-    tree
-end
-
-"""
-    MultipleRootsError
-
-todo
-"""
-struct MultipleRootsError <: DependencyTreeError
-    tree
-end
-
-"""
     MultiWordTokenError
 
-todo
+Error for a multi-token annotation that isn't part of the tree.
 """
 struct MultiWordTokenError <: DependencyTreeError
     token
@@ -39,7 +21,7 @@ end
 """
     EmptyTokenError
 
-todo
+Error for an empty token annotation that isn't part of the tree.
 """
 struct EmptyTokenError <: DependencyTreeError
     token

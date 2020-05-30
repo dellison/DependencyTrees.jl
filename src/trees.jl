@@ -23,8 +23,6 @@ function deptree(tokens)
 end
 
 function deptree(read_token, xs)
-    # multiwordtokens = MultiWordToken[]
-    # emptytokens = EmptyToken[]
     tokens = map(xs) do x
         try
             read_token(x)

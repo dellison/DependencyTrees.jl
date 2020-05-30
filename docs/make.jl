@@ -1,6 +1,8 @@
-using Documenter
 using DependencyTrees
 using DependencyTrees.TransitionParsing
+using Documenter
+
+DocMeta.setdocmeta!(DependencyTrees, :DocTestSetup, :(using DependencyTrees); recursive=true)
 
 makedocs(
     sitename = "DependencyTrees.jl",

@@ -11,7 +11,6 @@ Transition system for for Arc-Standard dependency parsing.
 | RightArc(l) | (σ\\|s, b\\|β, A) → (σ, b\\|β, A ∪ (b, l, s))      |
 | Shift	      | (σ,  b\\|β, A) → (σ\\|b, β, A)                     |
 
-
 # Preconditions
 
 | Transition  | Condition                          |
@@ -31,7 +30,6 @@ projective_only(::ArcStandard) = true
 transition_space(::ArcStandard, labels=[]) =
     isempty(labels) ? [LeftArc(), RightArc(), Shift()] :
     [LeftArc.(labels)..., RightArc.(labels)..., Shift()]
-
 
 struct ArcStandardConfig <: AbstractParserConfiguration
     stack::Vector{Int}
@@ -72,7 +70,7 @@ isfinal(cfg::ArcStandardConfig) =
 """
     static_oracle(cfg, gold_tree)
 
-Static oracle for arc-standard dependency parsing.
+Static oracle function for arc-standard dependency parsing.
 """
 function static_oracle(cfg::ArcStandardConfig, gold_tree, arc=untyped)
     l = i -> arc(gold_tree[i])

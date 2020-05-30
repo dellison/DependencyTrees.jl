@@ -26,6 +26,7 @@
 
     c = from_conllu("1	Distribution	distribution	NOUN	S	Number=Sing	7	nsubj	_	_")
     @test c.feats == ["Number=Sing"]
+    @test c.lemma == "distribution"
 
     @test_throws Exception from_conllu("1	2	3")
 
@@ -37,8 +38,7 @@
 5	books	book	NOUN	NNS	Number=Plur	2	obj	2:obj|4:obj	_
 6	.	.	PUNCT	.	_	2	punct	2:punct	_"""
 
-    # graph = DependencyTree{CoNLLU}(sent)
-    graph = deptree(sent)
+    graph = deptree(sent, from_conllu)
     for d in graph.tokens
         @test untyped(d) == ()
         @test typed(d) == (d.deprel,)
@@ -48,7 +48,6 @@
         # @test startswith(showstr(tok), string(tok.id))
     end
 
-    # c = CoNLLU("1	They	they	PRON	PRP	Case=Nom|Number=Plur	2	nsubj	2:nsubj|4:nsubj	_")
     c = from_conllu("1	They	they	PRON	PRP	Case=Nom|Number=Plur	2	nsubj	2:nsubj|4:nsubj	_")
     @test length(c.deps) == 2
 
@@ -62,9 +61,7 @@
 6	tea	tea	_	_	_	2	_	_	_
 """
 
-    # graph = DependencyTree{CoNLLU}(sent)
     graph = deptree(sent)
-    # @test length(graph.emptytokens) == 1
     @test length(graph) == 6
 
     sent = """
@@ -76,10 +73,7 @@
 4	el	el	_	_	_	5	_	_	_
 5	mar	mar	_	_	_	1	_	_	_
 """
-
-    # graph = DependencyTree{CoNLLU}(sent)
     graph = deptree(sent)
-    # @test length(graph.emptytokens) == 0
-    # @test length(graph.mwts) == 2
     @test length(graph) == 5
+    @test_throws DependencyTrees.MultiWordTokenError from_conllu("1-2	vámonos	_	_	_	_	_	_	_	_")
 end

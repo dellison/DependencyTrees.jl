@@ -16,7 +16,7 @@ using DependencyTrees.TransitionParsing: LeftArc, RightArc, NoArc, Shift, Reduce
     words(ids) = [(id == 0 ? "root" : sent[id]) for id in ids]
 
     @testset "Figure 13.7" begin
-        # @test projective_only(ArcStandard())
+        @test DependencyTrees.TransitionParsing.projective_only(ArcStandard())
 
         # figure 13.7 in jurafsky & martin SLP 3rd ed., aug 2018 draft
         table = [
@@ -58,8 +58,6 @@ using DependencyTrees.TransitionParsing: LeftArc, RightArc, NoArc, Shift, Reduce
     end
 
     @testset "Figure 13.8" begin
-        # @test projective_only(ArcStandard())
-
         # figure 13.8 in jurafsky & martin SLP 3rd ed., aug 2018 draft
         table = [
             # stack                                    buffer                                  # transition
@@ -74,10 +72,8 @@ using DependencyTrees.TransitionParsing: LeftArc, RightArc, NoArc, Shift, Reduce
             (["ROOT","book","flight"],                 [],                                     RightArc("dobj")),
             (["ROOT","book",],                         [],                                     RightArc("root")),
             (["ROOT",],                                [],                                     nothing)]
-        sent = copy(sent_f13_7)
 
         gold_tree = test_sentence("flightthroughhouston.conll")
-
 
         for arc in (untyped, typed)
             oracle = Oracle(ArcStandard(), static_oracle, arc)

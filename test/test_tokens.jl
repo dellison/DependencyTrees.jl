@@ -1,12 +1,8 @@
-# struct Deplol <: DT.Dependency end
-
 @testset "Tokens" begin
 
-    using DependencyTrees: Token
+    using DependencyTrees: Token, has_head
 
     @testset "Untyped Dependencies" begin
-        # r = root(UntypedDependency)
-        # @test isroot(r)
         sent = [
             ("The", 2),
             ("cat", 3),
@@ -16,20 +12,15 @@
         for (i, word) in enumerate(sent)
             form, head = word
             token = Token(form, head, id=i)
-            # @test deprel(dep) == ()
             @test token.form == form
             @test token.id == i
-            # @test !isroot(dep)
             @test token.head == head
-            # @test untyped(dep) == typed(dep) == ()
         end
-        # @test !hashead(noval(UntypedDependency))
+        @test !has_head(Token())
+        @test !has_head(Token("hi"))
     end
 
     @testset "Typed Dependencies" begin
-        # r = root(TypedDependency{String})
-        # @test isroot(r)
-        # @test isroot(root(TypedDependency))
         sent = [
             ("The", "DT", 2),
             ("cat", "NN", 3),
@@ -43,31 +34,22 @@
             @test token.deprel == deprel
             @test token.head == head
             @test token.id == i
-            # @test !isroot(dep)
-            # @test untyped(dep) == ()
-            # @test typed(dep) == (token[2],)
         end
-        # @test !hashead(noval(TypedDependency))
+    end
+
+    @testset "Multi-headed tokens" begin
+        t = Token("hi", (0, 2))
+        @test has_head(t)
+        @test has_head(t, 0)
+        @test has_head(t, 2)
+        @test !has_head(t, 1)
+        @test DependencyTrees.headisroot(t)
     end
 
     @testset "Errors" begin
-        # d = Deplol()
-        # function check_error(fn, d)
-        #     try
-        #         fn(d)
-        #         @test false
-        #     catch err
-        #         @test occursin("not implemented", err.msg)
-        #     end
-        # end
-        # check_error(DT.dep, d)
-        # check_error(DT.deprel, d)
-        # check_error(DT.form, d)
-        # check_error(DT.hashead, d)
-        # check_error(DT.head, d)
-        # check_error(DT.isroot, d)
-        # check_error(DT.noval, d)
-        # check_error(DT.root, Deplol)
-        # check_error(DT.unk, Deplol)
+        t = Token("hi")
+        @test_throws Exception t.x
+        tx = Token("hi"; x="x")
+        @test tx.x == "x"
     end
 end

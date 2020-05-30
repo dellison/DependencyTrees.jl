@@ -4,25 +4,35 @@
 # TODO multi word tokens
 # TODO empty tokens
 # TODO skip malformed trees?
+"""
+    Treebank
 
+A corpus of sentences annotated as dependency trees on disk.
+"""
 struct Treebank{F}
     files::Vector{String}
     read_token::F
 end
 
 """
-    Treebank(file, read_token)
+    Treebank(file::String, read_token)
 
 Read treebank from file `file`, calling `read_token` on each line to read tokens.
 """
 Treebank(file::String, read_token) = Treebank([file], read_token)
 
 """
-    Treebank(files)
+    Treebank(file)
 
-Read a treebank from `files`, inferring the format from the filenames.
+Read a treebank from `files`, detecting the format from the filenames.
 """
 Treebank(file::String) = Treebank([file])
+
+"""
+    Treebank(files)
+
+Read a treebank from the files `files`, attempting to detect the format.
+"""
 function Treebank(files::Vector{String})
     if all(file -> endswith(file, ".conllu") || endswith(file, ".conll"), files)
         Treebank(files, from_conllu)
@@ -48,8 +58,11 @@ function Base.iterate(tb::Treebank, state)
     end
 end
 
-Base.show(io::IO, tb::Treebank) =
-    print(io, "Treebank ($(length(tb.files)) files)")
+function Base.show(io::IO, tb::Treebank)
+    fs = length(tb.files)
+    len_str = length(tb.files) == 1 ? "1 file" : "$fs files"
+    print(io, "Treebank ($len_str)")
+end
 
 Base.IteratorSize(treebank::Treebank) = Base.SizeUnknown()
 
@@ -68,9 +81,4 @@ function read_tree(trees::TreeReader)
     end
     str = readuntil(io, "\n\n")
     return deptree(str, trees.read_token)
-end
-
-function Base.iterate(tr::TreeReader, state=nothing)
-    tree = read_tree(tr)
-    tree === nothing ? nothing : (tree, nothing)
 end
