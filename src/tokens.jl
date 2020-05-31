@@ -1,3 +1,8 @@
+"""
+    Token(form, head=-1, label=nothing)
+
+A token in a dependency tree.
+"""
 struct Token{F,H<:Union{Int,Set{Int}},L}
     form::F
     head::H
@@ -20,11 +25,12 @@ const TokenNH{F,L}  = Token{F,Set{Int},L}
 const ROOT = Token("ROOT", 0, id=0)
 
 """
-    deptoken(form, [head], [label]; kw...)
-    
-Create a `DependencyTrees.token`.
+    deptoken(form, head=-1, label=nothing)
+
+Create a token in a dependency tree.
 """
-deptoken(a...; k...) = Token(a...; k...)
+deptoken(form=nothing, head=-1, label=nothing; kwargs...) =
+    Token(form, head, label; kwargs...)
 
 function from_indices(x; form::Int=1, head=2, label=3, kw...)
     ks, is = isempty(kw) ? ((), ()) : zip(pairs(kw)...)

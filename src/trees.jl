@@ -8,7 +8,6 @@ A rooted tree of dependency relations among the tokens of a sentence.
 struct DependencyTree{T<:Token, R<:Union{Int,Set{Int}}}
     tokens::Vector{T}
     root::R
-    # inc::Vector{Set{Int}}
 end
 
 """
@@ -23,22 +22,24 @@ function deptree(tokens)
 end
 
 function deptree(read_token, xs)
-    tokens = map(xs) do x
+    tokens = Token[]
+    for x in xs
         try
-            read_token(x)
+            token = read_token(x)
+            push!(tokens, token)
         catch err
             if err isa EmptyTokenError
-                nothing #
+                continue
             elseif err isa MultiWordTokenError
-                nothing #
+                continue
             else
                 throw(err)
             end
         end
     end
-    tokens = Token[t for t in tokens if t !== nothing]
+    tokens = identity.(tokens) # type info
     root = find_root(tokens)
-    return DependencyTree(tokens, root)#, multiwordtokens, emptytokens)
+    return DependencyTree(tokens, root)
 end
 
 function deptree(lines::String, read_token=from_conllu)
@@ -52,10 +53,15 @@ function find_root(tokens)
     return length(root) == 1 ? root[1] : Set(root)
 end
 
+"""
+    arcs(tree::DependencyTree)
+
+Return a vector of (src, dst) tuples, representing all dependency arcs in `tree`.
+"""
 function arcs(tree::DependencyTree)
-    inc = incoming(tree)
+    ch = children(tree)
     T = length(tree)
-    return [(s, d) for d in 1:T for s in inc[d]]
+    return [(s, d) for d in 1:T for s in ch[d]]
 end
 
 deps(tree::DependencyTree, i::Int) =
@@ -78,7 +84,7 @@ end
 has_arc(tree::DependencyTree, head::Int, dependant::Int) =
     iszero(dependant) ? false : has_head(tree.tokens[dependant], head)
 
-function incoming(tree::DependencyTree)
+function children(tree::DependencyTree)
     inc = [Set{Int}() for _=1:length(tree)]
     for (i, token) in enumerate(tree), head in token.head
         push!(inc[i], head)
