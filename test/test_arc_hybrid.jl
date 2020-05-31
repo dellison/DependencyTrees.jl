@@ -3,10 +3,10 @@
     @test showstr(LeftArc()) == "LeftArc()"
     @test showstr(LeftArc("mod")) == "LeftArc(mod)"
     for t in [LeftArc(), RightArc(), Shift()]
-        # @test isempty(DependencyTrees.args(t)) && isempty(DependencyTrees.kwargs(t))
+        @test isempty(TransitionParsing.args(t)) && isempty(TransitionParsing.kwargs(t))
     end
     for t in [LeftArc("label"), RightArc("label")]
-        # @test !isempty(DependencyTrees.args(t)) && isempty(DependencyTrees.kwargs(t))
+        @test !isempty(TransitionParsing.args(t)) && isempty(TransitionParsing.kwargs(t))
     end
 
     AH = ArcHybrid()
@@ -40,30 +40,27 @@
 
         for tree in tb
             test_oracle(tree)
+            @test initconfig(oracle, tree) == initconfig(oracle, tree)
         end
 
         s1, s2, s3, s4 = collect(tb)
 
-        # @test last.(xys(oracle, s1)) == [Shift(), LeftArc("nsubj"), Shift(),
         @test last.(oracle(s1)) == [Shift(), LeftArc("nsubj"), Shift(),
                                     Shift(), RightArc("dobj"), Shift(),
                                     LeftArc("case"), Shift(), RightArc("inst"),
                                     Shift(), RightArc("pu"), RightArc("root")]
 
-        # @test last.(xys(oracle, s2)) == [Shift(), LeftArc("nsubj"), Shift(), Shift(),
         @test last.(oracle(s2)) == [Shift(), LeftArc("nsubj"), Shift(), Shift(),
                                     Shift(), Shift(), RightArc("case"),
                                     RightArc("nmod"), RightArc("dobj"), Shift(),
                                     RightArc("pu"), RightArc("root")]
 
-        # @test last.(xys(oracle, s3)) == [Shift(), LeftArc("att"), Shift(), LeftArc("sbj"),
         @test last.(oracle(s3)) == [Shift(), LeftArc("att"), Shift(), LeftArc("sbj"),
                                     Shift(), Shift(), LeftArc("att"), Shift(), Shift(),
                                     Shift(), LeftArc("att"), Shift(), RightArc("pc"),
                                     RightArc("att"), RightArc("obj"), Shift(),
                                     RightArc("pu"), RightArc("pred")]
 
-        # @test last.(xys(oracle, s4)) == [Shift(), LeftArc("NNP"), Shift(), Shift(),
         @test last.(oracle(s4)) == [Shift(), LeftArc("NNP"), Shift(), Shift(),
                                     RightArc("P"), Shift(), LeftArc("CD"), Shift(),
                                     LeftArc("NNS"), Shift(), RightArc("JJ"), Shift(),
@@ -78,7 +75,6 @@
 
     @testset "Dynamic Oracle" begin
         TS = Union{LeftArc, RightArc, Shift}
-        # oracle = DynamicOracle(ArcHybrid(), arc=typed)
         oracle = Oracle(ArcHybrid(), dynamic_oracle, typed)
         model(x) = Shift()
         function errorcb(x, ŷ, y)

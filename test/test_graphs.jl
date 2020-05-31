@@ -17,6 +17,7 @@ using DependencyTrees: deps, leftdeps, rightdeps, leftmostdep, rightmostdep
     graph = deptree(sent) do ((form, deprel, head))
         DependencyTrees.Token(form, head, deprel)
     end
+    @test graph == deepcopy(graph)
 
     @test [t.form for t in graph.tokens] == [first(t) for t in sent]
     for (i, t) in enumerate(sent)

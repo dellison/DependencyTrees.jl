@@ -14,5 +14,6 @@
         for (cfg, t) in oracle(tree)
             @test t in possible_transitions(cfg)
         end
+        @test initconfig(oracle, tree) == initconfig(oracle, tree)
     end
 end

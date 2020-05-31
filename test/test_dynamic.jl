@@ -1,18 +1,12 @@
 @testset "Dynamic Oracles" begin
 
-    error_cb(args...) = nothing
-    
     oracle = Oracle(ArcEager(), dynamic_oracle, typed)
-    # o = Oracle(ArcEager(), dynamic_oracle, typed)
 
     model(cfg) = nothing
     
     graph = test_sentence("economicnews.conll")
 
     model(cfg) = static_oracle(cfg, graph, typed)
-    function error_cb(x, ŷ, y)
-        @assert false
-    end
 
     cfg = initconfig(oracle, graph)
     nocost(t, cfg) = DependencyTrees.TransitionParsing.cost(t, cfg, graph) == 0
@@ -30,7 +24,6 @@
     cfg = initconfig(oracle.system, graph)
     while !isfinal(cfg)
         pred = model(cfg)
-        # G = gold_transitions(oracle_ut, cfg, graph)
         G = oracle(cfg, graph)
         @test pred in G
         @test any(t -> !nocost(t, cfg), [Shift(), Reduce(), LeftArc(), RightArc()])
@@ -39,7 +32,6 @@
     end
 
     tbfile = joinpath(@__DIR__, "data", "wsj_0001.dp")
-    # treebank = Treebank{TypedDependency}(tbfile, add_id=true)
     readtok = line -> begin
         form, deprel, head = split(line, "\t")
         head = parse(Int, head)
@@ -53,7 +45,6 @@
 
     @testset "Projectivity" begin
         o = Oracle(ArcHybrid(), dynamic_oracle)
-        # tb = Treebank{CoNLLU}(joinpath(@__DIR__, "data", "nonprojective1.conll"))
         tb = Treebank(joinpath(@__DIR__, "data", "nonprojective1.conll"))
         @test length(collect(tb)) == 1
         @test length(collect(Iterators.flatten(oracle.(tb)))) == 0
