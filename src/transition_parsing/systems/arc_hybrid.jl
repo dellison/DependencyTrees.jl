@@ -29,13 +29,6 @@ buffer(cfg::ArcHybridConfig) = cfg.buffer
 stack(cfg::ArcHybridConfig)  = cfg.stack
 tokens(cfg::ArcHybridConfig) = cfg.A
 
-function Base.show(io::IO, cfg::ArcHybridConfig)
-    print(io, "$(typeof(cfg))($(stack(cfg)),$(buffer(cfg)))")
-    for (i, t) in enumerate(tokens(cfg))
-        print("(",join((i, t.form, t.head), ","), ")")
-    end
-end
-
 # transition operations: leftarc, rightarc, shift
 
 function apply_transition(f, cfg::ArcHybridConfig, a...; k...)
@@ -62,7 +55,7 @@ Static oracle for arc-hybrid dependency parsing.
 Return a gold transition (one of LeftArc, RightArc, or Shift)
 for parser configuration `cfg`.
 
-TODO paper reference [Kuhlmann et al, 2011](https://www.aclweb.org/anthology/P11-1068.pdf)?
+See [Kuhlmann et al, 2011](https://www.aclweb.org/anthology/P11-1068.pdf)?
 """
 function static_oracle(cfg::ArcHybridConfig, tree, arc=untyped)
     l = i -> arc(token(tree, i))

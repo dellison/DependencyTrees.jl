@@ -78,6 +78,7 @@ function Base.iterate(ts::OracleSequence, state=nothing)
         return nothing
     else
         A, G = transitions(state, ts.tree, ts.oracle)
+        isempty(A) && return nothing
         t = ts.policy(state, A, G)
         return ((state, G), t(state))
     end
@@ -98,7 +99,10 @@ Base.length(::UnparsableTree) = 0
 abstract type AbstractExplorationPolicy end
 
 choose(rng, x::TransitionOperator) = rand(rng, [x])
-choose(rng, x) = rand(rng, x)
+
+function choose(rng, x)
+    isempty(x) ? nothing : rand(rng, x)
+end
 
 no_model(cfg, A, G) = nothing
 

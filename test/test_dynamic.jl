@@ -89,6 +89,16 @@
                 t = policy(cfg, A, G)
                 @test t in A
             end
+
+            # explore transition space manually
+            gold = oracle(tree)
+            cfg = initconfig(oracle, tree)
+            while !isfinal(cfg)
+                t = TransitionParsing.choose_transition(gold, cfg)
+                A = TransitionParsing.possible_transitions(cfg)
+                @test t in A
+                cfg = t(cfg)
+            end
         end
     end
 end
@@ -152,6 +162,25 @@ end
             xys = collect(oracle(tree, policy))
         end
     end
+
+    @testset "RNG" begin
+        using Random
+        rng = MersenneTwister(42)
+        always = AlwaysExplore(rng)
+        never  = NeverExplore(rng)
+        sometimes = ExplorationPolicy(0.5, rng)
+
+        tree = test_sentence("economicnews.conll")
+        for system in (ArcEager(), ArcHybrid())
+            oracle = Oracle(system, dynamic_oracle)
+            for policy in (always, never, sometimes)
+                for (cfg, G) in oracle(tree, policy)
+                    @test length(G) >= 1
+                end
+            end
+        end
+    end
+
 end
 
 @testset "Feature Extraction" begin
@@ -160,9 +189,7 @@ end
         for (cfg, G) in oracle(gold_tree)
             stk, buf = stack(cfg), buffer(cfg)
             ts = [buffertoken(cfg, b) for b in buf]
-            # @test id.(buffertoken(cfg, i) for i in 1:length(buf)) == buf
-            # @test id.(stacktoken(cfg, i) for i in length(stk):-1:1) == stk
-            # @test id(stacktoken(cfg, 10000)) == -1
+            ts = [stacktoken(cfg, s) for s in stk]
         end
         return true
     end

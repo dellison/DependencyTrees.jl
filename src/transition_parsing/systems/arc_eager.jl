@@ -135,10 +135,18 @@ possible_transitions(cfg::ArcEagerConfig, graph::DependencyTree, arc=untyped) =
     possible_transitions(cfg, arc)
 
 function possible_transitions(cfg::ArcEagerConfig, arc=untyped)
-    s, b = last(stack(cfg)), first(buffer(cfg))
-    l = i -> arc(token(cfg, i))
-    transitions = [LeftArc(l(s)...), RightArc(l(b)...), Reduce(), Shift()]
-    return filter(t -> is_possible(t, cfg), transitions)
+    ts = TransitionOperator[]
+    if is_possible(LeftArc(), cfg)
+        s = last(stack(cfg))
+        push!(ts, LeftArc(arc(token(cfg, s))...))
+    end
+    if is_possible(RightArc(), cfg)
+        b = first(buffer(cfg))
+        push!(ts, RightArc(arc(token(cfg, b))...))
+    end
+    is_possible(Reduce(), cfg) && push!(ts, Reduce())
+    is_possible(Shift(), cfg) && push!(ts, Shift())
+    return ts
 end
 
 function cost(t::LeftArc, cfg::ArcEagerConfig, gold)
@@ -177,17 +185,22 @@ function cost(t::Shift, cfg::ArcEagerConfig, gold)
 end
 
 function is_possible(::LeftArc, cfg::ArcEagerConfig)
-    s = last(stack(cfg))
-    return s != 0 && !has_head(token(cfg, s))
+    if length(cfg.stack) > 0 && length(cfg.buffer) > 0
+        s = last(stack(cfg))
+        return s != 0 && !has_head(token(cfg, s))
+    end
+    return false
 end
 
-is_possible(::RightArc, cfg::ArcEagerConfig) =
-    !has_head(token(cfg, first(buffer(cfg))))
+function is_possible(::RightArc, cfg::ArcEagerConfig)
+    return length(cfg.stack) > 0 && length(cfg.buffer) > 0 && 
+        !has_head(token(cfg, first(buffer(cfg))))
+end
 
 is_possible(::Reduce, cfg::ArcEagerConfig) =
-    has_head(token(cfg, last(stack(cfg))))
+    stacklength(cfg) > 0 && has_head(token(cfg, last(stack(cfg))))
 
-is_possible(::Shift, cfg::ArcEagerConfig) = true
+is_possible(::Shift, cfg::ArcEagerConfig) = bufferlength(cfg) > 0
 
 ==(cfg1::ArcEagerConfig, cfg2::ArcEagerConfig) =
     cfg1.stack == cfg2.stack && cfg1.buffer == cfg2.buffer && cfg1.A == cfg2.A
