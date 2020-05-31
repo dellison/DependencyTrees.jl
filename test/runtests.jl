@@ -1,21 +1,14 @@
-using DependencyTrees, Test
+using DependencyTrees
+using Test
+
+using DependencyTrees.TransitionParsing
 
 const DT = DependencyTrees
 
-using DependencyTrees: TreebankReader
-using DependencyTrees: projective_only, deptype
-using DependencyTrees: deprel, form, id, hashead, head, root, isroot
 using DependencyTrees: MultiWordTokenError, EmptyTokenError
-using DependencyTrees: stack, buffer, stacklength, bufferlength
-using DependencyTrees: leftmostdep, rightmostdep
-using DependencyTrees: leftdeps, rightdeps
-using DependencyTrees: root, noval, token, tokens, xys
+using DependencyTrees: leftdeps, rightdeps, leftmostdep, rightmostdep
+using DependencyTrees.TransitionParsing: stack, buffer, token, tokens
 
-using DependencyTrees: typed, untyped
-using DependencyTrees: initconfig, transition_space
-using DependencyTrees: leftarc, rightarc, noarc, shift, isfinal
-using DependencyTrees: LeftArc, RightArc, NoArc, Reduce, Shift
-using DependencyTrees: gold_transitions
 
 function showstr(op)
     buf = IOBuffer()
@@ -24,7 +17,7 @@ function showstr(op)
 end
 
 function test_treebank(filename)
-    Treebank{CoNLLU}(joinpath(@__DIR__, "data", filename))
+    Treebank(joinpath(@__DIR__, "data", filename), DependencyTrees.from_conllu)
 end
 
 function test_sentence(filename)
@@ -41,6 +34,7 @@ end
     include("test_conllu.jl")
     include("test_dynamic.jl")
     include("test_arc_hybrid.jl")
+    include("test_arc_standard.jl")
     include("test_arc_swift.jl")
     include("test_evaluation.jl")
 end

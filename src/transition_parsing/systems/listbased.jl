@@ -9,8 +9,8 @@ struct ListBasedNonProjective <: AbstractTransitionSystem end
 
 initconfig(s::ListBasedNonProjective, graph::DependencyTree) =
     ListBasedNonProjectiveConfig(graph)
-initconfig(s::ListBasedNonProjective, deptype, words) =
-    ListBasedNonProjectiveConfig{deptype}(words)
+initconfig(s::ListBasedNonProjective, words) =
+    ListBasedNonProjectiveConfig(words)
 
 projective_only(::ListBasedNonProjective) = false
 
@@ -18,35 +18,33 @@ transition_space(::ListBasedNonProjective, labels=[]) =
     isempty(labels) ? [LeftArc(), RightArc(), NoArc(), Shift()] :
     [LeftArc.(labels)..., RightArc.(labels)..., NoArc(), Shift()]
 
-struct ListBasedNonProjectiveConfig{T} <: AbstractParserConfiguration{T}
+struct ListBasedNonProjectiveConfig <: AbstractParserConfiguration
     λ1::Vector{Int} # right-headed
     λ2::Vector{Int} # left-headed
     β::Vector{Int}
-    A::Vector{T}
+    A::Vector{Token}
 end
 
-function ListBasedNonProjectiveConfig{T}(words::Vector{String}) where {T}
+function ListBasedNonProjectiveConfig(words::Vector{String})
     λ1 = [0]
     λ2 = Int[]
     β = 1:length(words)
-    A = [unk(T, id, w) for (id,w) in enumerate(words)]
-    ListBasedNonProjectiveConfig{T}(λ1, λ2, β, A)
+    A = Token.(words)
+    ListBasedNonProjectiveConfig(λ1, λ2, β, A)
 end
 
-function ListBasedNonProjectiveConfig{T}(gold::DependencyTree) where {T}
+function ListBasedNonProjectiveConfig(gold::DependencyTree)
     λ1 = [0]
     λ2 = Int[]
     β = 1:length(gold)
-    A = [dep(token, head=-1) for token in gold]
-    ListBasedNonProjectiveConfig{T}(λ1, λ2, β, A)
+    A = [Token(t, head=-1) for t in gold]
+    ListBasedNonProjectiveConfig(λ1, λ2, β, A)
 end
-ListBasedNonProjectiveConfig(gold::DependencyTree) =
-    ListBasedNonProjectiveConfig{eltype(gold)}(gold)
 
 buffer(cfg::ListBasedNonProjectiveConfig) = cfg.β
 
-token(cfg::ListBasedNonProjectiveConfig, i) = iszero(i) ? root(deptype(cfg)) :
-                                              i == -1   ? noval(deptype(cfg)) :
+token(cfg::ListBasedNonProjectiveConfig, i) = iszero(i) ? ROOT :
+                                              i == -1   ? Token() :
                                               cfg.A[i]
 tokens(cfg::ListBasedNonProjectiveConfig) = cfg.A
 tokens(cfg::ListBasedNonProjectiveConfig, is) = [token(cfg, i) for i in is]
@@ -55,7 +53,7 @@ function leftarc(cfg::ListBasedNonProjectiveConfig, args...; kwargs...)
     λ1, i = cfg.λ1[1:end-1], cfg.λ1[end]
     j, β = cfg.β[1], cfg.β[2:end]
     A = copy(cfg.A)
-    i != 0 && (A[i] = dep(A[i], args...; head=j, kwargs...))
+    i != 0 && (A[i] = Token(A[i]; head=j, kwargs...))
     ListBasedNonProjectiveConfig(λ1, [i ; cfg.λ2], [j ; β], A)
 end
 
@@ -63,7 +61,7 @@ function rightarc(cfg::ListBasedNonProjectiveConfig, args...; kwargs...)
     λ1, i = cfg.λ1[1:end-1], cfg.λ1[end]
     j, β = cfg.β[1], cfg.β[2:end]
     A = copy(cfg.A)
-    A[j] = dep(A[j], args...; head=i, kwargs...)
+    A[j] = Token(A[j]; head=i, kwargs...)
     ListBasedNonProjectiveConfig(λ1, [i ; cfg.λ2], [j ; β], A)
 end
 
@@ -80,7 +78,7 @@ function shift(cfg::ListBasedNonProjectiveConfig)
 end
 
 function isfinal(cfg::ListBasedNonProjectiveConfig)
-    return all(a -> head(a) != -1, tokens(cfg)) && length(cfg.λ1) == length(cfg.A) + 1 &&
+    return all(a -> a.head != -1, cfg.A) && length(cfg.λ1) == length(cfg.A) + 1 &&
         length(cfg.λ2) == 0 && length(cfg.β) == 0
 end
 
@@ -96,13 +94,13 @@ function static_oracle(cfg::ListBasedNonProjectiveConfig, tree, arc=untyped)
     if length(cfg.λ1) >= 1 && length(cfg.β) >= 1
         i, λ1 = cfg.λ1[end], cfg.λ1[1:end-1]
         j, β = cfg.β[1], cfg.β[2:end]
-        if !iszero(i) && head(tree, i) == j
+        if !iszero(i) && tree[i].head == j
             return LeftArc(l(i)...)
-        elseif head(tree, j) == i
+        elseif tree[j].head == i
             return RightArc(l(j)...)
         end
-        j_deps = dependents(tree, j)
-        if (!(any(x -> x < j, j_deps) && j_deps[1] < i)) && !(head(tree, j) < i)
+        jdeps = deps(tree, j)
+        if (!(any(x -> x < j, jdeps) && jdeps[1] < i)) && !(tree[j].head < i)
             return Shift()
         end
     end
@@ -123,5 +121,6 @@ function Base.show(io::IO, c::ListBasedNonProjectiveConfig)
     λ1 = join(c.λ1, ",")
     λ2 = join(c.λ2, ",")
     β = join(c.β, ",")
-    print(io, "ListBasedNonProjectiveConfig([$λ1],[$λ2],[$β])\n$(join([join([id(t),form(t),head(t)],'\t') for t in tokens(c)],'\n'))")
+    A = join(["($i $(t.form), $(t.head))" for (i,t) in enumerate(c.A)], ", ")
+    print(io, "ListBasedNonProjectiveConfig([$λ1], [$λ2], [$β], $A")
 end

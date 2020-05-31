@@ -28,8 +28,6 @@ struct ArcEager <: AbstractTransitionSystem end
 
 initconfig(::ArcEager, graph::DependencyTree) =
     ArcEagerConfig(graph)
-initconfig(::ArcEager, deptype, words) =
-    ArcEagerConfig{deptype}(words)
 
 transition_space(::ArcEager, labels=[]) =
     isempty(labels) ? [LeftArc(), RightArc(), Reduce(), Shift()] :
@@ -37,48 +35,54 @@ transition_space(::ArcEager, labels=[]) =
 
 projective_only(::ArcEager) = true
 
-struct ArcEagerConfig{T} <: AbstractParserConfiguration{T}
-    c::StackBufferConfiguration{T}
+struct ArcEagerConfig <: AbstractParserConfiguration
+    stack::Vector{Int}
+    buffer::Vector{Int}
+    A::Vector{Token}
 end
 
-@stackbufconfig ArcEagerConfig
+ArcEagerConfig(sentence) = stack_buffer_config(ArcEagerConfig, sentence)
 
+buffer(cfg::ArcEagerConfig) = cfg.buffer
+stack(cfg::ArcEagerConfig)  = cfg.stack
+tokens(cfg::ArcEagerConfig) = cfg.A
+
+function apply_transition(f, cfg::ArcEagerConfig, a...; k...)
+    σ, β, A = f(cfg.stack, cfg.buffer, cfg.A, a...; k...)
+    return ArcEagerConfig(σ, β, A)
+end
 
 leftarc(cfg::ArcEagerConfig, args...; kwargs...) =
-    ArcEagerConfig(leftarc_reduce(cfg.c, args...; kwargs...))
+    apply_transition(leftarc_reduce, cfg, args...; kwargs...)
 
 rightarc(cfg::ArcEagerConfig, args...; kwargs...) =
-    ArcEagerConfig(rightarc_shift(cfg.c, args...; kwargs...))
+    apply_transition(rightarc_shift, cfg, args...; kwargs...)
 
-reduce(cfg::ArcEagerConfig) = ArcEagerConfig(reduce(cfg.c))
+reduce(cfg::ArcEagerConfig) = apply_transition(reduce, cfg)
 
-shift(cfg::ArcEagerConfig) = ArcEagerConfig(shift(cfg.c))
+shift(cfg::ArcEagerConfig) = apply_transition(shift, cfg)
 
-isfinal(cfg::ArcEagerConfig) = all(a -> head(a) >= 0, cfg.c.A)
-hashead(cfg::ArcEagerConfig, k) = head(token(cfg, k)) != -1
+isfinal(cfg::ArcEagerConfig) = all(has_head, cfg.A)
+
+has_head(cfg::ArcEagerConfig, k) = has_head(token(cfg, k))
 
 """
-    static_oracle(cfg, tree, transition)
+    static_oracle(cfg::ArcEagerConfig, gold, arc=untyped)
 
 Default static oracle function for arc-eager dependency parsing.
 
 See [Goldberg & Nivre 2012](https://www.aclweb.org/anthology/C12-1059.pdf).
 (Also called Arc-Eager-Reduce in [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf)).
 """
-function static_oracle(cfg::ArcEagerConfig, gold_tree, arc)
-    l = i -> arc(token(gold_tree, i))
-    gold_arc = (a, b) -> has_arc(gold_tree, a, b)
+function static_oracle(cfg::ArcEagerConfig, gold, arc=untyped)
     if stacklength(cfg) >= 1
-        s = last(stack(cfg))
+        (σ, s) = popstack(cfg)
         if bufferlength(cfg) >= 1
-            b = first(buffer(cfg))
-            if gold_arc(b, s)
-                return LeftArc(l(s)...)
-            elseif gold_arc(s, b)
-                return RightArc(l(b)...)
-            end
+            (b, β) = shiftbuffer(cfg)
+            has_arc(gold, b, s) && return LeftArc(arc(gold[s])...)
+            has_arc(gold, s, b) && return RightArc(arc(gold[b])...)
         end
-        if all(k -> k > 0 && hashead(cfg, k), [s ; dependents(gold_tree, s)])
+        if all(k -> k > 0 && has_head(cfg, k), [s ; deps(gold, s)])
             return Reduce()
         end
     end
@@ -86,33 +90,30 @@ function static_oracle(cfg::ArcEagerConfig, gold_tree, arc)
 end
 
 """
-    static_oracle_prefer_shift(cfg, gold_tree, arc=untyped)
+    static_oracle_prefer_shift(cfg::ArcEagerConfig, tree, arc=untyped)
 
 Static oracle for arc-eager dependency parsing. Similar to the
 "regular" static oracle, but always Shift when ambiguity is present.
 
 See [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
 """
-function static_oracle_prefer_shift(cfg::ArcEagerConfig, gold_tree, arc=untyped)
-    l = i -> arc(token(gold_tree, i))
-    gold_arc = (a, b) -> has_arc(gold_tree, a, b)
+function static_oracle_prefer_shift(cfg::ArcEagerConfig, tree, arc=untyped)
+    l = i -> arc(token(tree, i))
+    gold_arc = (a, b) -> has_arc(tree, a, b)
     (σ, s), (b, β) = popstack(cfg), shiftbuffer(cfg)
-    if gold_arc(b, s)
-        return LeftArc(l(s)...)
-    elseif gold_arc(s, b)
-        return RightArc(l(b)...)
-    end
+    gold_arc(b, s) && return LeftArc(l(s)...)
+    gold_arc(s, b) && return RightArc(l(b)...)
     must_reduce = false
     for k in stack(cfg)
         if gold_arc(k, b) || gold_arc(b, k)
             must_reduce = true
             break
-        elseif head(token(cfg, k)) < 0
+        elseif has_head(token(cfg, k), -1)
             break
         end
     end
-    has_right_children = any(k -> s in rightdeps(gold_tree, k), buffer(cfg))
-    if !must_reduce || s > 0 && !hashead(cfg, s) || has_right_children
+    has_right_children = any(k -> s in rightdeps(tree, k), buffer(cfg))
+    if !must_reduce || s > 0 && !has_head(cfg, s) || has_right_children
         return Shift()
     else
         return Reduce()
@@ -120,23 +121,32 @@ function static_oracle_prefer_shift(cfg::ArcEagerConfig, gold_tree, arc=untyped)
 end
 
 """
-    dynamic_oracle(t, cfg::ArgEagerConfig, tree)
+    dynamic_oracle(cfg::ArgEagerConfig, tree, arc=untyped)
 
 Dynamic oracle function for arc-eager parsing.
 
 For details, see [Goldberg & Nivre 2012](https://aclweb.org/anthology/C12-1059).
 """
-dynamic_oracle(t, cfg::ArcEagerConfig, tree) = cost(t, cfg, tree) == 0
+dynamic_oracle(cfg::ArcEagerConfig, tree, arc=untyped) =
+    filter(t -> cost(t, cfg, tree) == 0, possible_transitions(cfg, tree, arc))
 
 # see figure 2 in goldberg & nivre 2012 "a dynamic oracle..."
 possible_transitions(cfg::ArcEagerConfig, graph::DependencyTree, arc=untyped) =
     possible_transitions(cfg, arc)
 
 function possible_transitions(cfg::ArcEagerConfig, arc=untyped)
-    s, b = last(stack(cfg)), first(buffer(cfg))
-    l = i -> arc(token(cfg, i))
-    transitions = [LeftArc(l(s)...), RightArc(l(b)...), Reduce(), Shift()]
-    return filter(t -> is_possible(t, cfg), transitions)
+    ts = TransitionOperator[]
+    if is_possible(LeftArc(), cfg)
+        s = last(stack(cfg))
+        push!(ts, LeftArc(arc(token(cfg, s))...))
+    end
+    if is_possible(RightArc(), cfg)
+        b = first(buffer(cfg))
+        push!(ts, RightArc(arc(token(cfg, b))...))
+    end
+    is_possible(Reduce(), cfg) && push!(ts, Reduce())
+    is_possible(Shift(), cfg) && push!(ts, Shift())
+    return ts
 end
 
 function cost(t::LeftArc, cfg::ArcEagerConfig, gold)
@@ -155,7 +165,7 @@ function cost(t::RightArc, cfg::ArcEagerConfig, gold)
     #                 plus num of gold arcs (b,l',k) s.t. k ϵ σ
     σ, s = popstack(cfg)
     b, β = shiftbuffer(cfg)
-    if has_dependency(gold, s, b)
+    if has_arc(gold, s, b)
         0
     else
         count(k -> has_arc(gold, k, b), [σ ; β]) + count(k -> has_arc(gold, b, k), σ)
@@ -175,18 +185,24 @@ function cost(t::Shift, cfg::ArcEagerConfig, gold)
 end
 
 function is_possible(::LeftArc, cfg::ArcEagerConfig)
-    s = last(stack(cfg))
-    return s != 0 && !hashead(token(cfg, s))
+    if length(cfg.stack) > 0 && length(cfg.buffer) > 0
+        s = last(stack(cfg))
+        return s != 0 && !has_head(token(cfg, s))
+    end
+    return false
 end
 
-is_possible(::RightArc, cfg::ArcEagerConfig) =
-    !hashead(token(cfg, first(buffer(cfg))))
+function is_possible(::RightArc, cfg::ArcEagerConfig)
+    return length(cfg.stack) > 0 && length(cfg.buffer) > 0 && 
+        !has_head(token(cfg, first(buffer(cfg))))
+end
 
 is_possible(::Reduce, cfg::ArcEagerConfig) =
-    hashead(token(cfg, last(stack(cfg))))
+    stacklength(cfg) > 0 && has_head(token(cfg, last(stack(cfg))))
 
-is_possible(::Shift, cfg::ArcEagerConfig) = true
+is_possible(::Shift, cfg::ArcEagerConfig) = bufferlength(cfg) > 0
 
-==(cfg1::ArcEagerConfig, cfg2::ArcEagerConfig) = cfg1.c == cfg2.c
+==(cfg1::ArcEagerConfig, cfg2::ArcEagerConfig) =
+    cfg1.stack == cfg2.stack && cfg1.buffer == cfg2.buffer && cfg1.A == cfg2.A
 
-Base.getindex(cfg::ArcEagerConfig, i) = arc(cfg, i)
+Base.getindex(cfg::ArcEagerConfig, i) = token(cfg, i)

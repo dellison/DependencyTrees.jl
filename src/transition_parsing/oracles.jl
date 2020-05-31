@@ -1,15 +1,93 @@
 abstract type AbstractOracle{T<:AbstractTransitionSystem} end
 
-initconfig(oracle::AbstractOracle, args...) = initconfig(system(oracle), args...)
+struct Oracle{T,O,L}
+    system::T
+    oracle_function::O
+    labelf::L
+end
 
-xys(oracle, trees) = Base.Iterators.flatten(xys(oracle, tree) for tree in trees)
-xys(oracle, tree::DependencyTree; kwargs...) =
-    ((state.cfg, state.G) for state in oracle(tree; kwargs...))
+"""
+    Oracle(system, oracle_function; label=untyped)
+
+Create an oracle for predicting gold transitions in dependency parsing.
+
+`system` is a transition system, defining configurations and valid transitions.
+
+`oracle_function` is called on a paraser configuration and tree for gold predictions:
+
+    oracle(cfg, tree, label)
+
+`label` is a function that's called on the gold tokens for that parameters of arcs.
+"""
+function Oracle(system, oracle_function; label=untyped)
+    Oracle(system, oracle_function, label)
+end
+
+(oracle::Oracle)(tree::DependencyTree, policy=NeverExplore()) =
+    OracleSequence(oracle, tree, policy)
+
+(oracle::Oracle)(cfg, tree::DependencyTree) =
+    oracle.oracle_function(cfg, tree, oracle.labelf)
+
+initconfig(oracle::Oracle, tree) = initconfig(oracle.system, tree)
+
+function transitions(cfg, gold::DependencyTree, oracle::Oracle)
+    A = possible_transitions(cfg, gold, oracle.labelf)
+    G = oracle(cfg, gold)
+    return A, G
+end
+
+"""
+    OracleSequence(oracle, tree, policy=NeverExplore())
+
+A "gold" sequence of parser configurations and transitions to build `tree`.
+
+The sequence of transitions is performed according to
+
+`policy` is a function that determines whether or not "incorrect" transitions
+are explored. It will be called like so: `policy(
+"""
+struct OracleSequence{T,P}
+    oracle::Oracle{T}
+    tree::DependencyTree
+    policy::P
+
+    function OracleSequence(oracle::Oracle, tree::DependencyTree, policy=NeverExplore())
+        T = oracle.system
+        if projective_only(T) && !is_projective(tree)
+            UnparsableTree(NonProjectiveGraphError(tree))
+        else
+            new{typeof(T),typeof(policy)}(oracle, tree, policy)
+        end
+    end
+end
+
+function choose_transition(ts::OracleSequence, cfg)
+    A, G = transitions(cfg, ts.tree, ts.oracle)
+    t = ts.policy(cfg, A, G)
+    return t
+end
+
+Base.IteratorSize(ts::OracleSequence) = Base.SizeUnknown()
+
+function Base.iterate(ts::OracleSequence, state=nothing)
+    if state === nothing
+        state = initconfig(ts.oracle.system, ts.tree)
+    end
+    if isfinal(state)
+        return nothing
+    else
+        A, G = transitions(state, ts.tree, ts.oracle)
+        isempty(A) && return nothing
+        t = ts.policy(state, A, G)
+        return ((state, G), t(state))
+    end
+end
 
 """
    UnparsableTree
 
-Represents trees that an oracle can't parse.
+A dependency tree that an oracle cannot parse.
 """
 struct UnparsableTree
     err
@@ -18,61 +96,100 @@ Base.IteratorSize(pairs::UnparsableTree) = Base.HasLength()
 Base.iterate(pairs::UnparsableTree, state...) = nothing
 Base.length(::UnparsableTree) = 0
 
-"""
-    OracleState
+abstract type AbstractExplorationPolicy end
 
-Temporary state for building a transition parse.
-"""
-struct OracleState{C}
-    cfg::C
-    A::Vector{TransitionOperator}
-    G::Vector{TransitionOperator}
+choose(rng, x::TransitionOperator) = rand(rng, [x])
+
+function choose(rng, x)
+    isempty(x) ? nothing : rand(rng, x)
 end
 
-include("oracles/exploration.jl")
+no_model(cfg, A, G) = nothing
 
 """
-    TreeOracle
+    AlwaysExplore()
 
-A gold tree for training.
+Policy for always exploring sub-optimal transitions.
 
-Collects an `oracle`, a gold `tree`, and an exploration `policy`.
+If `model` predicts a legal transition, apply it. Otherwise,
+sample from the possible transitions (without regard to the oracle transitions)
+according to `rng`.
 """
-struct TreeOracle{O<:AbstractOracle}
-    oracle::O
-    tree::DependencyTree
-    policy
+struct AlwaysExplore{R<:AbstractRNG,M} <: AbstractExplorationPolicy
+    rng::R
+    model::M
+end
+AlwaysExplore() = AlwaysExplore(GLOBAL_RNG, no_model)
+AlwaysExplore(rng::AbstractRNG) = AlwaysExplore(rng, no_model)
+AlwaysExplore(model) = AlwaysExplore(GLOBAL_RNG, model)
 
-    function TreeOracle(oracle::AbstractOracle, tree::DependencyTree, policy=NeverExplore())
-        if projective_only(system(oracle)) && !isprojective(tree)
-            UnparsableTree(NonProjectiveGraphError(tree))
-        else
-            new{typeof(oracle)}(oracle, tree, policy)
-        end
+(::AlwaysExplore)() = true
+function (p::AlwaysExplore)(cfg, A::AbstractVector, G)
+    t = p.model(cfg, A, G)
+    is_possible(t, cfg) ?  t : choose(p.rng, A)
+end
+
+Base.show(io::IO, ::AlwaysExplore) = print(io, "AlwaysExplore")
+
+"""
+    NeverExplore()
+
+Policy for never exploring sub-optimal transitions.
+
+If `model` predicts a gold transition, apply it. Otherwise,
+choose from the gold transitions according to `rng`.
+"""
+struct NeverExplore{R<:AbstractRNG,M} <: AbstractExplorationPolicy
+    rng::R
+    model::M
+end
+NeverExplore() = NeverExplore(GLOBAL_RNG, no_model)
+NeverExplore(rng::AbstractRNG) = NeverExplore(rng, no_model)
+NeverExplore(model, rng=GLOBAL_RNG) = NeverExplore(rng, model)
+
+(::NeverExplore)() = false
+function (p::NeverExplore)(cfg, A, G)
+    t = p.model(cfg, A, G)
+    is_possible(t, cfg) && t in G ? t : choose(p.rng, G)
+end
+
+Base.show(io::IO, ::NeverExplore) = print(io, "NeverExplore")
+
+"""
+    ExplorationPolicy(k, p)
+
+Simple exploration policy from Goldberg & Nivre, 2012. Explores at rate `p`.
+
+With rate `p`, follow `model`'s prediction if legal, or choose from the possible
+transitions according to `rng` if the prediction can't be followed.
+With probability 1 -`p`, choose from gold transitions according to `rng`.
+"""
+struct ExplorationPolicy{R<:AbstractRNG,M} <: AbstractExplorationPolicy
+    p::Float64
+    rng::R
+    model::M
+
+    function ExplorationPolicy(p, rng::AbstractRNG=GLOBAL_RNG, model=no_model)
+        @assert 0 <= p <= 1
+        new{typeof(rng),typeof(model)}(p, rng, model)
+    end
+    function ExplorationPolicy(p, model, rng::AbstractRNG=GLOBAL_RNG)
+        @assert 0 <= p <= 1
+        new{typeof(rng),typeof(model)}(p, rng, model)
     end
 end
 
-Base.IteratorSize(o::TreeOracle) = Base.SizeUnknown()
+(p::ExplorationPolicy)() =
+    rand(p.rng) >= 1 - p.p
 
-function Base.iterate(o::TreeOracle)
-    system, tree, policy = o.oracle.system, o.tree, o.policy
-    cfg = initconfig(system, tree)
-    state = oracle_state(o, cfg)
-    t = policy(state)
-    next = t(cfg)
-    return (state, next)
-end
+(p::ExplorationPolicy)(cfg, A::AbstractVector, G::TransitionOperator) = p(cfg, A, [G])
 
-function Base.iterate(o::TreeOracle, cfg)
-    if isfinal(cfg)
-        return nothing
+function (p::ExplorationPolicy)(cfg, A::AbstractVector, G::AbstractVector)
+    t = p.model(cfg, A, G)
+    explore = rand(p.rng) >= 1 - p.p
+    if explore
+        return is_possible(t, cfg) ? t : rand(A)
     else
-        state, policy = oracle_state(o, cfg), o.policy
-        t = policy(state)
-        next = t(cfg)
-        return (state, next)
+        return rand(G)
     end
 end
-
-include("oracles/static.jl")
-include("oracles/dynamic.jl")

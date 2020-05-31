@@ -1,3 +1,5 @@
+using DependencyTrees.TransitionParsing: LeftArc, RightArc, NoArc, Shift, Reduce
+
 # tests from chapter 13 of the draft of "Speech and Language
 # Processing" 3rd edition by Jurafsky & Martin
 
@@ -14,7 +16,7 @@
     words(ids) = [(id == 0 ? "root" : sent[id]) for id in ids]
 
     @testset "Figure 13.7" begin
-        @test projective_only(ArcStandard())
+        @test DependencyTrees.TransitionParsing.projective_only(ArcStandard())
 
         # figure 13.7 in jurafsky & martin SLP 3rd ed., aug 2018 draft
         table = [
@@ -33,27 +35,29 @@
         sent = copy(sent_f13_7)
 
         gold_tree = test_sentence("morningflight.conll")
+        id2w = i -> iszero(i) ? "ROOT" : sent_f13_7
 
         for arc in (untyped, typed)
+            oracle = Oracle(ArcStandard(), static_oracle, arc)
             o = cfg -> static_oracle(cfg, gold_tree, arc)
             cfg = initconfig(ArcStandard(), gold_tree)
+            # @show cfg
             for (stk, buf, t) in table
-                @test form.(tokens(cfg, stack(cfg))) == stk
-                @test form.(tokens(cfg, buffer(cfg))) == buf
+                @test [t.form for t in tokens(cfg, stack(cfg))] == stk
+                # @show buffer(cfg) tokens(cfg, buffer(cfg))
+                @test [t.form for t in tokens(cfg, buffer(cfg))] == buf
                 t == nothing && break
                 if arc == untyped
                     t isa LeftArc && (t = LeftArc())
                     t isa RightArc && (t = RightArc())
                 end
-                @test o(cfg) == t
+                @test o(cfg) == oracle(cfg, gold_tree) == t
                 cfg = t(cfg)
             end
         end
     end
 
     @testset "Figure 13.8" begin
-        @test projective_only(ArcStandard())
-
         # figure 13.8 in jurafsky & martin SLP 3rd ed., aug 2018 draft
         table = [
             # stack                                    buffer                                  # transition
@@ -68,31 +72,33 @@
             (["ROOT","book","flight"],                 [],                                     RightArc("dobj")),
             (["ROOT","book",],                         [],                                     RightArc("root")),
             (["ROOT",],                                [],                                     nothing)]
-        sent = copy(sent_f13_7)
 
         gold_tree = test_sentence("flightthroughhouston.conll")
 
         for arc in (untyped, typed)
+            oracle = Oracle(ArcStandard(), static_oracle, arc)
+
             o = cfg -> static_oracle(cfg, gold_tree, arc)
             cfg = initconfig(ArcStandard(), gold_tree)
             for (stk, buf, t) in table
-                @test form.(tokens(cfg, stack(cfg))) == stk
-                @test form.(tokens(cfg, buffer(cfg))) == buf
+                @test [t.form for t in tokens(cfg, stack(cfg))] == stk
+                @test [t.form for t in tokens(cfg, buffer(cfg))] == buf
                 t == nothing && break
                 if arc == untyped
                     t isa LeftArc && (t = LeftArc())
                     t isa RightArc && (t = RightArc())
                     @test endswith(showstr(t), "()")
                 end
-                @test o(cfg) == t
+                @test o(cfg) == oracle(cfg, gold_tree) == t
                 cfg = t(cfg)
             end
+            @test isfinal(cfg)
         end
     end
 
     @testset "Figure 13.10" begin
 
-        @test DependencyTrees.projective_only(ArcEager())
+        @test DependencyTrees.TransitionParsing.projective_only(ArcEager())
 
         table = [
             # stack                                    buffer                                  # transition
@@ -111,18 +117,19 @@
         gold_tree = test_sentence("flightthroughhouston.conll")
 
         for arc in (untyped, typed)
+            oracle = Oracle(ArcEager(), static_oracle, arc)
             o = cfg -> static_oracle(cfg, gold_tree, arc)
             cfg = initconfig(ArcEager(), gold_tree)
             for (stk, buf, t) in table
-                @test form.(tokens(cfg, stack(cfg))) == stk
-                @test form.(tokens(cfg, buffer(cfg))) == buf
+                @test [t.form for t in tokens(cfg, stack(cfg))] == stk
+                @test [t.form for t in tokens(cfg, buffer(cfg))] == buf
                 t == nothing && break
                 if arc == untyped
                     t isa LeftArc && (t = LeftArc())
                     t isa RightArc && (t = RightArc())
                     @test endswith(showstr(t), "()")
                 end
-                @test o(cfg) == t
+                @test o(cfg) == oracle(cfg, gold_tree) == t
                 if o(cfg) != t
                     @show stk buf t cfg o(cfg)
                 end

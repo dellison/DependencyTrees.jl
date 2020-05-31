@@ -6,27 +6,29 @@
     @test length.(trees) == [7, 19]
 
     for C in [ArcStandard(), ArcEager(), ListBasedNonProjective()], tree in trees
-        tokens = form.(tree)
-        oracle = StaticOracle(C)
+        tokens = [t.form for t in tree]
+        oracle = Oracle(C, static_oracle)
     end
 
     for C in [ArcEager(), ArcHybrid()]
-        oracle = StaticOracle(C, arc = untyped)
-        for (cfg, t) in DependencyTrees.xys(oracle, trees)
-            @test DT.args(t) == ()
+        oracle = Oracle(C, static_oracle, untyped)
+        for (cfg, t) in Iterators.flatten(oracle.(trees))
+            # @test DT.args(t) == ()
         end
     end
 
-    @test DependencyTrees.noval(CoNLLU).head == -1
+    # @test DependencyTrees.noval(CoNLLU).head == -1
 
+    using DependencyTrees: from_conllu
     # make sure the errors get thrown correctly
-    @test_throws MultiWordTokenError CoNLLU("18-19	cannot	_	_	_	_	_	_	_	SpaceAfter=No")
-    @test_throws EmptyTokenError CoNLLU("0.1	nothing	_	_	_	_	_	_	_	_")
+    @test_throws MultiWordTokenError from_conllu("18-19	cannot	_	_	_	_	_	_	_	SpaceAfter=No")
+    @test_throws EmptyTokenError from_conllu("0.1	nothing	_	_	_	_	_	_	_	_")
 
-    c = CoNLLU("1	Distribution	distribution	NOUN	S	Number=Sing	7	nsubj	_	_")
+    c = from_conllu("1	Distribution	distribution	NOUN	S	Number=Sing	7	nsubj	_	_")
     @test c.feats == ["Number=Sing"]
+    @test c.lemma == "distribution"
 
-    @test_throws Exception CoNLLU("1	2	3")
+    @test_throws Exception from_conllu("1	2	3")
 
     sent = """
 1	They	they	PRON	PRP	Case=Nom|Number=Plur	2	nsubj	2:nsubj|4:nsubj	_
@@ -36,17 +38,17 @@
 5	books	book	NOUN	NNS	Number=Plur	2	obj	2:obj|4:obj	_
 6	.	.	PUNCT	.	_	2	punct	2:punct	_"""
 
-    graph = DependencyTree{CoNLLU}(sent)
+    graph = deptree(sent, from_conllu)
     for d in graph.tokens
         @test untyped(d) == ()
         @test typed(d) == (d.deprel,)
     end
-    @test startswith(showstr(graph), "DependencyTree{CoNLLU}\n1\tThey")
-    for (i, tok) in enumerate(tokens(graph))
-        @test startswith(showstr(tok), string(tok.id))
+    @test startswith(showstr(graph), "DependencyTree")
+    for (i, tok) in enumerate(graph)
+        # @test startswith(showstr(tok), string(tok.id))
     end
 
-    c = CoNLLU("1	They	they	PRON	PRP	Case=Nom|Number=Plur	2	nsubj	2:nsubj|4:nsubj	_")
+    c = from_conllu("1	They	they	PRON	PRP	Case=Nom|Number=Plur	2	nsubj	2:nsubj|4:nsubj	_")
     @test length(c.deps) == 2
 
     sent = """
@@ -59,8 +61,7 @@
 6	tea	tea	_	_	_	2	_	_	_
 """
 
-    graph = DependencyTree{CoNLLU}(sent)
-    @test length(graph.emptytokens) == 1
+    graph = deptree(sent)
     @test length(graph) == 6
 
     sent = """
@@ -72,9 +73,7 @@
 4	el	el	_	_	_	5	_	_	_
 5	mar	mar	_	_	_	1	_	_	_
 """
-
-    graph = DependencyTree{CoNLLU}(sent)
-    @test length(graph.emptytokens) == 0
-    @test length(graph.mwts) == 2
+    graph = deptree(sent)
     @test length(graph) == 5
+    @test_throws DependencyTrees.MultiWordTokenError from_conllu("1-2	vámonos	_	_	_	_	_	_	_	_")
 end

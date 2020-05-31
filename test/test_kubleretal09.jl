@@ -2,11 +2,12 @@
 # parsing" (https://doi.org/10.2200/S00169ED1V01Y200901HLT002)
 
 @testset "Kübler et al 09" begin
-    @test projective_only(ArcEager())
+    # @test projective_only(ArcEager())
 
     @testset "Figure 3.7" begin
         tree = test_sentence("economicnews.conll")
-        oracle = StaticOracle(ArcEager(), arc=typed)
+        # oracle = StaticOracle(ArcEager(), arc=typed)
+        oracle = Oracle(ArcEager(), static_oracle, typed)
 
         gold_transitions = [Shift(), LeftArc("ATT"), Shift(), LeftArc("SBJ"),
                             RightArc("PRED"), Shift(), LeftArc("ATT"),
@@ -22,12 +23,15 @@
             cfg = t(cfg)
         end
         @test isfinal(cfg)
-        result = DependencyTree(tokens(cfg))
-        @test tree == result
+        result = deptree(cfg)
+        # @test tree == result
+        @test labeled_accuracy(result, tree) == 1
 
-        oracle = StaticOracle(ArcEager(), arc=typed)
-        pairs = xys(oracle, tree)
+        # oracle = StaticOracle(ArcEager(), arc=typed)
+        oracle = Oracle(ArcEager(), static_oracle, typed)
+        # pairs = xys(oracle, tree)
+        pairs = oracle(tree)
         @test collect(last.(pairs)) == gold_transitions
-        @test collect(xys(oracle, [tree])) == collect(pairs)
+        @test collect(oracle(tree)) == collect(pairs)
     end
 end

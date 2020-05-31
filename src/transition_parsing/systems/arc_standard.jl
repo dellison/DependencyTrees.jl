@@ -11,7 +11,6 @@ Transition system for for Arc-Standard dependency parsing.
 | RightArc(l) | (σ\\|s, b\\|β, A) → (σ, b\\|β, A ∪ (b, l, s))      |
 | Shift	      | (σ,  b\\|β, A) → (σ\\|b, β, A)                     |
 
-
 # Preconditions
 
 | Transition  | Condition                          |
@@ -24,7 +23,7 @@ See [Nivre 2004](https://www.aclweb.org/anthology/W04-0308.pdf).
 struct ArcStandard <: AbstractTransitionSystem end
 
 initconfig(s::ArcStandard, graph::DependencyTree) = ArcStandardConfig(graph)
-initconfig(s::ArcStandard, deptype, words) = ArcStandardConfig{deptype}(words)
+initconfig(s::ArcStandard, words) = ArcStandardConfig(words)
 
 projective_only(::ArcStandard) = true
 
@@ -32,20 +31,38 @@ transition_space(::ArcStandard, labels=[]) =
     isempty(labels) ? [LeftArc(), RightArc(), Shift()] :
     [LeftArc.(labels)..., RightArc.(labels)..., Shift()]
 
-struct ArcStandardConfig{T} <: AbstractParserConfiguration{T}
-    c::StackBufferConfiguration{T}
+struct ArcStandardConfig <: AbstractParserConfiguration
+    stack::Vector{Int}
+    buffer::Vector{Int}
+    A::Vector{Token}
 end
 
-@stackbufconfig ArcStandardConfig
+ArcStandardConfig(sentence) = stack_buffer_config(ArcStandardConfig, sentence)
 
+buffer(cfg::ArcStandardConfig) = cfg.buffer
+stack(cfg::ArcStandardConfig)  = cfg.stack
+tokens(cfg::ArcStandardConfig) = cfg.A
+
+function Base.show(io::IO, cfg::ArcStandardConfig)
+    print(io, "$(typeof(cfg))($(stack(cfg)),$(buffer(cfg)))")
+    for (i, t) in enumerate(tokens(cfg))
+        print("(",join((i, t.form, t.head), ","), ")")
+    end
+end
+
+function apply_transition(f, cfg::ArcStandardConfig, a...; k...)
+    σ, β, A = f(cfg.stack, cfg.buffer, cfg.A, a...; k...)
+    return ArcStandardConfig(σ, β, A)
+end
 
 leftarc(cfg::ArcStandardConfig, args...; kwargs...) =
-    ArcStandardConfig(leftarc_reduce2(cfg.c, args...; kwargs...))
+    apply_transition(leftarc_reduce2, cfg, args...; kwargs...)
 
-rightarc(cfg::ArcStandardConfig, args...; kwargs...) = 
-    ArcStandardConfig(rightarc_reduce(cfg.c, args...; kwargs...))
+rightarc(cfg::ArcStandardConfig, args...; kwargs...) =
+    apply_transition(rightarc_reduce, cfg, args...; kwargs...)
 
-shift(cfg::ArcStandardConfig) = ArcStandardConfig(shift(cfg.c))
+shift(cfg::ArcStandardConfig) =
+    apply_transition(shift, cfg)
 
 isfinal(cfg::ArcStandardConfig) =
     length(stack(cfg)) == 1 && stack(cfg)[1] == 0 && length(buffer(cfg)) == 0
@@ -53,8 +70,7 @@ isfinal(cfg::ArcStandardConfig) =
 """
     static_oracle(cfg, gold_tree)
 
-Static oracle for arc-standard dependency parsing. Closes over gold trees,
-mapping parser configurations to optimal transitions.
+Static oracle function for arc-standard dependency parsing.
 """
 function static_oracle(cfg::ArcStandardConfig, gold_tree, arc=untyped)
     l = i -> arc(gold_tree[i])
@@ -64,7 +80,7 @@ function static_oracle(cfg::ArcStandardConfig, gold_tree, arc=untyped)
         if has_arc(gold_tree, s0, s1)
             return LeftArc(l(s1)...)
         elseif has_arc(gold_tree, s1, s0)
-            if !any(k -> (k in s || k in buffer(cfg)), dependents(gold_tree, s0))
+            if !any(k -> (k in s || k in buffer(cfg)), deps(gold_tree, s0))
                 return RightArc(l(s0)...)
             end
         end
@@ -75,14 +91,14 @@ end
 function is_possible(::LeftArc, cfg::ArcStandardConfig)
     if stacklength(cfg) >= 2
         s, s1, s0 = popstack(cfg, 2)
-        return s1 != 0 && !hashead(token(cfg, s1))
+        return s1 != 0 && !has_head(token(cfg, s1))
     else
         return false
     end
 end
 
 is_possible(::RightArc, cfg::ArcStandardConfig) =
-    stacklength(cfg) > 1 && !hashead(token(cfg, last(stack(cfg))))
+    stacklength(cfg) > 1 && !has_head(token(cfg, last(stack(cfg))))
 
 is_possible(::Shift, cfg::ArcStandardConfig) = stacklength(cfg) > 0
 
@@ -100,4 +116,5 @@ end
 possible_transitions(cfg::ArcStandardConfig, gold_tree::DependencyTree, arc=untyped) =
     possible_transitions(cfg, arc)
 
-==(cfg1::ArcStandardConfig, cfg2::ArcStandardConfig) = cfg1.c == cfg2.c
+==(cfg1::ArcStandardConfig, cfg2::ArcStandardConfig) =
+    cfg1.stack == cfg2.stack && cfg1.buffer == cfg2.buffer && cfg1.A == cfg2.A
