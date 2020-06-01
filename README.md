@@ -2,7 +2,9 @@
 
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://dellison.github.io/DependencyTrees.jl/stable) [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://dellison.github.io/DependencyTrees.jl/dev) [![Build Status](https://travis-ci.org/dellison/DependencyTrees.jl.svg?branch=master)](https://travis-ci.org/dellison/DependencyTrees.jl) [![CodeCov](https://codecov.io/gh/dellison/DependencyTrees.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/dellison/DependencyTrees.jl)
 
-DependencyTrees.jl is a Julia package for working with dependency structures in natural language sentences. It provides implementations of dependency parse trees (`DependencyTree`), a treebank reader, and parsing algorithms.
+DependencyTrees.jl is a Julia package for working with dependency structures in natural language sentences. It provides implementations of dependency parse trees (`DependencyTree`), a treebank reader, and transition-based parsing algorithms.
+
+[Read the docs](https://dellison.github.io/DependencyTrees.jl/stable/)
 
 ## Features
 
