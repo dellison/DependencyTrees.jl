@@ -1,4 +1,3 @@
-
 # TODO keep track of outgoing arcs?
 """
     DependencyTree
@@ -58,11 +57,8 @@ end
 
 Return a vector of (src, dst) tuples, representing all dependency arcs in `tree`.
 """
-function arcs(tree::DependencyTree)
-    ch = children(tree)
-    T = length(tree)
-    return [(s, d) for d in 1:T for s in ch[d]]
-end
+arcs(tree::DependencyTree) =
+    [(h, d) for (d, tok) in enumerate(tree.tokens) for h in tok.head]
 
 deps(tree::DependencyTree, i::Int) =
     filter(j -> has_head(tree.tokens[j], i), 1:length(tree))
@@ -84,12 +80,17 @@ end
 has_arc(tree::DependencyTree, head::Int, dependant::Int) =
     iszero(dependant) ? false : has_head(tree.tokens[dependant], head)
 
-function children(tree::DependencyTree)
-    inc = [Set{Int}() for _=1:length(tree)]
-    for (i, token) in enumerate(tree), head in token.head
-        push!(inc[i], head)
+children(tree::DependencyTree; recursive=false) =
+    [children(tree, i; recursive=recursive) for i in 1:length(tree)]
+
+function children(tree::DependencyTree, i::Int; recursive=false)
+    ch = [c for (c, tok) in enumerate(tree.tokens) if has_head(tok, i)]
+    if recursive
+        for c in ch
+            append!(ch, children(tree, c))
+        end
     end
-    return inc
+    return ch
 end
 
 token(tree::DependencyTree, i) =
@@ -114,6 +115,64 @@ function is_projective(tree::DependencyTree)
     return true
 end
     
+struct ArrowCharset
+    arrow::Char
+    ur::Char
+    ud::Char
+    lr::Char
+    dr::Char
+end
+DEFAULT_ARROWS = ArrowCharset('►','└','│','─','┌') 
+
+function prettyprint(tree::DependencyTree; charset=DEFAULT_ARROWS)
+    n = length(tree)
+    lines = ["" for _=1:n+1]
+    queue = sort(arcs(tree), by = (arc) -> abs(-(arc...)))
+    for (h, d) in queue
+        iszero(h) && continue # leave root arc until the end
+        lines = drawarrow!(lines, h+1, d+1, charset)
+    end
+    for root in tree.root
+        lines = drawarrow!(lines, 1, root+1, charset)
+    end
+    max_height = maximum(length.(lines))
+    lines = map(enumerate(lines)) do (i, line)
+        height = length(line)
+        leftpad = repeat(" ", max_height - height)
+        leftpad * line * " " * tree[i-1].form
+    end
+    return join(lines, "\n")
+end
+
+function drawarrow!(lines, from, to, cs)
+    middle = cs.ud * "  "
+    if from < to
+        range = from:to
+        base = cs.dr * cs.lr * cs.lr
+        head = cs.ur * cs.lr * cs.arrow
+        arrow = [base; [middle for i in from+1:to-1]; head]
+    else
+        range = to:from
+        arrow = [cs.dr * cs.lr * cs.arrow;
+                 [middle for i in from+1:to-1];
+                 cs.ur * cs.lr * cs.lr]
+    end
+    heights = length.(lines[i] for i in range)
+    max_height = maximum(heights)
+    for (i, (r, h, a)) in enumerate(zip(range, heights, arrow))
+        if r == from
+            lines[r] = a * repeat(cs.lr, max_height - h) * lines[r]
+        elseif r == to
+            # redraw the arrowhead to go all the way down
+            arr = a[1][1] * repeat(cs.lr, max(0, max_height - h) + 1) * cs.arrow
+            lines[r] = arr * lines[r]
+        else
+            lines[r] = a * repeat(" ", max_height - h) * lines[r]
+        end
+    end
+    return lines
+end
+
 Base.getindex(tree::DependencyTree, i::Int) = iszero(i) ? ROOT : tree.tokens[i]
 
 Base.iterate(tree::DependencyTree, state...) = iterate(tree.tokens, state...)
@@ -121,6 +180,6 @@ Base.iterate(tree::DependencyTree, state...) = iterate(tree.tokens, state...)
 Base.length(tree::DependencyTree) = length(tree.tokens)
 
 Base.show(io::IO, tree::DependencyTree) =
-    print(io, "DependencyTree: ", join((t.form for t in tree.tokens), " "))
+    print(io, prettyprint(tree))
     
 ==(a::DependencyTree, b::DependencyTree) = all(a.tokens .== b.tokens)

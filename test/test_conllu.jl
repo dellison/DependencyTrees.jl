@@ -43,10 +43,6 @@
         @test untyped(d) == ()
         @test typed(d) == (d.deprel,)
     end
-    @test startswith(showstr(graph), "DependencyTree")
-    for (i, tok) in enumerate(graph)
-        # @test startswith(showstr(tok), string(tok.id))
-    end
 
     c = from_conllu("1	They	they	PRON	PRP	Case=Nom|Number=Plur	2	nsubj	2:nsubj|4:nsubj	_")
     @test length(c.deps) == 2

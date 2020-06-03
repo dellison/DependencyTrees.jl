@@ -36,7 +36,19 @@ using DependencyTrees: deps, leftdeps, rightdeps, leftmostdep, rightmostdep
 9	.	_	_	_	_	3	PU	_	_
 """ |> strip
 
-    @test showstr(graph) == "DependencyTree: Economic news had little effect on financial markets ."
+    @test showstr(graph) ==
+        """
+        ┌────────────── ROOT
+        │           ┌─► Economic
+        │        ┌─►└── news
+        └─►┌──┌──└───── had
+           │  │     ┌─► little
+           │  └─►┌──└── effect
+           │  ┌──└────► on
+           │  │     ┌─► financial
+           │  └────►└── markets
+           └──────────► .
+        """ |> strip
 
     @test length(graph) == length(sent) == 9
     for (i, (word, tag, id_)) in enumerate(sent)
@@ -154,7 +166,20 @@ using DependencyTrees: deps, leftdeps, rightdeps, leftmostdep, rightmostdep
 10	terrier	_	_	_	_	7	_	_	_
 """ |> strip
 
-        @test showstr(graph) |> strip == "DependencyTree: john saw a dog yesterday which was a yorkshire terrier"
+        @test showstr(graph) |> strip ==
+            """
+               ┌─────────── ROOT
+               │        ┌─► john
+               └─►┌──┌──└── saw
+                  │  │  ┌─► a
+               ┌──│  └─►└── dog
+               │  └───────► yesterday
+               │        ┌─► which
+            ┌──└───────►└── was
+            │           ┌─► a
+            │        ┌─►└── yorkshire
+            └───────►└───── terrier
+            """ |> strip
 
         # jurafsky & martin, speech & language processing (3ed)
         sent = [
