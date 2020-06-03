@@ -117,12 +117,13 @@ end
     
 struct ArrowCharset
     arrow::Char
-    ur::Char
-    ud::Char
-    lr::Char
-    dr::Char
+    ur::Char # up/right
+    ud::Char # up/down
+    lr::Char # left/right
+    dr::Char # down/right
 end
 DEFAULT_ARROWS = ArrowCharset('►','└','│','─','┌') 
+ASCII_ARROWS   = ArrowCharset('>', '\'', '|', '-', ',')
 
 function prettyprint(tree::DependencyTree; charset=DEFAULT_ARROWS)
     n = length(tree)
@@ -146,7 +147,7 @@ end
 
 function drawarrow!(lines, from, to, cs)
     middle = cs.ud * "  "
-    if from < to
+    if from < to # pointing "down" the sentence
         range = from:to
         base = cs.dr * cs.lr * cs.lr
         head = cs.ur * cs.lr * cs.arrow
@@ -154,7 +155,7 @@ function drawarrow!(lines, from, to, cs)
     else
         range = to:from
         arrow = [cs.dr * cs.lr * cs.arrow;
-                 [middle for i in from+1:to-1];
+                 [middle for i in to+1:from-1];
                  cs.ur * cs.lr * cs.lr]
     end
     heights = length.(lines[i] for i in range)
