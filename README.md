@@ -10,6 +10,8 @@ DependencyTrees.jl is a Julia package for working with dependency structures in 
 
 ### Trees and Treebanks
 
+The `DependencyTree` type represents a dependency parse of a natural language sentence.
+
 ```julia-repl
 julia> using DependencyTrees
 
@@ -18,6 +20,27 @@ julia> treebank = Treebank("test/data/english.conllu")
 julia> for tree in treebank
            # ...
        end
+
+julia> tree = first(treebank)
+┌──────────────────── ROOT
+│                 ┌─► Pierre
+│     ┌─►┌──┌──┌──└── Vinken
+│     └──│  │  └────► ,
+│        │  │     ┌─► 61
+│        │  │  ┌─►└── years
+│        │  └─►└───── old
+│        └──────────► ,
+└─►┌──────────────┌── will
+   │  ┌─────┌──┌──└─► join
+   │  │     │  │  ┌─► the
+   │  │     │  └─►└── board
+   │  │  ┌──└───────► as
+   │  │  │     ┌────► a
+   │  │  │     └──┌─► nonexecutive
+   │  │  └───────►└── director
+   │  └──────────►┌── Nov.
+   │              └─► 29
+   └────────────────► .
 ```
 
 ### Transition-based parsing
