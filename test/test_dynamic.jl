@@ -1,9 +1,6 @@
 @testset "Dynamic Oracles" begin
 
     oracle = Oracle(ArcEager(), dynamic_oracle, typed)
-
-    model(cfg) = nothing
-    
     graph = test_sentence("economicnews.conll")
 
     model(cfg) = static_oracle(cfg, graph, typed)

@@ -7,7 +7,13 @@ A rooted tree of dependency relations among the tokens of a sentence.
 struct DependencyTree{T<:Token, R<:Union{Int,Set{Int}}}
     tokens::Vector{T}
     root::R
+    # empty_tokens
+    # multi-word expressions
+    metadata::Dict{String,String}
 end
+
+DependencyTree(tokens, root) =
+    DependencyTree(tokens, root, Dict{String,String}())
 
 """
     deptree(read_token, xs)
@@ -17,11 +23,14 @@ Create a `DependencyTree` by calling `read_token` on each of `xs`.
 function deptree end
 
 function deptree(tokens)
-    return DependencyTree(tokens, find_root(tokens))
+    return DependencyTree(tokens, find_root(tokens), Dict{String,String}())
 end
 
 function deptree(read_token, xs)
     tokens = Token[]
+    # empty_tokens = Token[]
+    # multiword_expressions = Token[]
+    metadata = Dict{String,String}()
     for x in xs
         try
             token = read_token(x)
@@ -31,6 +40,9 @@ function deptree(read_token, xs)
                 continue
             elseif err isa MultiWordTokenError
                 continue
+            elseif err isa MetadataError
+                key, val = err.key, err.val
+                metadata[key] = val
             else
                 throw(err)
             end
@@ -38,12 +50,11 @@ function deptree(read_token, xs)
     end
     tokens = identity.(tokens) # type info
     root = find_root(tokens)
-    return DependencyTree(tokens, root)
+    return DependencyTree(tokens, root, metadata)
 end
 
 function deptree(lines::String, read_token=from_conllu)
     lines = [line for line in split(strip(lines), "\n")]
-    lines = filter(x -> !startswith(x, "#"), lines)
     return deptree(read_token, lines)
 end
 

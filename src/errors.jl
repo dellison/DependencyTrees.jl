@@ -26,3 +26,8 @@ Error for an empty token annotation that isn't part of the tree.
 struct EmptyTokenError <: DependencyTreeError
     token
 end
+
+struct MetadataError <: DependencyTreeError
+    key
+    val
+end

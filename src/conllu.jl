@@ -5,6 +5,11 @@ Read a token (in a dependency tree) from CoNLL-U format.
 """
 function from_conllu(line::AbstractString)
     local id::Int
+    metadata = Dict{String, String}()
+    if startswith(line, "#")
+        key, val = string.(split(strip(line, ['#',' ']), " = "))
+        throw(MetadataError(key, val))
+    end
     fields = split(strip(line), "\t")
     if length(fields) != 10
         error("need 10 tab-separated fields for CoNLLU, found $(length(fields)): '$line'")
@@ -29,7 +34,13 @@ function from_conllu(line::AbstractString)
     else
         feats = String.(split(fields[6], "|"))
     end
-    head = parse(Int, fields[7])
+
+    # head is in the seventh column.
+    if fields[7] == "_"
+        head = -1
+    else
+        head = parse(Int, fields[7])
+    end
     deprel = String(fields[8])
     if fields[9] == "_"
         deps = Vector{Tuple{Int,String}}()
@@ -64,3 +75,4 @@ function toconllu(id::Int, t::Token)
     misc = _prop(t, :misc)
     join([id, form, lemma, upos, xpos, feats, head, deprel, deps, misc], "\t")
 end
+

@@ -72,4 +72,46 @@
     graph = deptree(sent)
     @test length(graph) == 5
     @test_throws DependencyTrees.MultiWordTokenError from_conllu("1-2	vámonos	_	_	_	_	_	_	_	_")
+
+
+    @testset "Metadata" begin
+        sent = """
+# newdoc id = weblog-juancole.com_juancole_20051126063000_ENG_20051126_063000
+# sent_id = weblog-juancole.com_juancole_20051126063000_ENG_20051126_063000-0001
+# newpar id = weblog-juancole.com_juancole_20051126063000_ENG_20051126_063000-p0001
+# text = Al-Zaman : American forces killed Shaikh Abdullah al-Ani, the preacher at the mosque in the town of Qaim, near the Syrian border.
+1	Al	Al	PROPN	_	Number=Sing	0	root	_	_
+2	-	-	PUNCT	_	_	_	_	_	_
+3	Zaman	Zaman	PROPN	_	Number=Sing	1	flat	_	_
+4	:	:	PUNCT	_	_	_	_	_	_
+5	American	American	ADJ	_	Degree=Pos	6	amod	_	_
+6	forces	force	NOUN	_	Number=Plur	7	nsubj	_	_
+7	killed	kill	VERB	_	Mood=Ind|Polarity=Pos|Tense=Past|VerbForm=Fin|Voice=Act	1	parataxis	_	_
+8	Shaikh	Shaikh	PROPN	_	Number=Sing	7	obj	_	_
+9	Abdullah	Abdullah	PROPN	_	Number=Sing	8	flat	_	_
+10	al	al	PROPN	_	Number=Sing	8	flat	_	_
+11	-	-	PUNCT	_	_	_	_	_	_
+12	Ani	Ani	PROPN	_	Number=Sing	8	flat	_	_
+13	,	,	PUNCT	_	_	_	_	_	_
+14	the	the	DET	_	_	_	_	_	_
+15	preacher	preacher	NOUN	_	Definite=Def|Number=Sing	8	appos	_	_
+16	at	at	ADP	_	_	_	_	_	_
+17	the	the	DET	_	_	_	_	_	_
+18	mosque	mosque	NOUN	_	Case=Loc|Definite=Def|Number=Sing	15	nmod	_	_
+19	in	in	ADP	_	_	_	_	_	_
+20	the	the	DET	_	_	_	_	_	_
+21	town	town	NOUN	_	Case=Ine|Definite=Def|Number=Sing	18	nmod	_	_
+22	of	of	ADP	_	_	_	_	_	_
+23	Qaim	Qaim	PROPN	_	Case=Gen|Number=Sing	21	nmod	_	_
+24	,	,	PUNCT	_	_	_	_	_	_
+25	near	near	ADP	_	_	_	_	_	_
+26	the	the	DET	_	_	_	_	_	_
+27	Syrian	Syrian	ADJ	_	Degree=Pos	28	amod	_	_
+28	border	border	NOUN	_	Case=Prx|Definite=Def|Number=Sing	21	nmod	_	_
+29	.	.	PUNCT	_	_	_	_	_	_
+"""
+        tree = deptree(sent)
+        @test length(tree) == 29
+        @test tree.metadata["sent_id"] == "weblog-juancole.com_juancole_20051126063000_ENG_20051126_063000-0001"
+    end
 end

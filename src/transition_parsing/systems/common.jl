@@ -25,7 +25,7 @@ struct LeftArc{A<:Tuple,K<:NamedTuple} <: TransitionOperator
 
     function LeftArc(args...; kwargs...)
         A = typeof(args)
-        ks = kwargs.data
+        ks = values(kwargs)
         K = typeof(ks)
         new{A,K}(args, ks)
     end
@@ -43,7 +43,7 @@ struct RightArc{A<:Tuple,K<:NamedTuple} <: TransitionOperator
 
     function RightArc(args...; kwargs...)
         A = typeof(args)
-        ks = kwargs.data
+        ks = values(kwargs)
         K = typeof(ks)
         new{A,K}(args, ks)
     end
