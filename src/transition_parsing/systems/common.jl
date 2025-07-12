@@ -69,8 +69,6 @@ end
 
 abstract type AbstractParserConfiguration end
 
-deptree(cfg::AbstractParserConfiguration) = deptree(tokens(cfg))
-
 """
     stacktoken(cfg, i)
 
@@ -206,3 +204,6 @@ function shift(stack, buffer, A)
     b, β = shiftbuffer(buffer)
     return [stack ; b], β, A
 end
+
+DependencyTree(c::AbstractParserConfiguration) =
+    DependencyTree(tokens(c))

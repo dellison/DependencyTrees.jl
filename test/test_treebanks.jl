@@ -9,18 +9,25 @@
 
         @test_throws Exception Treebank("not a corpus")
 
-        treebank = Treebank(files)
-        @test showstr(treebank) == "Treebank (3 files)"
-        trees = collect(treebank)
-        @test length(trees) == 4
+        tb_emptytokens = Treebank(joinpath(datadir, "emptytokens.conllu"))
+        @test length(collect(tb_emptytokens)) == 1
 
-        np = Treebank(joinpath(datadir, "nonprojective.conll"))
+        tb_english = Treebank(joinpath(datadir, "english.conllu"))
+        @test length(collect(tb_english)) == 2
+
+        tb_mwt = Treebank(joinpath(datadir, "multiwordtoken.conllu"))
+        @test length(collect(tb_mwt)) == 1
+        tree = first(tb_mwt)
+        @test tree.metadata["sent_id"] == "en_partut-ud-167"
+        @test length(tree.tokens) == 24
+
+        np = Treebank(joinpath(datadir, "nonprojective.conll"), conllu)
         @test length(collect(np)) == 3
         @test length(filter(is_projective, collect(np))) == 2
     end
 
     @testset "Oracles & Projectivity" begin
-        tb = Treebank(joinpath(datadir, "nonprojective1.conll"))
+        tb = Treebank(joinpath(datadir, "nonprojective1.conll"), conllu)
         np_oracle = Oracle(ListBasedNonProjective(), static_oracle, untyped)
         p_oracle = Oracle(ArcEager(), static_oracle, untyped)
         np_data = collect(Iterators.flatten(np_oracle.(tb)))

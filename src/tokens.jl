@@ -3,39 +3,41 @@
 
 A token in a dependency tree.
 """
-struct Token{F,H<:Union{Int,Set{Int}},L}
+struct Token{F,H<:Union{Int,Set{Int}},L,D<:Union{Nothing,Dict}}
     form::F
     head::H
     label::L
-    data # Union{Nothing,Dict} ?
+    data::D
 end
 
-Token() = Token(nothing, -1, nothing, nothing)
-function Token(form, head::Int=-1, label=nothing; kwargs...)
-    return Token(form, head, label, isempty(kwargs) ? nothing : Dict(kwargs))
+# Token() = Token(nothing, -1, nothing, nothing)
+function Token(; form="", head=-1, label=nothing, kwargs...)
+    data = isempty(kwargs) ? nothing : Dict(kwargs)
+    return Token(form, head, label, data)
 end
+
+function Token(form, head::Int=-1, label=nothing; kwargs...)
+    data = isempty(kwargs) ? nothing : Dict(kwargs)
+    return Token(form, head, label, data)
+end
+
 Token(form, head, label=nothing; kwargs...) =
     Token(form, Set(head), label, isempty(kwargs) ? nothing : Dict(kwargs))
 Token(token::Token; head=token.head, label=token.label, kwargs...) =
     Token(token.form, head, label, isempty(kwargs) ? nothing : Dict(kwargs))
 
+# one-headed tokens (this covers most cases)
 const Token1H{F,L} = Token{F,Int,L}
+
+# N-headeed tokens (rare)
 const TokenNH{F,L}  = Token{F,Set{Int},L}
 
 const ROOT = Token("ROOT", 0, id=0)
 
-"""
-    deptoken(form, head=-1, label=nothing)
-
-Create a token in a dependency tree.
-"""
-deptoken(form=nothing, head=-1, label=nothing; kwargs...) =
-    Token(form, head, label; kwargs...)
-
 function from_indices(x; form::Int=1, head=2, label=3, kw...)
     ks, is = isempty(kw) ? ((), ()) : zip(pairs(kw)...)
     new_kw = NamedTuple{ks}(Tuple(x[i] for i in is))
-    return Token(x[form], x[head], x[label], new_kw...)
+    return Token(x[form], x[head], x[label]; new_kw...)
 end
 
 isroot(t::Token) = t === ROOT

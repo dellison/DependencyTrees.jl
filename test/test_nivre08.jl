@@ -39,7 +39,7 @@
             @test buffer(cfg) == buf
         end
         @test isfinal(cfg)
-        result = DependencyTree(tokens(cfg), DependencyTrees.find_root(tokens(cfg)))
+        result = DependencyTree(cfg)
         @test labeled_accuracy(result, tree_fig2) == 1
     end
 
@@ -76,7 +76,7 @@
             (RightArc("AuxK"),  [],      0:7,   [8]),
             (Shift(),           0:8,     [],    [])]
 
-        o(cfg) = static_oracle(cfg, tree_fig1, typed)
+        o = cfg -> static_oracle(cfg, tree_fig1, typed)
         cfg = initconfig(ListBasedNonProjective(), tree_fig1)
         for (t, l1, l2, buf) in table
             @test !isfinal(cfg)
@@ -88,7 +88,7 @@
         end
         @test isfinal(cfg)
 
-        result = deptree(cfg)
+        result = DependencyTree(cfg)
         @test labeled_accuracy(result, tree_fig1) == 1
         @test result.root == Set((3,8))
 

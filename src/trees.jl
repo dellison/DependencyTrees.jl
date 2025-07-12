@@ -12,34 +12,23 @@ struct DependencyTree{T<:Token, R<:Union{Int,Set{Int}}}
     metadata::Dict{String,String}
 end
 
-DependencyTree(tokens, root) =
-    DependencyTree(tokens, root, Dict{String,String}())
+DependencyTree(tokens) =
+    DependencyTree(tokens, find_root(tokens), Dict{String,String}())
 
-"""
-    deptree(read_token, xs)
-
-Create a `DependencyTree` by calling `read_token` on each of `xs`.
-"""
-function deptree end
-
-function deptree(tokens)
-    return DependencyTree(tokens, find_root(tokens), Dict{String,String}())
-end
-
-function deptree(read_token, xs)
+function DependencyTree(tokenf, xs)
     tokens = Token[]
-    # empty_tokens = Token[]
-    # multiword_expressions = Token[]
+    empty_tokens = Token[]
+    multiword_expressions = Token[]
     metadata = Dict{String,String}()
     for x in xs
         try
-            token = read_token(x)
+            token = tokenf(x)
             push!(tokens, token)
         catch err
             if err isa EmptyTokenError
-                continue
+                push!(empty_tokens, err.token)
             elseif err isa MultiWordTokenError
-                continue
+                push!(multiword_expressions, err.token)
             elseif err isa MetadataError
                 key, val = err.key, err.val
                 metadata[key] = val
@@ -53,11 +42,6 @@ function deptree(read_token, xs)
     return DependencyTree(tokens, root, metadata)
 end
 
-function deptree(lines::String, read_token=from_conllu)
-    lines = [line for line in split(strip(lines), "\n")]
-    return deptree(read_token, lines)
-end
-
 function find_root(tokens)
     root = [i for (i, token) in enumerate(tokens) if has_head(token, 0)]
     return length(root) == 1 ? root[1] : Set(root)
@@ -68,8 +52,14 @@ end
 
 Return a vector of (src, dst) tuples, representing all dependency arcs in `tree`.
 """
-arcs(tree::DependencyTree) =
-    [(h, d) for (d, tok) in enumerate(tree.tokens) for h in tok.head]
+function arcs(tree::DependencyTree)
+    return [
+        (h, d)
+        for (d, tok) in enumerate(tree.tokens)
+        for h in tok.head
+        if h >= 0
+   ]
+end
 
 deps(tree::DependencyTree, i::Int) =
     filter(j -> has_head(tree.tokens[j], i), 1:length(tree))
@@ -114,7 +104,7 @@ function is_projective(tree::DependencyTree)
     for (parent, child) in arcs(tree)
         child > parent && ((child, parent) = (parent, child))
         for k in child+1:parent-1
-            for m in 1:length(tree)#Iterators.flatten((1:i-1, j+1:length(tree)))
+            for m in 1:length(tree)
                 if m < child || m > parent
                     if arc(k, m) || arc(m, k)
                         return false
@@ -139,6 +129,7 @@ ASCII_ARROWS   = ArrowCharset('>', '\'', '|', '-', ',')
 function prettyprint(tree::DependencyTree; charset=DEFAULT_ARROWS)
     n = length(tree)
     lines = ["" for _=1:n+1]
+    # arcs_to_draw = filter(arcs(tree)
     queue = sort(arcs(tree), by = (arc) -> abs(-(arc...)))
     for (h, d) in queue
         iszero(h) && continue # leave root arc until the end

@@ -31,7 +31,7 @@
             gold_xys = collect(oracle(gold))
             cfg, t = last(gold_xys)
             cfg = t(cfg)
-            graph = deptree(tokens(cfg))
+            graph = DependencyTree(tokens(cfg))
             @test all(enumerate(graph)) do (i, token)
                 g = gold[i]
                 token.form == g.form && token.label == g.label && token.head == g.head

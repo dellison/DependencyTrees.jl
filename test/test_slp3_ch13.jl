@@ -20,7 +20,7 @@ using DependencyTrees.TransitionParsing: LeftArc, RightArc, NoArc, Shift, Reduce
 
         # figure 13.7 in jurafsky & martin SLP 3rd ed., aug 2018 draft
         table = [
-            # stack                                    buffer                                  # transition
+            # stack                                    buffer                                  transition
             (["ROOT"],                                 ["book","me","the","morning","flight"], Shift()),
             (["ROOT","book"],                          ["me","the","morning","flight"],        Shift()),
             (["ROOT","book","me"],                     ["the","morning","flight"],             RightArc("indobj")),

@@ -23,8 +23,7 @@
             cfg = t(cfg)
         end
         @test isfinal(cfg)
-        result = deptree(cfg)
-        # @test tree == result
+        result = DependencyTree(cfg)
         @test labeled_accuracy(result, tree) == 1
 
         # oracle = StaticOracle(ArcEager(), arc=typed)

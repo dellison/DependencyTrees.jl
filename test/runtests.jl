@@ -16,8 +16,8 @@ function showstr(op)
     return String(take!(buf))
 end
 
-function test_treebank(filename)
-    Treebank(joinpath(@__DIR__, "data", filename), DependencyTrees.from_conllu)
+function test_treebank(filename, parse=conllu)
+    Treebank(joinpath(@__DIR__, "data", filename), parse)
 end
 
 function test_sentence(filename)

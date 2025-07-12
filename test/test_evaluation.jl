@@ -1,32 +1,37 @@
 @testset "Evaluation" begin
 
-    f = x -> DependencyTrees.from_indices(x, form=2, label=3, head=4, id=1)
+    function tr(tokens)
+        return DependencyTree([
+            DependencyTrees.Token(id=id, form=form, label=label, head=head)
+        for (id, form, label, head) in tokens
+    ])
+    end
 
-    gold = deptree(f, [
+    gold = tr([
         (1, "The", "DT", 2),
         (2, "cat", "NSUBJ", 3),
         (3, "sleeps", "PRED", 0),
         (4, ".", ".", 3)])
 
-    good = deptree(f, [
+    good = tr([
         (1, "The", "DT", 2),
         (2, "cat", "NSUBJ", 3),
         (3, "sleeps", "PRED", 0),
         (4, ".", ".", 3)])
 
-    ok = deptree(f, [
+    ok = tr([
         (1, "The", "DT", 2),
         (2, "cat", "NSUBJ", 3),
         (3, "sleeps", "PRED", 0),
         (4, ".", "WRONG", 3)])
 
-    bad = deptree(f, [
+    bad = tr([
         (1, "The", "DT", 2),
         (2, "cat", "NSUBJ", 3),
         (3, "sleeps", "PRED", 0),
         (4, ".", "WRONG", 2)])
 
-    worse = deptree(f, [
+    worse = tr([
         (1, "The", "DT", 2),
         (2, "cat", "NSUBJ", 3),
         (3, "sleeps", "PRED", 2),

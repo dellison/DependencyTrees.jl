@@ -17,7 +17,7 @@ import Base.reduce
 import Random.AbstractRNG
 import Random.GLOBAL_RNG
 
-import ..Token, ..DependencyTree, ..deptree, ..ROOT, ..deps, ..token, 
+import ..Token, ..DependencyTree, ..ROOT, ..deps, ..token, 
     ..has_arc, ..has_head, ..is_projective, ..leftdeps, ..rightdeps,
     ..NonProjectiveGraphError
 

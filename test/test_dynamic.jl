@@ -1,9 +1,9 @@
 @testset "Dynamic Oracles" begin
 
     oracle = Oracle(ArcEager(), dynamic_oracle, typed)
-    graph = test_sentence("economicnews.conll")
+    graph = first(Treebank("data/economicnews.conll", conllu))
 
-    model(cfg) = static_oracle(cfg, graph, typed)
+    model = cfg -> static_oracle(cfg, graph, typed)
 
     cfg = initconfig(oracle, graph)
     nocost(t, cfg) = DependencyTrees.TransitionParsing.cost(t, cfg, graph) == 0
@@ -17,7 +17,7 @@
 
     # make sure this works the same for untyped oracles too
     oracle = Oracle(ArcEager(), dynamic_oracle, untyped)
-    model(cfg) = static_oracle(cfg, graph, untyped)
+    model = cfg -> static_oracle(cfg, graph, untyped)
     cfg = initconfig(oracle.system, graph)
     while !isfinal(cfg)
         pred = model(cfg)
@@ -29,12 +29,13 @@
     end
 
     tbfile = joinpath(@__DIR__, "data", "wsj_0001.dp")
-    readtok = line -> begin
-        form, deprel, head = split(line, "\t")
-        head = parse(Int, head)
-        DependencyTrees.Token(form, head, deprel)
+    parse_tree = text -> begin
+        DependencyTree(split(text, "\n"; keepempty=false)) do line
+            form, deprel, head = split(line, "\t")
+            DependencyTrees.Token(form, parse(Int, head), deprel)
+        end
     end
-    treebank = Treebank(tbfile, readtok)
+    treebank = Treebank(tbfile, parse_tree)
 
     for (cfg, gold) in oracle(graph)
         @test length(gold) >= 1
@@ -42,7 +43,7 @@
 
     @testset "Projectivity" begin
         o = Oracle(ArcHybrid(), dynamic_oracle)
-        tb = Treebank(joinpath(@__DIR__, "data", "nonprojective1.conll"))
+        tb = Treebank(joinpath(@__DIR__, "data", "nonprojective1.conll"), DependencyTrees.conllu)
         @test length(collect(tb)) == 1
         @test length(collect(Iterators.flatten(oracle.(tb)))) == 0
         @test sum(length(o(t)) for t in tb) == 0
@@ -60,7 +61,8 @@
         oracle = Oracle(ArcHybrid(), dynamic_oracle, untyped)
         policy = NeverExplore()
 
-        tb = Treebank(joinpath(@__DIR__, "data", "hybridtests.conll"))
+        # tb = Treebank(joinpath(@__DIR__, "data", "hybridtests.conll"), DependencyTrees.conllu)
+        tb = test_treebank("hybridtests.conll", conllu)
 
         for tree in treebank
             for (cfg, G) in oracle(tree)
@@ -182,7 +184,7 @@ end
         return true
     end
 
-    treebank = Treebank(joinpath(@__DIR__, "data", "hybridtests.conll"))
+    treebank = Treebank(joinpath(@__DIR__, "data", "hybridtests.conll"), DependencyTrees.conllu)
     for system in (ArcEager(), ArcHybrid())
         for oracle_fn in (static_oracle, dynamic_oracle)
             oracle = Oracle(system, oracle_fn, untyped)

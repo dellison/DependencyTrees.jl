@@ -1,6 +1,6 @@
 @testset "Arc-Standard" begin
 
-    tree = deptree(x -> deptoken(x[1], x[2]), [
+    tree = DependencyTree(x -> Token(x[1], x[2]), [
         ("the", 2),
         ("cat", 3),
         ("slept", 0),

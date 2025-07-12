@@ -1,84 +1,42 @@
-# TODO ids?
-# TODO docs
-# TODO comments
-# TODO multi word tokens
-# TODO empty tokens
-# TODO skip malformed trees?
 """
     Treebank
 
-A corpus of sentences annotated as dependency trees on disk.
+A reader for a file with annotated parse trees.
 """
-struct Treebank{F}
-    files::Vector{String}
-    read_token::F
+struct Treebank{S,F}
+    file::String
+    read_sentence::S
+    parse::F
 end
 
-"""
-    Treebank(file::String, read_token)
-
-Read treebank from file `file`, calling `read_token` on each line to read tokens.
-"""
-Treebank(file::String, read_token) = Treebank([file], read_token)
-
-"""
-    Treebank(file)
-
-Read a treebank from `files`, detecting the format from the filenames.
-"""
-Treebank(file::String) = Treebank([file])
-
-"""
-    Treebank(files)
-
-Read a treebank from the files `files`, attempting to detect the format.
-"""
-function Treebank(files::Vector{String})
-    if all(file -> endswith(file, ".conllu") || endswith(file, ".conll"), files)
-        Treebank(files, from_conllu)
+function Treebank(file)
+    if endswith(file, ".conllu")
+        return Treebank(file, readuntilemptyline, conllu)
+    elseif endswith(file, ".conllx")
+        return Treebank(file, readuntilemptyline, conllx)
     else
-        error("don't know how to read $files")
+        error("don't know how to parse $file")
     end
 end
+
+Treebank(file, parse) = Treebank(file, readuntilemptyline, parse)
 
 function Base.iterate(tb::Treebank)
-    r = TreeReader(first(tb.files), tb.read_token)
-    return iterate(tb, (r, 1))
+    state = open(tb.file)
+    return iterate(tb, state)
 end
+
 function Base.iterate(tb::Treebank, state)
-    r, i = state
-    tree = read_tree(r)
-    if tree === nothing
-        if i < length(tb.files)
-            j = i + 1
-            return iterate(tb, (TreeReader(tb.files[j], tb.read_token), j))
-        end
-    else
-        return tree, state
-    end
-end
-
-function Base.show(io::IO, tb::Treebank)
-    fs = length(tb.files)
-    len_str = length(tb.files) == 1 ? "1 file" : "$fs files"
-    print(io, "Treebank ($len_str)")
-end
-
-Base.IteratorSize(treebank::Treebank) = Base.SizeUnknown()
-
-struct TreeReader
-    io::IO
-    read_token
-end
-
-TreeReader(file::String, read_token) = TreeReader(open(file), read_token)
-
-function read_tree(trees::TreeReader)
-    io = trees.io
-    if eof(io)
-        close(io)
+    if eof(state)
+        close(state)
         return nothing
     end
-    str = readuntil(io, "\n\n")
-    return deptree(str, trees.read_token)
+    sentence = tb.read_sentence(state)
+    tree = tb.parse(sentence)
+    return tree, state
 end
+
+readuntilemptyline(io) = readuntil(io, "\n\n")
+
+Base.IteratorSize(tb::Treebank) = Base.SizeUnknown()
+

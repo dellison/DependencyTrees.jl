@@ -2,10 +2,9 @@ module DependencyTrees
 
 export
     DependencyTree,
-    deptree, deptoken,
     is_projective,
     Treebank,
-    from_conllu,
+    conllu, conllx,
 
     typed, untyped,
 
@@ -19,6 +18,7 @@ import Base: iterate, IteratorSize, length
 include("errors.jl")
 include("tokens.jl")
 include("trees.jl")
+include("conllx.jl")
 include("conllu.jl")
 
 include("treebanks.jl")
