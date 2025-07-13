@@ -26,6 +26,9 @@ include("treebanks.jl")
 include("transition_parsing/TransitionParsing.jl")
 using .TransitionParsing
 
+include("graph_parsing/GraphParsing.jl")
+using .GraphParsing
+
 include("evaluation.jl")
 
 end # module
