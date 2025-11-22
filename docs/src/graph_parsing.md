@@ -22,6 +22,6 @@ DependencyGraph
 
 ## Chu-Liu/Edmonds
 
-```@docs
+```@doc
 chu_liu_edmonds
 ```
