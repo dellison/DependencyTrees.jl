@@ -91,9 +91,7 @@
             @test choose_head(scores, node1) == ((1,1), 12)
             @test choose_head(scores, node2) == ((3,2), 7)
             @test choose_head(scores, node3) == ((2,3), 8)
-            # prediction, prediction_scores = greedy_predict(scores, [node1, node2, node3])
             pred1, scores1 = greedy_predict(scores, [node1, node2, node3])
-            @show pred1 scores1
             @test pred1 == [(0,1), (3,2), (2,3)]
             @test scores1 == [12, 7, 8]
             
@@ -106,10 +104,10 @@
 
             using DependencyTrees.GraphParsing: CLENodes, combine
             nodes1 = CLENodes(scores)
-            @show nodes2, toexpand = combine(nodes1, cycle)
+            nodes2, toexpand = combine(nodes1, cycle)
 
             using DependencyTrees.GraphParsing: adjust
-            @show scores_adjusted = adjust(scores, nodes1, scores1)
+            scores_adjusted = adjust(scores, nodes1, scores1)
             
             @test getarc(scores_adjusted, 0, 1) == 0
             @test getarc(scores_adjusted, 0, 2) == -3
