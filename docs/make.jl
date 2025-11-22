@@ -20,4 +20,7 @@ makedocs(
     doctest = true
 )
 
-deploydocs(repo = "github.com/dellison/DependencyTrees.jl.git")
+deploydocs(
+    repo = "github.com/dellison/DependencyTrees.jl.git",
+    devbranch = "graph-parsing"
+)
