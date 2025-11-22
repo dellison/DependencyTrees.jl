@@ -121,22 +121,18 @@ end
 struct CLENode{T}
     index::T
     incoming::BitArray
-    inner::BitArray # TODO: can maybe get rid of this?
 end
 
 function CLENode(scores::AbstractMatrix, index)
     incoming = falses(size(scores))
     incoming[:, index] .= true
 
-    inner = falses(size(scores))
-
     for i in index, j in index
         if i != j
             incoming[i, j] = false
-            inner[i, j] = true
         end
     end
-    CLENode(index, incoming, inner)
+    CLENode(index, incoming)
 end
 
 struct CLENodes
@@ -218,16 +214,14 @@ function combine(nodes, cycle)
             cycle_nodes = nodes.nodes[index]
             
             incoming = reduce((.|), [n.incoming for n in cycle_nodes])
-            inner = falses(size(first(nodes).inner))
             for i_ in index, j_ in index
                 if i_ != j_
                     incoming[i_, j_] = false
-                    inner[i_, j_] = true
                 end
             end
 
             indexmap[index] .= i
-            combined_node = CLENode(index, incoming, inner)
+            combined_node = CLENode(index, incoming)
             push!(new_nodes, combined_node)
             index_to_expand = i
         end
