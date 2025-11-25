@@ -12,8 +12,10 @@ struct DependencyTree{T<:Token, R<:Union{Int,Set{Int}}}
     metadata::Dict{String,String}
 end
 
-DependencyTree(tokens) =
-    DependencyTree(tokens, find_root(tokens), Dict{String,String}())
+function DependencyTree(tokens)
+    ts = Token.(tokens)
+    DependencyTree(ts, find_root(ts), Dict{String,String}())
+end
 
 function DependencyTree(tokenf, xs)
     tokens = Token[]
@@ -142,7 +144,8 @@ function prettyprint(tree::DependencyTree; charset=DEFAULT_ARROWS)
     lines = map(enumerate(lines)) do (i, line)
         height = length(line)
         leftpad = repeat(" ", max_height - height)
-        leftpad * line * " " * tree[i-1].form
+        form = isnothing(tree[i-1].form) ? "$(i-1)" : tree[i-1].form
+        leftpad * line * " " * form
     end
     return join(lines, "\n")
 end

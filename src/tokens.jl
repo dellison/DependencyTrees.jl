@@ -26,6 +26,11 @@ Token(form, head, label=nothing; kwargs...) =
 Token(token::Token; head=token.head, label=token.label, kwargs...) =
     Token(token.form, head, label, isempty(kwargs) ? nothing : Dict(kwargs))
 
+# some special case constructors...????
+Token(pair::Tuple{Int,Int}) = Token(nothing, first(pair))
+Token(head::Int) = Token(nothing, head)
+# Token(tok::Token) = tok
+
 # one-headed tokens (this covers most cases)
 const Token1H{F,L} = Token{F,Int,L}
 

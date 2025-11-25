@@ -16,6 +16,8 @@ function DependencyGraph(tree::DependencyTree)
     return graph
 end
 
+Base.copy(G::DependencyGraph) = DependencyGraph(copy(G.arcs))
+
 function Base.getindex(G::DependencyGraph, i::Int, j::Int)
     if iszero(i)
         getindex(G.arcs, j, j)
@@ -27,6 +29,15 @@ Base.getindex(G::DependencyGraph, args...) = getindex(G.arcs, args...)
 
 Base.length(G::DependencyGraph) = length(G.arcs)
 Base.size(G::DependencyGraph, a...) = size(G.arcs, a...)
+
+function Base.setindex!(G::DependencyGraph, i::Int, j::Int)
+    if iszero(i)
+        setindex!(G.arcs, j, j)
+    else
+        setindex!(G.arcs, i, j)
+    end
+end
+Base.setindex!(G::DependencyGraph, args...) = setindex!(G.arcs, args...)
 
 getarc(G::DependencyGraph, head, dep) = getindex(G, head, dep)
 
@@ -43,7 +54,3 @@ function setarc!(graph::DependencyGraph, head, i, x)
     graph.arcs[head, i] = x
     return graph
 end
-
-
-
-

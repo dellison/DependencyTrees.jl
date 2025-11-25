@@ -63,7 +63,88 @@
         end
     end
 
-    @testset "Chu-Liu/Edmonds" begin
+    @testset "Chu-Liu/Edmonds Algorithm" begin
+
+        @testset "Combining Nodes" begin
+            using DependencyTrees.GraphParsing: CLENode, CLENodes, combine
+
+            @testset "Repeated Combines" begin
+                @testset "At the end" begin
+                    G = zeros(5, 5)
+                    nodes = CLENodes(G)
+
+                    @test length(nodes) == 5
+                    @test nodes.indexmap == [1,2,3,4,5]
+
+                    c_45, c_45c = combine(nodes, [4, 5])
+                    @test c_45.indexmap == [1,2,3,4,4]
+                    @test c_45c == 4
+
+                    c_345, c_345c = combine(c_45, [3, 4])
+                    @test c_345.indexmap == [1,2,3,3,3]
+                    @test c_345c == 3
+
+                    c_345_2, c_345c_2 = combine(nodes, [3,4,5])
+                    @test c_345c_2 == 3
+                    @test c_345_2.indexmap == [1,2,3,3,3]
+                end
+                @testset "At the beginning" begin
+                    G = zeros(5, 5)
+                    nodes = CLENodes(G)
+
+                    c_12, c_12c = combine(nodes, [1, 2])
+                    @test length(c_12) == 4
+                    @test c_12c == 1
+                    @test c_12.indexmap == [1, 1, 2, 3, 4]
+                    @test c_12.nodes[1].index == [1,2]
+                    @test c_12.nodes[2].index == 3
+                    @test c_12.nodes[3].index == 4
+                    @test c_12.nodes[4].index == 5
+
+                    c_123, c_123c = combine(c_12, [1, 2])
+                    @test length(c_123) == 3
+                    @test c_123c == 1
+                    @test c_123.indexmap == [1, 1, 1, 2, 3]
+                    @test c_123.nodes[1].index == [1,2,3]
+
+                    c_123_2, c_123c_2 = combine(nodes, [1,2,3])
+                    @test length(c_123_2) == 3
+                    @test c_123c_2 == 1
+                    @test c_123_2.indexmap == [1, 1, 1, 2, 3]
+                    @test c_123_2.nodes[1].index == [1,2,3]
+                end
+                @testset "In the middle" begin
+                    G = zeros(5, 5)
+                    nodes = CLENodes(G)
+
+                    c_23, c_23c = combine(nodes, [2,3])
+                    @test length(c_23.nodes) == 4
+                    @test c_23c ==2
+                    @test c_23.indexmap == [1,2,2,3,4]
+
+                    c_234, c_234c = combine(c_23, [2,3])
+                    @test length(c_234.nodes) == 3
+                    @test c_234c == 2
+                    @test c_234.indexmap == [1,2,2,2,3]
+
+                    c_234_2, c_234c_2 = combine(nodes, [2,3,4])
+                    @test length(c_234_2.nodes) == 3
+                    @test c_234c_2 == 2
+                    @test c_234_2.indexmap == [1,2,2,2,3]
+                end
+            end
+            @testset "Discontinous" begin
+                G = zeros(5, 5)
+                nodes = CLENodes(G)
+                c_24, c_24c = combine(nodes, [2, 4])
+                @test c_24c == 2
+                @test c_24.indexmap == [1,2,3,2,4]
+            end
+        end
+
+        @testset "Expanding combined nodes" begin
+        end
+
         @testset "SLP Ch todo: 'Book that flight' example" begin
             using DependencyTrees.GraphParsing: chu_liu_edmonds
 
@@ -88,7 +169,7 @@
 
             node1, node2, node3 = [CLENode(scores, i) for i=1:3]
 
-            @test choose_head(scores, node1) == ((1,1), 12)
+            @test choose_head(scores, node1) == ((0,1), 12)
             @test choose_head(scores, node2) == ((3,2), 7)
             @test choose_head(scores, node3) == ((2,3), 8)
             pred1, scores1 = greedy_predict(scores, [node1, node2, node3])
