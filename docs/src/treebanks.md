@@ -30,9 +30,15 @@ tree = first(treebank)
    └──────────► .
 ```
 
-## Supported Formats
+
+## CoNLL-U
 
 ```@docs
 conllu
+```
+
+## CoNLL-X
+
+```@docs
 conllx
 ```
