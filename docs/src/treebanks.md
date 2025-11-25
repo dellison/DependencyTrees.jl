@@ -9,7 +9,7 @@ Treebank
 Iterating over a treebank reads sentences one at a time:
 
 ```jldoctest; setup = :(using DependencyTrees)
-treebank = Treebank("data/news.conll")
+treebank = Treebank("data/news.conll", conllu)
 
 for tree in treebank
     # ...
