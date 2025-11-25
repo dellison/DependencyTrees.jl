@@ -59,7 +59,7 @@ function conllx(text::AbstractString)
         
         token = Token(
             form, head, deprel;
-            id=id, lemma=lemma, cpostag=cpostag, postag=pastag,
+            id=id, lemma=lemma, cpostag=cpostag, postag=postag,
             feats=feats, head=head, deprel=deprel, phead=phead, pdeprel=pdeprel
         )
         push!(tokens, token)
