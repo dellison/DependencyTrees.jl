@@ -16,12 +16,12 @@ The `DependencyTrees.GraphParsing` module implements the following algorithms:
 
 ## DependencyGraph
 
-```@doc
+```@docs
 DependencyGraph
 ```
 
 ## Chu-Liu/Edmonds
 
-```@doc
+```@docs
 chu_liu_edmonds
 ```
