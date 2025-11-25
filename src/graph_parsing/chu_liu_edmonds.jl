@@ -1,3 +1,35 @@
+#
+
+"""
+    chu_liu_edmonds(G)
+
+Decode a dependency tree using the Chu-Liu/Edmonds algorighm.
+"""
+function chu_liu_edmonds end
+
+function chu_liu_edmonds(G::DependencyGraph)
+    mst, score = _chu_liu_edmonds(G, CLENodes(G))
+    return DependencyTree(mst), score
+end
+
+chu_liu_edmonds(G::AbstractMatrix) =
+    chu_liu_edmonds(DependencyGraph(G))
+
+function _chu_liu_edmonds(G::DependencyGraph, nodes)
+    arcs, scores = greedy_predict(G, nodes)
+    cycles = find_cycles(first.(maparcs(nodes, arcs; head_zero=false)))
+    if !isempty(cycles)
+        cycle = pop!(cycles)
+        nodes2 = combine(nodes, cycle)
+        tree2, _ = _chu_liu_edmonds(adjust(G, nodes, scores), nodes2)
+        arcs2 = expand(arcs, nodes, tree2, nodes2)
+        score = sum(G[arc...] for arc in arcs2)
+        return arcs2, score
+    else
+        return arcs, sum(scores)
+    end
+end
+
 struct CLENode{T}
     index::T
     incoming::BitArray
@@ -18,13 +50,14 @@ end
 struct CLENodes
     nodes::Vector{CLENode}
     indexmap::Vector{Int} # original matrix indices --> nodes indices
+    toexpand::Int
 end
 
 function CLENodes(A::AbstractMatrix)
     n = size(A, 1)
     indexmap = collect(1:n)
     nodes = [CLENode(A, i) for i=1:n]
-    return CLENodes(nodes, indexmap)
+    return CLENodes(nodes, indexmap, 0)
 end
 
 Base.length(nodes::CLENodes) = length(nodes.nodes)
@@ -33,11 +66,6 @@ Base.iterate(nodes::CLENodes, st...) = iterate(nodes.nodes, st...)
 function mapindex(nodes::CLENodes, graph_index)
     node_index = nodes.indexmap[graph_index]
     return node_index
-end
-
-function mapindices(nodes::CLENodes, graph_indices...)
-    node_indices = (mapindex(nodes, index) for index in graph_indices)
-    return node_indices
 end
 
 function maparc(nodes::CLENodes, h, i; head_zero=true)
@@ -53,35 +81,6 @@ end
 maparcs(nodes::CLENodes, arcs; head_zero=true) =
     [maparc(nodes, h, i; head_zero=head_zero) for (h, i) in arcs]
 
-"""
-    chu_liu_edmonds(G)
-
-todo
-"""
-function chu_liu_edmonds end
-
-chu_liu_edmonds(G::DependencyGraph) =
-    _chu_liu_edmonds(G, CLENodes(G))
-
-chu_liu_edmonds(G::AbstractMatrix) =
-    _chu_liu_edmonds(DependencyGraph(G), CLENodes(G))
-
-function _chu_liu_edmonds(G::DependencyGraph, nodes)
-    arcs, scores = greedy_predict(G, nodes)
-    cycles = find_cycles(first.(maparcs(nodes, arcs; head_zero=false)))
-    if !isempty(cycles)
-        cycle = pop!(cycles)
-        nodes_collapsed, to_expand = combine(nodes, cycle)
-        adjusted = adjust(G, nodes, scores)
-        tree_collapsed, _ = _chu_liu_edmonds(adjusted, nodes_collapsed)
-        corrected_arcs = expand(arcs, nodes, tree_collapsed, nodes_collapsed, to_expand)
-        score = sum(G[arc...] for arc in corrected_arcs)
-        return corrected_arcs, score
-    else
-        return arcs, sum(scores)
-    end
-end
-
 function greedy_predict(G, nodes; head_zero=true)
     predict = node -> choose_head(G, node; head_zero=head_zero)
     arcs, scores = collect.(zip(predict.(nodes)...))
@@ -91,8 +90,7 @@ end
 function adjust(G, nodes, values)
     A = copy(G)
     for (node, value) in zip(nodes, values)
-        adjustment = node.incoming .* value
-        A .-= adjustment
+        A .-= node.incoming .* value
     end
     return A
 end
@@ -118,24 +116,22 @@ function combine(nodes, cycle)
     for (i, node) in enumerate(nodes)
         if ! (i in cycle)
             push!(new_nodes, node)
-            for idx in node.index
-                indexmap[idx] = i - offset
-            end
+            indexmap[[node.index...]] .= i - offset
         elseif i == minimum(cycle) # combined node
             index = collect(cycle)
-            cycle_nodes = nodes.nodes[index]
+            cnodes = nodes.nodes[index]
             
-            incoming = reduce((.|), [n.incoming for n in cycle_nodes])
+            incoming = reduce((.|), [n.incoming for n in cnodes])
             for i_ in index, j_ in index
                 if i_ != j_
                     incoming[i_, j_] = false
                 end
             end
 
-            for cnode in cycle, idx in nodes.nodes[cnode].index
+            for cnode in cnodes, idx in cnode.index
                 indexmap[idx] = i
             end
-            indices = [nodes.nodes[i].index for i in cycle]
+            indices = [node.index for node in cnodes]
             combined_node = CLENode(reduce(vcat, indices), incoming)
             push!(new_nodes, combined_node)
             index_to_expand = i
@@ -143,18 +139,18 @@ function combine(nodes, cycle)
             offset += 1
         end
     end
-    return CLENodes(new_nodes, indexmap), index_to_expand
+    return CLENodes(new_nodes, indexmap, index_to_expand)
 end
 
-function expand(tree_cyclic, nodes_cyclic, tree_collapsed, nodes_collapsed, to_expand)
+function expand(tree_cyclic, nodes_cyclic, tree_collapsed, nodes_collapsed)
     n = length(tree_cyclic)
     arcs = Vector{Tuple{Int,Int}}(undef, n)
     for (i, ((head, index), node)) in enumerate(zip(tree_collapsed, nodes_collapsed))
-        if i != to_expand
+        if i != nodes_collapsed.toexpand
             # node from collapsed tree, doesn't need expanding.
             hd, idx = maparc(nodes_collapsed, head, index, head_zero=true)
-            i_ = mapindex(nodes_cyclic, first(node.index))
-            arcs[i_] = (hd, idx)
+            treeindex = mapindex(nodes_cyclic, first(node.index))
+            arcs[treeindex] = (hd, idx)
         else
             # this is the node that was combined previously. because
             # it is made from a cycle in the tree, it has a set of
@@ -165,7 +161,7 @@ function expand(tree_cyclic, nodes_cyclic, tree_collapsed, nodes_collapsed, to_e
             # the nodes again, we use the incoming MST arc to the
             # collapsed node, and the rest of the "inner" arcs,
             # dropping the conflicting one.
-            cnode = nodes_collapsed.nodes[to_expand]
+            cnode = nodes_collapsed.nodes[nodes_collapsed.toexpand]
             for c_index in cnode.index
                 arc_index = mapindex(nodes_cyclic, c_index)
                 if c_index == index
@@ -183,11 +179,3 @@ function expand(tree_cyclic, nodes_cyclic, tree_collapsed, nodes_collapsed, to_e
     end
     return arcs
 end
-
-function expand2(tree_cyclic, nodes_cyclic, tree_collapsed, nodes_collapsed, to_expand)
-    n = length(tree_cyclic)
-    arcs = Vector{Tuple{Int,Int}}(undef, n)
-    cnodes = zip(tree_collapsed, nodes_collapsed)
-    for (i, ((head, index), node)) in enumerate(cnodes)
-    end
-end 
