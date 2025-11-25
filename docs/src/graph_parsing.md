@@ -14,13 +14,15 @@ The `DependencyTrees.GraphParsing` module implements the following algorithms:
 
 - [Chu-Liu/Edmonds](@ref Chu-Liu/Edmonds)
 
-## DependencyGraph
+## Dependency Graphs
 
 ```@docs
 DependencyGraph
 ```
 
-## Chu-Liu/Edmonds
+## Graph Decoding Algorithms
+
+### Chu-Liu/Edmonds
 
 ```@docs
 chu_liu_edmonds

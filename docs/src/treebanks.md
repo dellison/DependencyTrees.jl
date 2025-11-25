@@ -29,3 +29,10 @@ tree = first(treebank)
    │  └────►└── markets
    └──────────► .
 ```
+
+## Supported Formats
+
+```@docs
+conllu
+conllx
+```
