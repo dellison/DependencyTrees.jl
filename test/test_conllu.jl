@@ -117,5 +117,10 @@
         tree = conllu(sent)
         @test length(tree) == 29
         @test tree.metadata["sent_id"] == "weblog-juancole.com_juancole_20051126063000_ENG_20051126_063000-0001"
+        @test tree.metadata["newdoc id"] == "weblog-juancole.com_juancole_20051126063000_ENG_20051126_063000"
+        @test tree.metadata["sent_id"] == "weblog-juancole.com_juancole_20051126063000_ENG_20051126_063000-0001"
+        @test tree.metadata["newpar id"] == "weblog-juancole.com_juancole_20051126063000_ENG_20051126_063000-p0001"
+        @test tree.metadata["text"] == "Al-Zaman : American forces killed Shaikh Abdullah al-Ani, the preacher at the mosque in the town of Qaim, near the Syrian border."
+
     end
 end

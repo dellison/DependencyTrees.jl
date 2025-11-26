@@ -3,7 +3,10 @@
 """
     conllu(text)
 
-Read a token (in a dependency tree) from CoNLL-U format.
+Read an annotated sentence from CoNLL-U format.
+
+For details on the format, please see:
+https://universaldependencies.org/format.html
 """
 function conllu(text::AbstractString)
     tokens = Token[]

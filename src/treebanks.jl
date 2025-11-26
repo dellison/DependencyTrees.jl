@@ -1,8 +1,14 @@
 """
     Treebank
 
-A reader for a file with annotated parse trees.
+A reader for a file containing annotated dependency parse trees.
+
+Iterating (i.e., using a for-loop) produces one tree at a time. The
+tree is produced by first calling the treebank's `read_sentence`
+field, and then the `parse` field is called to parse the serialized
+representation into a `DependencyTree`.
 """
+
 struct Treebank{S,F}
     file::String
     read_sentence::S
@@ -39,4 +45,3 @@ end
 readuntilemptyline(io) = readuntil(io, "\n\n")
 
 Base.IteratorSize(tb::Treebank) = Base.SizeUnknown()
-
