@@ -24,7 +24,7 @@ using DependencyTrees: deps, leftdeps, rightdeps, leftmostdep, rightmostdep
         @test graph.tokens[i].form == first(t)
     end
 
-    @test DependencyTrees.to_conllu(graph) |> strip == """
+    @test DependencyTrees.conllu(graph) |> strip == """
 1	Economic	_	_	_	_	2	ATT	_	_
 2	news	_	_	_	_	3	SBJ	_	_
 3	had	_	_	_	_	0	PRED	_	_
@@ -152,7 +152,7 @@ using DependencyTrees: deps, leftdeps, rightdeps, leftmostdep, rightmostdep
         graph = DependencyTree(t -> DependencyTrees.Token(t...), sent)
         @test !is_projective(graph)
 
-        @test DependencyTrees.to_conllu(graph) |> strip == """
+        @test DependencyTrees.conllu(graph) |> strip == """
 1	john	_	_	_	_	2	_	_	_
 2	saw	_	_	_	_	0	_	_	_
 3	a	_	_	_	_	4	_	_	_

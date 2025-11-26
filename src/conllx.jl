@@ -70,6 +70,28 @@ end
 
 conllx(io::IO) = conllx(readuntil(io, "\n\n"))
 
-function to_conllx(tree::DependencyTree)
-    return "TODO" 
+"""
+    conllx(tree::DependencyTree)
+
+Serialize a dependency tree to CoNLL-X format.
+"""
+function conllx(tree::DependencyTree)
+    metadata = ["$k = $v" for (k, v) in tree.metadata]
+    p = (tok, prop, nf="_", f=identity) -> begin
+        isnothing(tok.data) ? nf : f(get(tok.data, p, nf))
+    end
+    sentence = map(enumerate(tree.tokens)) do (i, token)
+        id, form, lemma = string(i), token.form, token.lemma
+        cpostag, postag = token.cpostag, token.postag
+        feats = join(p(token, :feats, ["_"]), ",")
+        head = string(token.head)
+        deprel = p(token, :label, "_")
+        phead = p(token, :phead, "_", string)
+        pdeprel = p(token, :pdeprel, "_", string)
+        cols = [
+            id, form, lemma, cpostag, postag, feats,
+            head, deprel, phead, pdeprel
+        ]
+        return join(cols, "\t")
+    end
 end

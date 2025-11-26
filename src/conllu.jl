@@ -99,23 +99,25 @@ end
 
 conllu(io::IO) = conllu(readuntil(io, "\n\n"))
 
+"""
+    conllu(tree::DependencyTree)
 
-to_conllu(tree::DependencyTree) =
-    join([toconllu(i, tk) for (i, tk) in enumerate(tree)], "\n")
-
-function _prop(t::Token, p::Symbol, nf="_", f=identity)
-    t.data === nothing && return nf
-    f(get(t.data, p, nf))
+Serialize a dependency tree to CoNLL-U format.
+"""
+function conllu(tree::DependencyTree)
+    metadata = ["$k = $v" for (k, v) in tree.metadata]
+    p = (tok, prop, nf="_", f=identity) -> begin
+        isnothing(tok.data) ? nf : f(get(tok.data, p, nf))
+    end
+    sentence = map(enumerate(tree)) do (i, token)
+        id, form, head = string(i), token.form, string(token.head)
+        deprel = isnothing(token.label) ? "_" : token.label
+        lemma = p(token, :lemma)
+        upos, xpos = p(token, :upos), p(token, :xpos)
+        feats = join(p(token, :feats, ["_"]), ",")
+        deps = join(p(token, :deps, ["_"]), ",")
+        misc = p(token, :misc)
+        join([id, form, lemma, upos, xpos, feats, head, deprel, deps, misc], "\t")
+    end
+    return join(vcat(metadata, sentence), "\n")
 end
-
-function toconllu(id::Int, t::Token)
-    id, form, head = string(id), t.form, string(t.head)
-    deprel = t.label == nothing ? "_" : t.label
-    lemma = _prop(t, :lemma)
-    upos, xpos = _prop(t, :upos), _prop(t, :xpos)
-    feats = join(_prop(t, :feats, ["_"]), ",")
-    deps = join(_prop(t, :deps, ["_"]), ",")
-    misc = _prop(t, :misc)
-    join([id, form, lemma, upos, xpos, feats, head, deprel, deps, misc], "\t")
-end
-
