@@ -7,3 +7,8 @@ Simple API for building dependency trees:
 ```@docs
 DependencyTree
 ```
+
+## Visualizing Trees
+
+DependencyTrees.jl by default displays `DependencyTree`s by drawing arrows representing the dependency arcs.
+For example, 

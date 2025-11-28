@@ -49,7 +49,7 @@
         @test sum(length(o(t)) for t in tb) == 0
 
         for tree in tb
-            if !is_projective(tree)
+            if !isprojective(tree)
                 @test isempty(oracle(tree))
             else
                 @test !isempty(oracle(tree))

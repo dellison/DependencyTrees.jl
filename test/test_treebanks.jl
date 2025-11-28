@@ -23,7 +23,7 @@
 
         np = Treebank(joinpath(datadir, "nonprojective.conll"), conllu)
         @test length(collect(np)) == 3
-        @test length(filter(is_projective, collect(np))) == 2
+        @test length(filter(isprojective, collect(np))) == 2
     end
 
     @testset "Oracles & Projectivity" begin

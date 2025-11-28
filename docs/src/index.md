@@ -1,6 +1,6 @@
 # DependencyTrees.jl
 
-DependencyTrees.jl is a julia package for working with natural language dependency structures.
+DependencyTrees.jl is a Julia package for working with natural language dependency structures.
 
 ## Overview
 

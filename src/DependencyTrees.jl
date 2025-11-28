@@ -2,7 +2,7 @@ module DependencyTrees
 
 export
     DependencyTree,
-    is_projective,
+    isprojective,
     Treebank,
     conllu, conllx,
 

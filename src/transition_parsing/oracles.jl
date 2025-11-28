@@ -54,7 +54,7 @@ struct OracleSequence{T,P}
 
     function OracleSequence(oracle::Oracle, tree::DependencyTree, policy=NeverExplore())
         T = oracle.system
-        if projective_only(T) && !is_projective(tree)
+        if projective_only(T) && !isprojective(tree)
             UnparsableTree(NonProjectiveGraphError(tree))
         else
             new{typeof(T),typeof(policy)}(oracle, tree, policy)

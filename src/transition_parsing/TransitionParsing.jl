@@ -18,7 +18,7 @@ import Random.AbstractRNG
 import Random.GLOBAL_RNG
 
 import ..Token, ..DependencyTree, ..ROOT, ..deps, ..token, 
-    ..has_arc, ..has_head, ..is_projective, ..leftdeps, ..rightdeps,
+    ..has_arc, ..has_head, ..isprojective, ..leftdeps, ..rightdeps,
     ..NonProjectiveGraphError
 
 """

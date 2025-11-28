@@ -131,7 +131,7 @@ using DependencyTrees: deps, leftdeps, rightdeps, leftmostdep, rightmostdep
         @test length(deps_) == length(sent_deps)
         @test Set(graph[id].form for id in deps_) == Set([d[1] for d in sent_deps])
     end
-    # @test is_projective(graph)
+    # @test isprojective(graph)
 
     @testset "Projectivity" begin
 
@@ -150,7 +150,7 @@ using DependencyTrees: deps, leftdeps, rightdeps, leftmostdep, rightmostdep
             ("terrier", 7)    # 10
         ]
         graph = DependencyTree(t -> DependencyTrees.Token(t...), sent)
-        @test !is_projective(graph)
+        @test !isprojective(graph)
 
         @test DependencyTrees.conllu(graph) |> strip == """
 1	john	_	_	_	_	2	_	_	_
@@ -217,7 +217,7 @@ using DependencyTrees: deps, leftdeps, rightdeps, leftmostdep, rightmostdep
         ]
         tree = DependencyTree(x -> Token(x...), sent)
 
-        @test !is_projective(tree)
+        @test !isprojective(tree)
 
         for system in (ArcEager(), ArcHybrid(), ArcStandard())
             oracle = Oracle(system, static_oracle)

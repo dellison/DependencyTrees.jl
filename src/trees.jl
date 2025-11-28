@@ -99,7 +99,12 @@ end
 token(tree::DependencyTree, i) =
     iszero(i) ? ROOT : tree.tokens[i]
 
-function is_projective(tree::DependencyTree)
+"""
+    isprojective(tree::DependencyTree)
+
+True when a tree is projective, false when non-projective.
+"""
+function isprojective(tree::DependencyTree)
     # For every arc (i,l,j) there is a directed path from i to every
     # word k such that min(i,j) < k < max(i,j)
     arc = (a, b) -> has_arc(tree, a, b)
