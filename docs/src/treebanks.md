@@ -4,6 +4,7 @@ A `Treebank` is a corpus of dependency-annotated sentences in one or more files.
 
 ```@docs
 Treebank
+Treebank(file)
 ```
 
 Iterating over a treebank reads sentences one at a time:
