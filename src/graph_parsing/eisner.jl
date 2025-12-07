@@ -14,23 +14,18 @@ end
 abstract type PartialTree end
 abstract type Triangle <: PartialTree end
 abstract type Box      <: PartialTree end
-
-# t2 for kuhlmann; "left-rooted triangle" (or tree with root at i)
 struct LTriangle <: Triangle
     i::Int # root at i
     j::Int
 end
-# t1: "right-rooted triangle" (or tree with root at k)
 struct RTriangle <: Triangle
     i::Int
     j::Int # root at j
 end
-# t4: box with left to right arc (pair of trees with arc from i to k)
 struct LBox <: Box
     i::Int
     j::Int
 end
-# t3 box with right to left arc (pair of trees with arc from k to i)
 struct RBox <: Box
     i::Int
     j::Int
@@ -57,20 +52,19 @@ arcscore(::EisnerChart{T}, ::Triangle) where T = zero(T)
 arcscore(C::EisnerChart{T}, b::LBox) where T = C.G[b.i, b.j]
 arcscore(C::EisnerChart{T}, b::RBox) where T = C.G[b.j, b.i]
 
-# [ ] ATTACH-RIGHT:
-# maybe should be LTriangle(x.i, q-1), RTriangle(q, x.j)?
+# ATTACH-RIGHT in Eisner & Satta 1999
 attachments(x::LBox, q) = (LTriangle(x.i, q), RTriangle(q+1, x.j))
 attachpoints(s::LBox)   = s.i:s.j-1
 
-# [ ] ATTACH-LEFT:
+# ATTACH-LEFT
 attachments(x::RBox, q) = (LTriangle(x.i, q), RTriangle(q+1, x.j))
 attachpoints(s::RBox)   = s.i:s.j-1
 
-# [ ] COMPLETE-RIGHT:
+# COMPLETE-RIGHT
 attachments(x::LTriangle, q) = (LBox(x.i, q), LTriangle(q, x.j))
 attachpoints(s::LTriangle)   = s.i+1:s.j
 
-# [ ] COMPLETE-LEFT:
+# COMPLETE-LEFT
 attachments(x::RTriangle, q) = (RTriangle(x.i, q), RBox(q, x.j))
 attachpoints(s::RTriangle)   = s.i:s.j-1
 
@@ -125,6 +119,11 @@ function best_root(C::EisnerChart)
     return score, r
 end
 
+"""
+    eisner(G)
+
+Decode a projective dependency tree using the Eisner algorithm.
+"""
 function eisner(G::DependencyGraph)
     n = size(G, 1)
     C = EisnerChart(G)
@@ -146,3 +145,4 @@ function eisner(G::DependencyGraph)
     )), by=last)
     return DependencyTree(arcs), score
 end
+eisner(G::AbstractMatrix) = eisner(DependencyGraph(G))
