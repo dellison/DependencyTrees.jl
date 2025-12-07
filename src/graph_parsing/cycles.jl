@@ -2,7 +2,7 @@
 
 function find_cycles(graph::Vector{Int})
     sccs = tarjan(graph)
-    return filter(scc -> length(scc) > 1, sccs)
+    return map(s -> sort(collect(s)), filter(scc -> length(scc) > 1, sccs))
 end
 
 has_cycles(graph::Vector{Int}) =

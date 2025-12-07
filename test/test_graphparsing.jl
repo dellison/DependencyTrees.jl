@@ -10,8 +10,8 @@
                 @testset "1 2" begin
                     sccs = tarjan([2, 1])
                     cycles = find_cycles([2, 1])
-                    @test sccs == cycles
-                    @test Set([1, 2]) in cycles
+                    @test sccs == Set.(cycles)
+                    @test [1, 2] in cycles
                     @test length(cycles) == 1
                 end
                 @testset "1 2 3" begin
@@ -40,7 +40,6 @@
                 tree = [2, 0]
                 sccs = tarjan(tree)
                 cycles = find_cycles(tree)
-                # @show tree cycles
                 @test length(sccs) == length(tree)
                 @test length(cycles) == 0
             end
@@ -181,7 +180,7 @@
             cycles = find_cycles(heads1)
             @test length(cycles) == 1
             cycle = pop!(cycles)
-            @test cycle == Set([2,3])
+            @test cycle == [2,3]
 
             using DependencyTrees.GraphParsing: CLENodes, combine
             nodes1 = CLENodes(scores)
