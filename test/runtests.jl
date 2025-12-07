@@ -38,4 +38,5 @@ end
     include("test_arc_swift.jl")
     include("test_evaluation.jl")
     include("test_graphparsing.jl")
+    include("test_eisner.jl")
 end

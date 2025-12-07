@@ -28,8 +28,10 @@ Token(token::Token; head=token.head, label=token.label, kwargs...) =
 
 # some special case constructors...????
 Token(pair::Tuple{Int,Int}) = Token(nothing, first(pair))
+Token(pair::Tuple{Int,AbstractString}) = Token(string(last(pair)), first(pair))
+Token(pair::Tuple{AbstractString,Int}) = Token(string(first(pair)), last(pair))
+Token(pair::Pair{Int,Int}) = Token(nothing, first(pair), id=last(pair))
 Token(head::Int) = Token(nothing, head)
-# Token(tok::Token) = tok
 
 # one-headed tokens (this covers most cases)
 const Token1H{F,L} = Token{F,Int,L}
