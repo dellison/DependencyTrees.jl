@@ -26,8 +26,8 @@ State consists of a stack (σ), a buffer (β), and a list of tokens (A).
 """
 struct ArcStandard <: AbstractTransitionSystem end
 
-initconfig(s::ArcStandard, graph::DependencyTree) = ArcStandardConfig(graph)
-initconfig(s::ArcStandard, words) = ArcStandardConfig(words)
+initconfig(::ArcStandard, graph::DependencyTree) = ArcStandardConfig(graph)
+initconfig(::ArcStandard, words) = ArcStandardConfig(words)
 
 projective_only(::ArcStandard) = true
 

@@ -1,7 +1,7 @@
 abstract type TransitionOperator end
 
-args(r::TransitionOperator) = ()
-kwargs(r::TransitionOperator) = NamedTuple()
+args(::TransitionOperator) = ()
+kwargs(::TransitionOperator) = NamedTuple()
 
 import Base.==
 ==(op1::TransitionOperator, op2::TransitionOperator) =
@@ -76,9 +76,9 @@ Return the token at stack index `i` (starting at 1).
 """
 function stacktoken(cfg, i=1)
     stk = stack(cfg)
-    stklen = length(stk)
-    s_index = stacklength(cfg) - i + 1
-    if 1 <= s_index <= stacklength(cfg)
+    s = length(stk)
+    s_index = s - i + 1
+    if 1 <= s_index <= s
         a_index = stk[s_index]
         a_index == 0 ? ROOT : token(cfg, a_index)
     else

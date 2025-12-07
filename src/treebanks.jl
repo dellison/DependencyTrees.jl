@@ -1,12 +1,10 @@
 """
     Treebank
 
-A reader for a file containing annotated dependency parse trees.
+A lazy reader for a file containing annotated dependency parse trees.
 
-Iterating (i.e., using a for-loop) produces one tree at a time. The
-tree is produced by first calling the treebank's `read_sentence`
-field, and then the `parse` field is called to parse the serialized
-representation into a `DependencyTree`.
+Iterating (i.e., using a for-loop) produces one tree at a time.
+The treebank's `read_sentence` field is called on the IO stream to read until a sentence boundary (by default two blank lines), and the `parse` field is called on the resulting string to read a `DependencyTree`.
 """
 struct Treebank{S,F}
     file::String
@@ -14,6 +12,15 @@ struct Treebank{S,F}
     parse::F
 end
 
+"""
+    Treebank(file)
+
+Read `file` as a treebank.
+
+The file extension should be one of the following supported formats:
+- ".conllu"
+- ".conllx"
+"""
 function Treebank(file)
     if endswith(file, ".conllu")
         return Treebank(file, readuntilemptyline, conllu)
