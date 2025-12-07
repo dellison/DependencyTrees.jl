@@ -3,6 +3,8 @@
 
 Arc-Eager transition system for dependency parsing.
 
+Parser state consists of a stack (σ), a buffer (β), and a list of tokens (A).
+
 # Transitions
 
 | Transition  | Definition                                    |
@@ -22,7 +24,8 @@ Arc-Eager transition system for dependency parsing.
 
 # References
 
-[Nivre 2003](http://stp.lingfil.uu.se/~nivre/docs/iwpt03.pdf), [Nivre 2008](https://www.aclweb.org/anthology/J08-4003.pdf).
+- [Nivre 2003](http://stp.lingfil.uu.se/~nivre/docs/iwpt03.pdf)
+- [Nivre 2008](https://www.aclweb.org/anthology/J08-4003.pdf).
 """
 struct ArcEager <: AbstractTransitionSystem end
 

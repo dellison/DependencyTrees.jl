@@ -3,6 +3,8 @@
 
 Transition system for for Arc-Standard dependency parsing.
 
+State consists of a stack (σ), a buffer (β), and a list of tokens (A).
+
 # Transitions
 
 | Transition  | Definition                                         |
@@ -18,7 +20,9 @@ Transition system for for Arc-Standard dependency parsing.
 | LeftArc(l)  | ¬[s1 = 0], ¬∃k∃l'[(k, l', s1) ϵ A] |
 | RightArc(l) | ¬∃k∃l'[(k, l', s0) ϵ A]            |
 
-See [Nivre 2004](https://www.aclweb.org/anthology/W04-0308.pdf).
+# References
+
+- [Nivre 2004](https://www.aclweb.org/anthology/W04-0308.pdf).
 """
 struct ArcStandard <: AbstractTransitionSystem end
 

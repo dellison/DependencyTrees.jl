@@ -1,7 +1,9 @@
 """
     DependencyGraph
 
-todo
+A square matrix of arc weights, reprenting a (set of) dependency parse trees.
+
+Root arc scores are kept along the diagonal.
 """
 struct DependencyGraph{W} <: AbstractMatrix{W}
     arcs::Matrix{W}
