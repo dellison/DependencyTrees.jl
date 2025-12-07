@@ -24,5 +24,19 @@
 
         using DependencyTrees: arcs
         @test arcs(decoded_tree) == arcs(tree)
+
+    end
+
+    @testset "Decoding random trees" begin
+
+        using DependencyTrees: isprojective
+        using DependencyTrees.GraphParsing
+
+        @test all(1:1000) do _
+            n = rand(10:30)
+            G = rand(n, n)
+            tree, score = eisner(G)
+            isprojective(tree)
+        end
     end
 end
