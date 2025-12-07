@@ -8,6 +8,18 @@ Simple API for building dependency trees:
 DependencyTree
 ```
 
+## DependencyTree functions
+
+```@docs
+DependencyTrees.arcs
+```
+
+## Projectivity
+
+```@docs
+DependencyTrees.isprojective
+```
+
 ## Visualizing Trees
 
 DependencyTrees.jl by default displays `DependencyTree`s by drawing arrows representing the dependency arcs.

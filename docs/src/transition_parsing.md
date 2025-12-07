@@ -80,14 +80,14 @@ Oracle function for list-based non-projective parsing:
 static_oracle(::TransitionParsing.ListBasedNonProjectiveConfig, tree, arc=untyped)
 ```
 
-<!-- ## Misc. -->
+## Misc.
 
-<!-- For stack-and-buffer transition systems ([Arc-Eager](@ref Arc-Eager), [Arc-Standard](@ref Arc-Standard), [Arc-Hybrid](@ref Arc-Hybrid), and [Arc-Swift](@ref Arc-Swift)), DependencyTrees.jl implements functions for getting the tokens from the stack and buffer in a safe way: -->
+For stack-and-buffer transition systems ([Arc-Eager](@ref Arc-Eager), [Arc-Standard](@ref Arc-Standard), [Arc-Hybrid](@ref Arc-Hybrid), and [Arc-Swift](@ref Arc-Swift)), DependencyTrees.jl implements functions for getting the tokens from the stack and buffer in a safe way:
 
-<!-- ```@docs -->
-<!-- stacktoken -->
-<!-- buffertoken -->
-<!-- ``` -->
+```@docs
+DependencyTrees.TransitionParsing.stacktoken
+DepdencyTrees.TransitionParsing.buffertoken
+```
 
 ## Oracles
 
