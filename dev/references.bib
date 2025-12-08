@@ -1,0 +1,86 @@
+@article{nivre-2008-algorithms-deterministic,
+    title = "Algorithms for Deterministic Incremental Dependency Parsing",
+    author = "Nivre, Joakim",
+    journal = "Computational Linguistics",
+    volume = "34",
+    number = "4",
+    year = "2008",
+    url = "https://aclanthology.org/J08-4003/",
+    doi = "10.1162/coli.07-056-R1-07-027",
+    pages = "513--553"
+}
+
+@inproceedings{nivre-2003-efficient-projective,
+    title = "An Efficient Algorithm for Projective Dependency Parsing",
+    author = "Nivre, Joakim",
+    booktitle = "Proceedings of the Eighth International Conference on Parsing Technologies",
+    month = apr,
+    year = "2003",
+    address = "Nancy, France",
+    url = "https://aclanthology.org/W03-3017/",
+    pages = "149--160",
+    abstract = "This paper presents a deterministic parsing algorithm for projective dependency grammar. The running time of the algorithm is linear in the length of the input string, and the dependency graph produced is guaranteed to be projective and acyclic. The algorithm has been experimentally evaluated in parsing unrestricted Swedish text, achieving an accuracy above 85{\%} with a very simple grammar."
+}
+
+@inproceedings{kuhlmann-etal-2011-dp-transition-parsers,
+    title = "Dynamic Programming Algorithms for Transition-Based Dependency Parsers",
+    author = "Kuhlmann, Marco  and
+      G{\'o}mez-Rodr{\'i}guez, Carlos  and
+      Satta, Giorgio",
+    editor = "Lin, Dekang  and
+      Matsumoto, Yuji  and
+      Mihalcea, Rada",
+    booktitle = "Proceedings of the 49th Annual Meeting of the Association for Computational Linguistics: Human Language Technologies",
+    month = jun,
+    year = "2011",
+    address = "Portland, Oregon, USA",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/P11-1068/",
+    pages = "673--682"
+}
+
+@article{goldberg-nivre-2013-nondeterministic-oracles,
+    title = "Training Deterministic Parsers with Non-Deterministic Oracles",
+    author = "Goldberg, Yoav  and
+      Nivre, Joakim",
+    editor = "Lin, Dekang  and
+      Collins, Michael",
+    journal = "Transactions of the Association for Computational Linguistics",
+    volume = "1",
+    year = "2013",
+    address = "Cambridge, MA",
+    publisher = "MIT Press",
+    url = "https://aclanthology.org/Q13-1033/",
+    doi = "10.1162/tacl_a_00237",
+    pages = "403--414",
+    abstract = "Greedy transition-based parsers are very fast but tend to suffer from error propagation. This problem is aggravated by the fact that they are normally trained using oracles that are deterministic and incomplete in the sense that they assume a unique canonical path through the transition system and are only valid as long as the parser does not stray from this path. In this paper, we give a general characterization of oracles that are nondeterministic and complete, present a method for deriving such oracles for transition systems that satisfy a property we call arc decomposition, and instantiate this method for three well-known transition systems from the literature. We say that these oracles are dynamic, because they allow us to dynamically explore alternative and nonoptimal paths during training {---} in contrast to oracles that statically assume a unique optimal path. Experimental evaluation on a wide range of data sets clearly shows that using dynamic oracles to train greedy parsers gives substantial improvements in accuracy. Moreover, this improvement comes at no cost in terms of efficiency, unlike other techniques like beam search."
+}
+
+@inproceedings{qi-manning-2017-arc-swift,
+    title = "Arc-swift: A Novel Transition System for Dependency Parsing",
+    author = "Qi, Peng  and
+      Manning, Christopher D.",
+    editor = "Barzilay, Regina  and
+      Kan, Min-Yen",
+    booktitle = "Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics (Volume 2: Short Papers)",
+    month = jul,
+    year = "2017",
+    address = "Vancouver, Canada",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/P17-2018/",
+    doi = "10.18653/v1/P17-2018",
+    pages = "110--117",
+    abstract = "Transition-based dependency parsers often need sequences of local shift and reduce operations to produce certain attachments. Correct individual decisions hence require global information about the sentence context and mistakes cause error propagation. This paper proposes a novel transition system, arc-swift, that enables direct attachments between tokens farther apart with a single transition. This allows the parser to leverage lexical information more directly in transition decisions. Hence, arc-swift can achieve significantly better performance with a very small beam size. Our parsers reduce error by 3.7{--}7.6{\%} relative to those using existing transition systems on the Penn Treebank dependency parsing task and English Universal Dependencies."
+}
+
+@inproceedings{nivre-2004-incrementality,
+    title = "Incrementality in Deterministic Dependency Parsing",
+    author = "Nivre, Joakim",
+    booktitle = "Proceedings of the Workshop on Incremental Parsing: Bringing Engineering and Cognition Together",
+    month = jul,
+    year = "2004",
+    address = "Barcelona, Spain",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/W04-0308/",
+    pages = "50--57"
+}
