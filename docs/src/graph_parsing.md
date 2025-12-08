@@ -12,7 +12,7 @@ The [`DependencyGraph`](@ref DependencyGraph) type is used for this.
 
 The `DependencyTrees.GraphParsing` module implements the following algorithms:
 
-- [Chu-Liu/Edmonds algorithm](@ref "Chu-Liu/Edmonds algorithm") for decoding a tree
+- [Chu-Liu/Edmonds algorithm](@ref "Chu-Liu/Edmonds Algorithm") for decoding a tree
 - [Eisner's algorithm](@ref "Eisner's Algorithm") for decoding a projective tree
 
 ## Dependency Graphs
