@@ -86,7 +86,7 @@ For stack-and-buffer transition systems ([Arc-Eager](@ref Arc-Eager), [Arc-Stand
 
 ```@docs
 DependencyTrees.TransitionParsing.stacktoken
-DepdencyTrees.TransitionParsing.buffertoken
+DependencyTrees.TransitionParsing.buffertoken
 ```
 
 ## Oracles

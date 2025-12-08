@@ -20,6 +20,12 @@ DependencyTrees.arcs
 DependencyTrees.isprojective
 ```
 
+## Tokens
+
+```@docs
+DependencyTrees.Token
+```
+
 ## Visualizing Trees
 
 DependencyTrees.jl by default displays `DependencyTree`s by drawing arrows representing the dependency arcs.
