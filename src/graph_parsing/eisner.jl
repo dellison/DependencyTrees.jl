@@ -123,6 +123,11 @@ end
     eisner(G)
 
 Decode a projective dependency tree using the Eisner algorithm.
+
+# References
+
+- [Eisner & Satta, 1999](@cite eisner-satta-1999-efficient)
+- [Eisner, 2000](@cite eisner-2000-iwptbook)
 """
 function eisner(G::DependencyGraph)
     n = size(G, 1)
