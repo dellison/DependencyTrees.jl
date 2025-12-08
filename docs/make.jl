@@ -19,7 +19,8 @@ makedocs(
         "Transition Parsing" => "transition_parsing.md",
         "Graph Parsing" => "graph_parsing.md",
         "Evaluation" => "evaluation.md",
-        "Errors" => "errors.md"
+        "Errors" => "errors.md",
+        "References" => "references.md"
     ],
     doctest = true,
     plugins = [bib]

@@ -19,7 +19,3 @@ julia> ]add DependencyTrees
 julia> using DependencyTrees
 ```
 
-## References
-
-```@bibliography
-```
