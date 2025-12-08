@@ -9,6 +9,13 @@ struct DependencyGraph{W} <: AbstractMatrix{W}
     arcs::Matrix{W}
 end
 
+"""
+    DependencyGraph(tree::DependencyTree)
+
+Create a dependency graph from `tree`.
+
+Arcs will have a score of 1, and non-arcs 0.
+"""
 function DependencyGraph(tree::DependencyTree)
     n = length(tree.tokens)
     graph = DependencyGraph(zeros(n, n))
