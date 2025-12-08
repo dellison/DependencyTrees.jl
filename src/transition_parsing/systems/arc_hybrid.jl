@@ -3,8 +3,22 @@
 
 Arc-Hybrid system for transition dependency parsing.
 
-Described in [Kuhlmann et al, 2011](https://www.aclweb.org/anthology/P11-1068.pdf),
-[Goldberg & Nivre, 2013](https://aclweb.org/anthology/Q13-1033.pdf).
+# Transitions
+
+| Transition | Definition |
+|:---------- |:---------- |
+|            |            |
+
+# Preconditions
+
+| Transition | Condition |
+|:---------- |:--------- |
+|            |           |
+
+# References
+
+- [Kuhlmann et al, 2011](@cite kuhlmann-etal-2011-dp-transition-parsers)
+- [Goldberg & Nivre, 2013](@cite goldberg-nivre-2013-nondeterministic-oracles)
 """
 struct ArcHybrid <: AbstractTransitionSystem end
 

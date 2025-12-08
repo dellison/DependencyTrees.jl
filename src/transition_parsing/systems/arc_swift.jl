@@ -3,7 +3,13 @@
 
 Arc-Swift transition system for dependency parsing.
 
-Described in [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
+# Transitions
+
+# Preconditions
+
+# References
+
+- [Qi & Manning 2017](@cite qi-manning-2017-arc-swift).
 """
 struct ArcSwift <: AbstractTransitionSystem end
 

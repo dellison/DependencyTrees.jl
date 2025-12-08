@@ -24,8 +24,8 @@ Parser state consists of a stack (σ), a buffer (β), and a list of tokens (A).
 
 # References
 
-- [Nivre 2003](http://stp.lingfil.uu.se/~nivre/docs/iwpt03.pdf)
-- [Nivre 2008](https://www.aclweb.org/anthology/J08-4003.pdf).
+- [Nivre 2003](@cite nivre-2003-efficient-projective)
+- [Nivre 2008](@cite nivre-2008-algorithms-deterministic).
 """
 struct ArcEager <: AbstractTransitionSystem end
 

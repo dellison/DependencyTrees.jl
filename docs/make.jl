@@ -1,7 +1,11 @@
 using DependencyTrees
 using DependencyTrees.TransitionParsing
 using DependencyTrees.GraphParsing
+
 using Documenter
+using DocumenterCitations
+
+bib = CitationBibliography(joinpath(@__DIR__, "src", "references.bib"))
 
 DocMeta.setdocmeta!(DependencyTrees, :DocTestSetup, :(using DependencyTrees); recursive=true)
 
@@ -17,7 +21,8 @@ makedocs(
         "Evaluation" => "evaluation.md",
         "Errors" => "errors.md"
     ],
-    doctest = true
+    doctest = true,
+    plugins = [bib]
 )
 
 deploydocs(

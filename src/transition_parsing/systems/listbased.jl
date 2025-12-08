@@ -3,7 +3,13 @@
 
 Transition system for list-based non-projective dependency parsing.
 
-Described in Nivre 2008, "Algorithms for Deterministic Incremental Dependency Parsing."
+# Transitions
+
+# Preconditions
+
+# References
+
+- [Nivre 2008](@cite nivre-2008-algorithms-deterministic)
 """
 struct ListBasedNonProjective <: AbstractTransitionSystem end
 

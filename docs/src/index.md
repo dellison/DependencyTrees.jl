@@ -18,3 +18,8 @@ DependencyTrees is a registered Julia package, and can be installed with Julia's
 julia> ]add DependencyTrees
 julia> using DependencyTrees
 ```
+
+## References
+
+```@bibliography
+```

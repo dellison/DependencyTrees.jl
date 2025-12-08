@@ -22,7 +22,7 @@ State consists of a stack (σ), a buffer (β), and a list of tokens (A).
 
 # References
 
-- [Nivre 2004](https://www.aclweb.org/anthology/W04-0308.pdf).
+- [Nivre 2004](@cite nivre-2004-incrementality).
 """
 struct ArcStandard <: AbstractTransitionSystem end
 
