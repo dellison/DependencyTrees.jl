@@ -5,11 +5,25 @@ Transition system for list-based non-projective dependency parsing.
 
 # Transitions
 
+| Transition    | Definition |
+|:----------    |:--         |
+| LeftArc([ℓ])  |            |
+| RightArc([ℓ]) |            |
+| NoArc()       |            |
+| Shift()       |            |
+
 # Preconditions
 
-# References
+| Transition    | Condition |
+|:----------    |:--         |
+| LeftArc([ℓ])  |            |
+| RightArc([ℓ]) |            |
+| NoArc()       |            |
+| Shift()       |            |
 
-- [Nivre 2008](@cite nivre-2008-algorithms-deterministic)
+# Further Reading
+
+- [Nivre 2008, "Algorithms for Deterministic Incremental Dependency Parsing"](https://aclanthology.org/J08-4003/) [nivre-2008-algorithms-deterministic](@cite)
 """
 struct ListBasedNonProjective <: AbstractTransitionSystem end
 
@@ -92,8 +106,9 @@ end
 """
     static_oracle(::ListBasedNonProjectiveConfig, tree)
 
-Return a training oracle function which returns gold transition
-operations from a parser configuration with reference to `graph`.
+Static oracle function for list-based non-projective parsing.
+
+Described in [Nivre 2008, "Algorithms for Deterministic Incremental Dependency Parsing"](https://aclanthology.org/J08-4003/) [nivre-2008-algorithms-deterministic](@cite).
 """
 function static_oracle(cfg::ListBasedNonProjectiveConfig, tree, arc=untyped)
     l = i -> arc(tree[i])

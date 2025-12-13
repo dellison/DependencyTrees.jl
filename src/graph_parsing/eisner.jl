@@ -124,10 +124,12 @@ end
 
 Decode a projective dependency tree using the Eisner algorithm.
 
-# References
+Use a chart parsing algorithm to decode the best possible projective tree.
 
-- [Eisner & Satta, 1999](@cite eisner-satta-1999-efficient)
-- [Eisner, 2000](@cite eisner-2000-iwptbook)
+# Further reading
+
+- [Eisner & Satta, 1999](https://aclanthology.org/P99-1059/) [eisner-satta-1999-efficient](@cite)
+- [Eisner, 2000](http://cs.jhu.edu/~jason/papers/#eisner-2000-iwptbook) [eisner-2000-iwptbook](@cite)
 """
 function eisner(G::DependencyGraph)
     n = size(G, 1)

@@ -3,29 +3,34 @@
 
 Arc-Eager transition system for dependency parsing.
 
-Parser state consists of a stack (σ), a buffer (β), and a list of tokens (A).
+In Arc-Eager parsing, the parser state consists of:
+- A stack `σ`, with `s` at the top: `σ|s`
+- a buffer `β`, with `b` at the front: `b|β`
+- a list of tokens `A`, each `(h, ℓ, i)`, indicating an arc from `h` to `i` with label `ℓ`
+
+Arcs are drawn between the token at the top the stack, `s`, and and the leftmosttoken on the buffer, `b`.
 
 # Transitions
 
 | Transition  | Definition                                    |
 |:----------- |:--------------------------------------------- |
-| LeftArc(l)  | (σ\\|s, b\\|β, A) → (σ, b\\|β, A ∪ (b, l, s)) |
-| RightArc(l) | (σ\\|s, b\\|β, A) → (σ, b\\|β, A ∪ (b, l, s)) |
-| Reduce      | (σ\\|s, β,  A) → (σ, β,   A)                  |
-| Shift	      | (σ,  b\\|β, A) → (σ\\|b, β, A)                |
+| LeftArc(ℓ)  | `(σ\\|s, b\\|β, A) → (σ, b\\|β, A ∪ (s, ℓ, b))` |
+| RightArc(ℓ) | `(σ\\|s, b\\|β, A) → (σ, b\\|β, A ∪ (b, ℓ, s))` |
+| Reduce      | `(σ\\|s, β,  A) → (σ, β,   A)`                  |
+| Shift	      | `(σ,  b\\|β, A) → (σ\\|b, β, A)`                |
 
 # Preconditions
 
-| Transition  | Condition                        |
-|:----------- |:-------------------------------- |
-| LeftArc(l)  | ¬[s = 0], ¬∃k∃l'[(k, l', i) ϵ A] |
-| RightArc(l) | ¬∃k∃l'[(k, l', j) ϵ A]           |
-| Reduce      | ∃k∃l[(k, l, i) ϵ A]              |
+| Transition  | Condition                          |
+|:----------- |:---------------------------------- |
+| LeftArc(ℓ)  | `¬[s = 0], ¬∃k∃ℓ'[(k, ℓ', i) ϵ A]` |
+| RightArc(ℓ) | `¬∃k∃ℓ'[(k, ℓ', j) ϵ A]`           |
+| Reduce      | `∃k∃ℓ[(k, ℓ, i) ϵ A]`              |
 
-# References
+# Further Reading
 
-- [Nivre 2003](@cite nivre-2003-efficient-projective)
-- [Nivre 2008](@cite nivre-2008-algorithms-deterministic).
+- [Nivre 2003, "An Efficient Algorithm for Projective Dependency Parsing"](https://aclanthology.org/W03-3017/) [nivre-2003-efficient-projective](@cite)
+- [Nivre 2008, "Algorithms for Deterministic Incremental Dependency Parsing"](https://aclanthology.org/J08-4003/) [nivre-2008-algorithms-deterministic](@cite).
 """
 struct ArcEager <: AbstractTransitionSystem end
 
@@ -74,8 +79,9 @@ has_head(cfg::ArcEagerConfig, k) = has_head(token(cfg, k))
 
 Default static oracle function for arc-eager dependency parsing.
 
-See [Goldberg & Nivre 2012](https://www.aclweb.org/anthology/C12-1059.pdf).
-(Also called Arc-Eager-Reduce in [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf)).
+Descibed in [Goldberg & Nivre 2012](https://aclanthology.org/C12-1059/) [goldberg-nivre-2012-dynamic](@cite).
+
+This is also called "Arc-Eager-Reduce" in [Qi & Manning 2017](https://aclanthology.org/P17-2018/) [qi-manning-2017-arc-swift](@cite).
 """
 function static_oracle(cfg::ArcEagerConfig, gold, arc=untyped)
     if stacklength(cfg) >= 1
@@ -98,7 +104,7 @@ end
 Static oracle for arc-eager dependency parsing. Similar to the
 "regular" static oracle, but always Shift when ambiguity is present.
 
-See [Qi & Manning 2017](https://nlp.stanford.edu/pubs/qi2017arcswift.pdf).
+See [Qi & Manning 2017](https://aclanthology.org/P17-2018/) [qi-manning-2017-arc-swift](@cite).
 """
 function static_oracle_prefer_shift(cfg::ArcEagerConfig, tree, arc=untyped)
     l = i -> arc(token(tree, i))
@@ -128,7 +134,7 @@ end
 
 Dynamic oracle function for arc-eager parsing.
 
-For details, see [Goldberg & Nivre 2012](https://aclweb.org/anthology/C12-1059).
+For details, see [Goldberg & Nivre 2012](https://aclanthology.org/C12-1059/) [goldberg-nivre-2012-dynamic](@cite).
 """
 dynamic_oracle(cfg::ArcEagerConfig, tree, arc=untyped) =
     filter(t -> cost(t, cfg, tree) == 0, possible_transitions(cfg, tree, arc))

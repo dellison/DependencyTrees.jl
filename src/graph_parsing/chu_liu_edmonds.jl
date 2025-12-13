@@ -1,9 +1,13 @@
-#
-
 """
     chu_liu_edmonds(G)
 
 Decode a dependency tree using the Chu-Liu/Edmonds algorighm.
+
+Uses a recursive algorithm to predict a (possibly non-projective) maximum spanning tree algorithm for the graph `G`.
+
+# Further Reading
+
+- [McDonald et al, 2005](https://aclanthology.org/H05-1066/) [mcdonald-etal-2005-non](@cite)
 """
 function chu_liu_edmonds end
 

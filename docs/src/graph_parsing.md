@@ -19,6 +19,7 @@ The `DependencyTrees.GraphParsing` module implements the following algorithms:
 
 ```@docs
 DependencyGraph
+DependencyGraph(tree::DependencyTree)
 ```
 
 ## Graph Decoding Algorithms

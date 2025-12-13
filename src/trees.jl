@@ -103,6 +103,24 @@ token(tree::DependencyTree, i) =
     isprojective(tree::DependencyTree)
 
 True when a tree is projective, false when non-projective.
+
+```jldoctest
+julia> tree = DependencyTree([("john", 2), ("saw", 0), ("a", 4), ("dog", 2), ("yesterday", 2), ("which", 7), ("was", 4), ("a", 9), ("yorkshire", 10), ("terrier", 7)])
+   ┌─────────── ROOT
+   │        ┌─► john
+   └─►┌──┌──└── saw
+      │  │  ┌─► a
+   ┌──│  └─►└── dog
+   │  └───────► yesterday
+   │        ┌─► which
+┌──└───────►└── was
+│           ┌─► a
+│        ┌─►└── yorkshire
+└───────►└───── terrier
+
+julia> isprojective(tree)
+false
+```
 """
 function isprojective(tree::DependencyTree)
     # For every arc (i,l,j) there is a directed path from i to every
