@@ -1,14 +1,16 @@
 # Graph Parsing
 
-The `GraphParsing` submodule provides implementations of graph-based parsing algorighms.
+The `GraphParsing` submodule provides implementations of graph-based parsing algorithms.
 
 ```julia-repl
 julia> using DependencyTrees.GraphParsing
 ```
 
-In graph-based dependency parsing, trees are built all at once, rather than greedily (one arc at a time).
-A set of possible parses for a sentence is represented by a square matrix of arc weights.
-The [`DependencyGraph`](@ref DependencyGraph) type is used for this.
+In graph-based dependency parsing, trees are built all at once, predicting a globally best parse from a set of possible ones.
+A set of possible parses for a sentence is represented by a square matrix of arc weights: a [`DependencyGraph`](@ref DependencyGraph).
+
+An appealing feature of graph parsing is that jointly predicting the whole tree structure avoids the parser making a "wrong turn" the way that transition parsers can.
+The drawback of this is the sacrifice of speed: graph parsing methods are slower than transition parsing methods.
 
 The `DependencyTrees.GraphParsing` module implements the following algorithms:
 
