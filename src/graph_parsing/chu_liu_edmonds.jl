@@ -152,9 +152,8 @@ function expand(tree_cyclic, nodes_cyclic, tree_collapsed, nodes_collapsed)
     for (i, ((head, index), node)) in enumerate(zip(tree_collapsed, nodes_collapsed))
         if i != nodes_collapsed.toexpand
             # node from collapsed tree, doesn't need expanding.
-            hd, idx = maparc(nodes_collapsed, head, index, head_zero=true)
             treeindex = mapindex(nodes_cyclic, first(node.index))
-            arcs[treeindex] = (hd, idx)
+            arcs[treeindex] = (head, index)
         else
             # this is the node that was combined previously. because
             # it is made from a cycle in the tree, it has a set of
@@ -174,7 +173,7 @@ function expand(tree_cyclic, nodes_cyclic, tree_collapsed, nodes_collapsed)
                     arcs[arc_index] = (head, index)
                 else
                     # this arc is an "inner arc" in the
-                    # cyclic/collapsed node, so thoose that.
+                    # cyclic/collapsed node, so choose that.
                     hd, idx = tree_cyclic[mapindex(nodes_cyclic, c_index)]
                     arcs[arc_index] = (hd, idx)
                 end

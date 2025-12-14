@@ -1,5 +1,6 @@
 @testset "Graph Parsing" begin
 
+    using DependencyTrees.GraphParsing
     using DependencyTrees.GraphParsing: DependencyGraph, getarc
 
     @testset "Cycle Detection" begin
@@ -221,6 +222,31 @@
             tree, score = chu_liu_edmonds(scores)
             @test DependencyTrees.arcs(tree) == [(0, 1), (3, 2), (1, 3)]
             @test score == 12 + 7 + 7
+        end
+
+        @testset "McDonald et al 2005" begin
+
+            using DependencyTrees.GraphParsing: greedy_predict
+
+            @testset "John saw Mary." begin
+                G = DependencyGraph([9 20 3; 30 10 30; 11 0 9])
+                @assert G[0, 1] == 9
+                @assert G[0, 2] == 10
+                @assert G[0, 3] == 9
+
+                @assert G[1, 2] == 20
+                @assert G[1, 3] == 3
+
+                @assert G[2, 1] == 30
+                @assert G[2, 3] == 30
+
+                @assert G[3, 1] == 11
+                @assert G[3, 2] == 0
+
+                tree, score = chu_liu_edmonds(G)
+                @test DependencyTrees.arcs(tree) == [(2, 1), (0, 2), (2, 3)]
+                @test score == 70
+            end
         end
     end
 end
