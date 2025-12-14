@@ -5,7 +5,7 @@
 
 Read a dependency tree from text (in CoNLL-X format).
 
-See: https://aclanthology.org/W06-2920.pdf
+For more details on the format, see the [CoNLL-X paper](https://aclanthology.org/W06-2920) [buchholz-marsi-2006-conll](@cite).
 """
 function conllx(text::AbstractString)
     tokens = Token[]
