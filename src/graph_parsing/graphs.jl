@@ -14,15 +14,32 @@ end
 
 Create a dependency graph from `tree`.
 
-Arcs will have a score of 1, and non-arcs 0.
+Arcs will have a score of `1.0`, and non-arcs `0.0`.
+
+```jldoctest
+julia> using DependencyTrees, DependencyTrees.GraphParsing
+
+julia> tree = DependencyTree([(0, "book"), (3, "that"), (1, "flight")])
+┌──────── ROOT
+└─►┌───── book
+   │  ┌─► that
+   └─►└── flight
+
+julia> graph = DependencyGraph(tree)
+3×3 DependencyGraph{Float64}:
+ 1.0  0.0  1.0
+ 0.0  0.0  0.0
+ 0.0  1.0  0.0
+
+```
 """
 function DependencyGraph(tree::DependencyTree)
     n = length(tree.tokens)
-    graph = DependencyGraph(zeros(n, n))
+    G = DependencyGraph(zeros(n, n))
     for (i, token) in enumerate(tree.tokens)
-        setarc!(graph, token.head, i, 1.0)
+        setarc!(G, token.head, i, 1.0)
     end
-    return graph
+    return G
 end
 
 Base.copy(G::DependencyGraph) = DependencyGraph(copy(G.arcs))
@@ -52,14 +69,14 @@ getarc(G::DependencyGraph, head, dep) = getindex(G, head, dep)
 
 getarc(G::AbstractMatrix, a...) = getarc(DependencyGraph(G), a...)
 
-function setarc!(graph::DependencyGraph, head::Number, i, x)
+function setarc!(G::DependencyGraph, head::Number, i, x)
     if iszero(head)
         head = i
     end
-    graph.arcs[head, i] = x
-    return graph
+    G.arcs[head, i] = x
+    return G
 end
-function setarc!(graph::DependencyGraph, head, i, x)
-    graph.arcs[head, i] = x
-    return graph
+function setarc!(G::DependencyGraph, head, i, x)
+    G.arcs[head, i] = x
+    return G
 end
