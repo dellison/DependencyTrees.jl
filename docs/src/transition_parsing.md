@@ -9,7 +9,7 @@ julia> using DependencyTrees.TransitionParsing
 In transition-based dependency parsing, trees are built incrementally and greedily, one relation at a time.
 Transition systems define a parser state (or "configuration") while a tree is being built, and [oracles](@ref Oracles) map configurations to "gold" transitions that build the correct tree.
 
-An appealing feature about transition parsing is that it is fast (𝒪(n)).
+An appealing feature about transition parsing is that it is in principle quite fast (𝒪(n) for a sentence of n tokens).
 A drawback is that a parser greedily predicting one arc at a time can make a "[garden-path](https://en.wikipedia.org/wiki/Garden-path_sentence)"-like error, in which a wrongly predicted arc produces more errors for the rest of the parse.
 
 The `DependencyTrees.TransitionParsing` module implements the following transition systems:

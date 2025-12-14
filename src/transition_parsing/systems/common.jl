@@ -11,13 +11,15 @@ is_possible(t, cfg) = false
 
 struct NoArc <: TransitionOperator end
 (::NoArc)(cfg) = noarc(cfg)
+Base.show(io::IO, ::NoArc) = print(io, "NoArc()")
 
 struct Reduce <: TransitionOperator end
 (::Reduce)(cfg) = reduce(cfg)
+Base.show(io::IO, ::Reduce) = print(io, "Reduce()")
 
 struct Shift  <: TransitionOperator end
 (::Shift)(cfg) = shift(cfg)
-
+Base.show(io::IO, ::Shift) = print(io, "Shift()")
 
 struct LeftArc{A<:Tuple,K<:NamedTuple} <: TransitionOperator
     args::A

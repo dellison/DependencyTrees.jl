@@ -11,13 +11,40 @@ end
 
 Create an oracle for predicting gold transitions in dependency parsing.
 
-`system` is a transition system, defining configurations and valid transitions.
+# Arguments
 
-`oracle_function` is called on a paraser configuration and tree for gold predictions:
+- `system` is a transition system, defining configurations and valid transitions.
+- `oracle_function` is called on a parser configuration and tree for gold predictions:
 
     oracle(cfg, tree, label)
 
-`label` is a function that's called on the gold tokens for that parameters of arcs.
+- `label` is a function that's called on the gold tokens for that parameters of arcs.
+
+# Examples
+
+```jldoctest
+julia> using DependencyTrees.TransitionParsing
+
+julia> oracle = Oracle(ArcEager(), static_oracle)
+Oracle{ArcEager, typeof(static_oracle), typeof(untyped)}(ArcEager(), static_oracle, untyped)
+
+julia> tree = DependencyTree([(2, "I"), (0, "saw"), (4, "a"), (2, "dog")])
+┌──────── ROOT
+│     ┌─► I
+└─►┌──└── saw
+   │  ┌─► a
+   └─►└── dog
+
+julia> for (state, transition) in oracle(tree)
+           @show transition
+       end
+transition = Shift()
+transition = LeftArc()
+transition = RightArc()
+transition = Shift()
+transition = LeftArc()
+transition = RightArc()
+```
 """
 function Oracle(system, oracle_function; label=untyped)
     Oracle(system, oracle_function, label)
