@@ -122,9 +122,9 @@ end
 """
     eisner(G)
 
-Decode a projective dependency tree using the Eisner algorithm.
+Decode a projective dependency tree using the Eisner algorithm, returning a `(tree::DepependencyTree, score) tuple.
 
-Use a chart parsing algorithm to decode the best possible projective tree.
+Uses a bottom-up chart parsing algorithm to decode the best possible projective tree from the arc scores in `G`.
 
 # Further reading
 
