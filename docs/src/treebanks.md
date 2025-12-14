@@ -19,16 +19,16 @@ end
 tree = first(treebank)
 
 # output
-┌────────────── ROOT
-│           ┌─► Economic
-│        ┌─►└── news
-└─►┌──┌──└───── had
-   │  │     ┌─► little
-   │  └─►┌──└── effect
-   │  ┌──└────► on
-   │  │     ┌─► financial
-   │  └────►└── markets
-   └──────────► .
+┌────────────── 0 ROOT
+│           ┌─► 1 Economic
+│        ┌─►└── 2 news
+└─►┌──┌──└───── 3 had
+   │  │     ┌─► 4 little
+   │  └─►┌──└── 5 effect
+   │  ┌──└────► 6 on
+   │  │     ┌─► 7 financial
+   │  └────►└── 8 markets
+   └──────────► 9 .
 ```
 
 

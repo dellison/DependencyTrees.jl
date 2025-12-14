@@ -38,16 +38,16 @@ using DependencyTrees: deps, leftdeps, rightdeps, leftmostdep, rightmostdep
 
     @test showstr(graph) ==
         """
-        ┌────────────── ROOT
-        │           ┌─► Economic
-        │        ┌─►└── news
-        └─►┌──┌──└───── had
-           │  │     ┌─► little
-           │  └─►┌──└── effect
-           │  ┌──└────► on
-           │  │     ┌─► financial
-           │  └────►└── markets
-           └──────────► .
+        ┌────────────── 0 ROOT
+        │           ┌─► 1 Economic
+        │        ┌─►└── 2 news
+        └─►┌──┌──└───── 3 had
+           │  │     ┌─► 4 little
+           │  └─►┌──└── 5 effect
+           │  ┌──└────► 6 on
+           │  │     ┌─► 7 financial
+           │  └────►└── 8 markets
+           └──────────► 9 .
         """ |> strip
 
     @test length(graph) == length(sent) == 9
@@ -167,17 +167,17 @@ using DependencyTrees: deps, leftdeps, rightdeps, leftmostdep, rightmostdep
 
         @test showstr(graph) |> strip ==
             """
-               ┌─────────── ROOT
-               │        ┌─► john
-               └─►┌──┌──└── saw
-                  │  │  ┌─► a
-               ┌──│  └─►└── dog
-               │  └───────► yesterday
-               │        ┌─► which
-            ┌──└───────►└── was
-            │           ┌─► a
-            │        ┌─►└── yorkshire
-            └───────►└───── terrier
+               ┌─────────── 0 ROOT
+               │        ┌─► 1 john
+               └─►┌──┌──└── 2 saw
+                  │  │  ┌─► 3 a
+               ┌──│  └─►└── 4 dog
+               │  └───────► 5 yesterday
+               │        ┌─► 6 which
+            ┌──└───────►└── 7 was
+            │           ┌─► 8 a
+            │        ┌─►└── 9 yorkshire
+            └───────►└───── 10 terrier
             """ |> strip
 
         # jurafsky & martin, speech & language processing (3ed)

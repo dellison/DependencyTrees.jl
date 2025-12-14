@@ -106,17 +106,17 @@ True when a tree is projective, false when non-projective.
 
 ```jldoctest
 julia> tree = DependencyTree([("john", 2), ("saw", 0), ("a", 4), ("dog", 2), ("yesterday", 2), ("which", 7), ("was", 4), ("a", 9), ("yorkshire", 10), ("terrier", 7)])
-   ┌─────────── ROOT
-   │        ┌─► john
-   └─►┌──┌──└── saw
-      │  │  ┌─► a
-   ┌──│  └─►└── dog
-   │  └───────► yesterday
-   │        ┌─► which
-┌──└───────►└── was
-│           ┌─► a
-│        ┌─►└── yorkshire
-└───────►└───── terrier
+   ┌─────────── 0 ROOT
+   │        ┌─► 1 john
+   └─►┌──┌──└── 2 saw
+      │  │  ┌─► 3 a
+   ┌──│  └─►└── 4 dog
+   │  └───────► 5 yesterday
+   │        ┌─► 6 which
+┌──└───────►└── 7 was
+│           ┌─► 8 a
+│        ┌─►└── 9 yorkshire
+└───────►└───── 10 terrier
 
 julia> isprojective(tree)
 false
@@ -167,8 +167,9 @@ function prettyprint(tree::DependencyTree; charset=DEFAULT_ARROWS)
     lines = map(enumerate(lines)) do (i, line)
         height = length(line)
         leftpad = repeat(" ", max_height - height)
-        form = isnothing(tree[i-1].form) ? "$(i-1)" : tree[i-1].form
-        leftpad * line * " " * form
+        id = "$(i-1)"
+        form = isnothing(tree[i-1].form) ? "" : tree[i-1].form
+        leftpad * line * " " * id * " " * form
     end
     return join(lines, "\n")
 end
