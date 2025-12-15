@@ -20,10 +20,10 @@ Arcs will have a score of `1.0`, and non-arcs `0.0`.
 julia> using DependencyTrees, DependencyTrees.GraphParsing
 
 julia> tree = DependencyTree([(0, "book"), (3, "that"), (1, "flight")])
-┌──────── ROOT
-└─►┌───── book
-   │  ┌─► that
-   └─►└── flight
+┌──────── 0 ROOT
+└─►┌───── 1 book
+   │  ┌─► 2 that
+   └─►└── 3 flight
 
 julia> graph = DependencyGraph(tree)
 3×3 DependencyGraph{Float64}:
