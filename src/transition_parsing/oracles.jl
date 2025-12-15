@@ -1,4 +1,3 @@
-abstract type AbstractOracle{T<:AbstractTransitionSystem} end
 
 struct Oracle{T,O,L}
     system::T
@@ -29,11 +28,11 @@ julia> oracle = Oracle(ArcEager(), static_oracle)
 Oracle{ArcEager, typeof(static_oracle), typeof(untyped)}(ArcEager(), static_oracle, untyped)
 
 julia> tree = DependencyTree([(2, "I"), (0, "saw"), (4, "a"), (2, "dog")])
-┌──────── ROOT
-│     ┌─► I
-└─►┌──└── saw
-   │  ┌─► a
-   └─►└── dog
+┌──────── 0 ROOT
+│     ┌─► 1 I
+└─►┌──└── 2 saw
+   │  ┌─► 3 a
+   └─►└── 4 dog
 
 julia> for (state, transition) in oracle(tree)
            @show transition

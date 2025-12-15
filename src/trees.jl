@@ -120,6 +120,24 @@ julia> tree = DependencyTree([("john", 2), ("saw", 0), ("a", 4), ("dog", 2), ("y
 
 julia> isprojective(tree)
 false
+
+julia> tree2 = DependencyTree([("john", 2), ("saw", 0), ("a", 4), ("dog", 2), ("which", 6), ("was", 4), ("a", 8), ("yorkshire", 9), ("terrier", 6), ("yesterday", 2)])
+┌───────────────── 0 ROOT
+│              ┌─► 1 john
+└─►┌────────┌──└── 2 saw
+   │        │  ┌─► 3 a
+   │     ┌──└─►└── 4 dog
+   │     │     ┌─► 5 which
+   │  ┌──└────►└── 6 was
+   │  │        ┌─► 7 a
+   │  │     ┌─►└── 8 yorkshire
+   │  └────►└───── 9 terrier
+   └─────────────► 10 yesterday
+
+
+julia> isprojective(tree2)
+true
+
 ```
 """
 function isprojective(tree::DependencyTree)
