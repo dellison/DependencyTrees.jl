@@ -5,7 +5,7 @@ Read an annotated sentence (`DependencyTree`) from CoNLL-U format.
 
 # Further Reading
 
-- [https://universaldependencies.org/format.html]
+- <https://universaldependencies.org/format.html>
 - [de Marneffe et al, 2021](https://aclanthology.org/2021.cl-2.11/) [de-marneffe-etal-2021-universal](@cite)
 - [Nivre et al, 2020](https://aclanthology.org/2020.lrec-1.497/) [nivre-etal-2020-universal](@cite)
 """
