@@ -18,8 +18,8 @@ end
 Read `file` as a treebank.
 
 The file extension should be one of the following supported formats:
-- ".conllu"
-- ".conllx"
+- `.conllu`
+- `.conllx`
 """
 function Treebank(file)
     if endswith(file, ".conllu")
